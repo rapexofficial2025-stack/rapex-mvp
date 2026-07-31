@@ -1,35 +1,24 @@
-import { getTheme } from "@rapex/theme";
+import { useState } from "react";
+import { Sidebar, Topbar, Button } from "@rapex/ui-web";
 
-const theme = getTheme("light");
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: theme.colors.background,
-    padding: theme.spacing.xl,
-    fontFamily: "system-ui, sans-serif",
-  },
-  title: {
-    fontSize: theme.typography.fontSize["2xl"],
-    fontWeight: theme.typography.fontWeight.bold as React.CSSProperties["fontWeight"],
-    color: theme.colors.brandPrimary,
-    marginBottom: theme.spacing.sm,
-  },
-  subtitle: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.textSecondary,
-  },
-};
+const NAV_ITEMS = [
+  { key: "dashboard", label: "Dashboard" },
+  { key: "orders", label: "Orders" },
+  { key: "products", label: "Products" },
+];
 
 function App() {
+  const [active, setActive] = useState("dashboard");
+
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>RAPEX Merchant Portal</h1>
-      <p style={styles.subtitle}>Gawang Lokal, Para sa Masa</p>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <Sidebar
+        title="RAPEX Merchant"
+        items={NAV_ITEMS.map((item) => ({ ...item, active: item.key === active, onClick: () => setActive(item.key) }))}
+      />
+      <div style={{ flex: 1 }}>
+        <Topbar title={NAV_ITEMS.find((item) => item.key === active)?.label ?? ""} actions={<Button label="New Order" />} />
+      </div>
     </div>
   );
 }

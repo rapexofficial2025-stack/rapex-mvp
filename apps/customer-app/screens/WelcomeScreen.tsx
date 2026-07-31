@@ -1,15 +1,15 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
-import { NavButton } from "../components/NavButton";
+import { Button } from "@rapex/ui-native";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Welcome">;
 
 export function WelcomeScreen({ navigation }: Props) {
   return (
     <ScreenContainer title="Welcome to RAPEX" subtitle="Your hyperlocal marketplace and delivery app">
-      <NavButton label="Log In" onPress={() => navigation.navigate("Login")} />
-      <NavButton label="Create Account" variant="secondary" onPress={() => navigation.navigate("Register")} />
+      <Button label="Log In" onPress={() => navigation.navigate("Login")} />
+      <Button label="Create Account" variant="secondary" onPress={() => navigation.navigate("Register")} />
     </ScreenContainer>
   );
 }

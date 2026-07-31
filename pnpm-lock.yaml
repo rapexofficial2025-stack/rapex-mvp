@@ -66,6 +66,9 @@ importers:
       '@rapex/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@rapex/ui-native':
+        specifier: workspace:*
+        version: link:../../packages/ui-native
       '@rapex/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -121,6 +124,9 @@ importers:
       '@rapex/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@rapex/ui-web':
+        specifier: workspace:*
+        version: link:../../packages/ui-web
       '@rapex/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -241,6 +247,50 @@ importers:
   packages/theme: {}
 
   packages/types: {}
+
+  packages/ui-native:
+    dependencies:
+      '@rapex/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@rapex/theme':
+        specifier: workspace:*
+        version: link:../theme
+      '@rapex/utils':
+        specifier: workspace:*
+        version: link:../utils
+    devDependencies:
+      '@types/react':
+        specifier: ~19.2.2
+        version: 19.2.17
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-native:
+        specifier: 0.86.2
+        version: 0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1)
+
+  packages/ui-web:
+    dependencies:
+      '@rapex/constants':
+        specifier: workspace:*
+        version: link:../constants
+      '@rapex/theme':
+        specifier: workspace:*
+        version: link:../theme
+      '@rapex/utils':
+        specifier: workspace:*
+        version: link:../utils
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.17
+      react:
+        specifier: ^19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.2.8
+        version: 19.2.8(react@19.2.8)
 
   packages/utils:
     dependencies:

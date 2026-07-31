@@ -6,6 +6,7 @@
     "@rapex/constants": "workspace:*",
     "@rapex/theme": "workspace:*",
     "@rapex/types": "workspace:*",
+    "@rapex/ui-native": "workspace:*",
     "@rapex/utils": "workspace:*",
     "@react-navigation/bottom-tabs": "^7.18.14",
     "@react-navigation/native": "^7.3.14",
