@@ -11,6 +11,9 @@ export type RootStackParamList = {
   Checkout: undefined;
   Wallet: undefined;
   Rex: undefined;
+  AuctionHome: undefined;
+  AuctionDetails: { auctionId: string };
+  AuctionProfile: undefined;
 };
 
 export type MainTabParamList = {

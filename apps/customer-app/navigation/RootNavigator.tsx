@@ -12,6 +12,9 @@ import { ProductScreen } from "../screens/ProductScreen";
 import { CheckoutScreen } from "../screens/CheckoutScreen";
 import { WalletScreen } from "../screens/WalletScreen";
 import { RexScreen } from "../screens/RexScreen";
+import { AuctionHomeScreen } from "../screens/AuctionHomeScreen";
+import { AuctionDetailsScreen } from "../screens/AuctionDetailsScreen";
+import { AuctionProfileScreen } from "../screens/AuctionProfileScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -30,6 +33,17 @@ export function RootNavigator() {
       <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ headerShown: true, title: "Checkout" }} />
       <Stack.Screen name="Wallet" component={WalletScreen} options={{ headerShown: true, title: "Wallet" }} />
       <Stack.Screen name="Rex" component={RexScreen} options={{ headerShown: true, title: "R.E.X." }} />
+      <Stack.Screen name="AuctionHome" component={AuctionHomeScreen} options={{ headerShown: true, title: "Auctions" }} />
+      <Stack.Screen
+        name="AuctionDetails"
+        component={AuctionDetailsScreen}
+        options={{ headerShown: true, title: "Auction" }}
+      />
+      <Stack.Screen
+        name="AuctionProfile"
+        component={AuctionProfileScreen}
+        options={{ headerShown: true, title: "My Auctions" }}
+      />
     </Stack.Navigator>
   );
 }

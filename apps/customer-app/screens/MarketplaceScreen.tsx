@@ -17,6 +17,7 @@ export function MarketplaceScreen({ navigation }: Props) {
         label="View Product"
         onPress={() => navigation.navigate("Product", { productId: "placeholder-product" })}
       />
+      <NavButton label="Browse Auctions" variant="secondary" onPress={() => navigation.navigate("AuctionHome")} />
     </ScreenContainer>
   );
 }
