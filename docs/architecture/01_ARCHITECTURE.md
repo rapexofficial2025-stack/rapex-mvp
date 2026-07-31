@@ -22,11 +22,39 @@
 
 ## Principles
 - No backend logic in the frontend apps — Xano owns business logic, orders, wallet, products, auctions, users, merchants, and reports.
-- Firebase is for realtime/presence concerns only, not source-of-truth business data.
+- **Firebase is not the backend.** It is scoped strictly to push notifications, Cloud Messaging, presence, live tracking, chat, Cloud Storage, analytics, crash reporting, Remote Config, and App Check. Business rules, validation, auth workflow, wallet logic, order processing, the auction engine, and financial operations must never be implemented in Firebase — they live in Xano. Full detail in [../06_FIREBASE_PLAN.md](../06_FIREBASE_PLAN.md).
+- Firebase integration must be modular and replaceable — isolated behind its own package (`packages/firebase-client`) rather than called directly from screens or business logic, so it can be swapped without touching the business layer.
+- Frontend talks to **Xano** for business operations and to **Firebase** only for realtime communication.
 - Each app under `apps/` is independently runnable and only shares code via common packages once those are introduced.
 - No duplicate components or business logic — all reusable code belongs in `packages/`.
 - Base44 generates UI only; React apps consume APIs only.
 - Documentation is updated alongside every architecture change.
+
+## Planning pipeline
+
+```
+YOU
+ │
+ ▼
+ChatGPT — Architecture
+ │
+ ▼
+Xano — Business Logic
+ │
+ ▼
+Firebase — Realtime Layer
+ │
+ ▼
+Claude — Frontend
+ │
+ ▼
+Base44 — UI
+ │
+ ▼
+Google — QA
+```
+
+Each stage's output is the input to the next: architecture decisions (ChatGPT) shape the Xano data/business layer, which Firebase's realtime layer sits alongside (never inside), which Claude wires into the frontend, which Base44's generated UI drops into, which is then QA'd. See [../development/08_AI_WORKFLOW.md](../development/08_AI_WORKFLOW.md) for the full tool-responsibility breakdown.
 
 ## Enterprise target architecture
 
