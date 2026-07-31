@@ -13,6 +13,7 @@
     "@rapex/constants": "workspace:*",
     "@rapex/theme": "workspace:*",
     "@rapex/types": "workspace:*",
+    "@rapex/ui-web": "workspace:*",
     "@rapex/utils": "workspace:*",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

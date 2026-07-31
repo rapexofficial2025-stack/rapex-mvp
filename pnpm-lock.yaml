@@ -23,6 +23,9 @@ importers:
       '@rapex/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@rapex/ui-web':
+        specifier: workspace:*
+        version: link:../../packages/ui-web
       '@rapex/utils':
         specifier: workspace:*
         version: link:../../packages/utils
