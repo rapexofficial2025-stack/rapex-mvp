@@ -12,7 +12,17 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  packages/constants: {}
+
   packages/theme: {}
+
+  packages/types: {}
+
+  packages/utils:
+    dependencies:
+      '@rapex/constants':
+        specifier: workspace:*
+        version: link:../constants
 
 packages:
 
