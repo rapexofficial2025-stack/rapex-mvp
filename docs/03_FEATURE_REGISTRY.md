@@ -18,6 +18,7 @@ Master list of features planned across RAPEX. Each will get a status (Not starte
 - Merchant tools
 - Rider tools
 - Admin tools
+- Provider tools
 
 ## Marketplace mechanics
 - Auction

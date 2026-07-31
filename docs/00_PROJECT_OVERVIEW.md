@@ -23,6 +23,7 @@ Imus, Kawit, Lancaster, General Trias.
 3. Rider App — React Native
 4. Merchant Portal — React Web
 5. Admin Portal — React Web
+6. Provider Portal — React Web
 
 ## AI tool responsibilities
 - **ChatGPT** — architecture, business logic design, UI planning, database planning, prompt engineering, product design, folder/feature planning, roadmap
@@ -34,4 +35,4 @@ Imus, Kawit, Lancaster, General Trias.
 **Hard rule:** business logic never lives in the frontend — it belongs in Xano.
 
 ## Status
-Skeletal folder structure only. No application code yet. See [09_ROADMAP.md](09_ROADMAP.md) for what's next.
+Skeletal folder structure only. No application code yet. See [roadmap/09_ROADMAP.md](roadmap/09_ROADMAP.md) for what's next, and [README.md](README.md) for the full docs index.

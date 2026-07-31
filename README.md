@@ -4,12 +4,12 @@
 
 RAPEX is a hyperlocal marketplace and delivery platform built for the Philippines, piloting in Imus, Kawit, Lancaster, and General Trias.
 
-This repository is currently a **skeletal structure only** — folders and planning docs, no application code yet. Code is being added incrementally following the build order in [docs/01_ARCHITECTURE.md](docs/01_ARCHITECTURE.md).
+This repository is currently a **skeletal structure only** — folders and planning docs, no application code yet. Code is being added incrementally following the build order in [docs/architecture/01_ARCHITECTURE.md](docs/architecture/01_ARCHITECTURE.md).
 
 ## Repo layout
 
-- `docs/` — living planning documents (architecture, folder structure, features, business rules, roadmap, etc.)
-- `apps/` — the five applications that make up RAPEX (see each app's README for its role)
+- `docs/` — the RAPEX knowledge base: architecture, business rules, roadmap, prompt library, and more. Start at [docs/README.md](docs/README.md).
+- `apps/` — the six applications that make up RAPEX (see each app's README for its role)
 
 ## Applications
 
@@ -20,6 +20,7 @@ This repository is currently a **skeletal structure only** — folders and plann
 | Rider App | [apps/rider-app](apps/rider-app) | React Native |
 | Merchant Portal | [apps/merchant-portal](apps/merchant-portal) | React Web |
 | Admin Portal | [apps/admin-portal](apps/admin-portal) | React Web |
+| Provider Portal | [apps/provider-portal](apps/provider-portal) | React Web |
 
 ## Stack
 

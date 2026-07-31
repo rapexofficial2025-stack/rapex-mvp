@@ -7,4 +7,4 @@ The customer-facing marketplace and delivery app.
 - **Realtime:** Firebase (chat, notifications, R.E.X. mascot)
 - **Status:** Not started — folder skeleton only
 
-See [../../docs/01_ARCHITECTURE.md](../../docs/01_ARCHITECTURE.md) and [../../docs/09_ROADMAP.md](../../docs/09_ROADMAP.md) for build order.
+See [../../docs/architecture/01_ARCHITECTURE.md](../../docs/architecture/01_ARCHITECTURE.md) and [../../docs/roadmap/09_ROADMAP.md](../../docs/roadmap/09_ROADMAP.md) for build order.
