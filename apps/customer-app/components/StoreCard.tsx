@@ -6,9 +6,11 @@ import { useAppTheme } from "../hooks/useAppTheme";
 type StoreCardProps = {
   store: StoreSummary;
   onPress: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 };
 
-export function StoreCard({ store, onPress }: StoreCardProps) {
+export function StoreCard({ store, onPress, isFavorite, onToggleFavorite }: StoreCardProps) {
   const theme = useAppTheme();
 
   return (
@@ -23,6 +25,7 @@ export function StoreCard({ store, onPress }: StoreCardProps) {
         borderWidth: 1,
         borderRadius: theme.radius.md,
         padding: theme.spacing.md,
+        gap: theme.spacing.sm,
       }}
     >
       <View style={{ flex: 1 }}>
@@ -30,9 +33,16 @@ export function StoreCard({ store, onPress }: StoreCardProps) {
           {store.name}
         </Text>
         <Text style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.textSecondary }}>
-          {store.category} · {store.distanceLabel} · {store.rating} ⭐
+          {store.category} · {store.distanceLabel} · {store.rating} ⭐ · {store.deliveryTimeLabel}
         </Text>
       </View>
+      {onToggleFavorite ? (
+        <Pressable onPress={onToggleFavorite} hitSlop={8}>
+          <Text style={{ fontSize: theme.typography.fontSize.lg, color: isFavorite ? theme.colors.accent : theme.colors.textDisabled }}>
+            {isFavorite ? "★" : "☆"}
+          </Text>
+        </Pressable>
+      ) : null}
       <Badge label={store.isOpen ? "Open" : "Closed"} tone={store.isOpen ? "success" : "neutral"} />
     </Pressable>
   );

@@ -33,7 +33,10 @@ export type StoreSummary = {
   category: string;
   rating: number;
   isOpen: boolean;
+  distanceKm: number;
   distanceLabel: string;
+  deliveryTimeMinMinutes: number;
+  deliveryTimeLabel: string;
 };
 
 export type ProductSummary = {
