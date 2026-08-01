@@ -118,12 +118,45 @@ export type WalletSummary = {
 };
 
 // ---- Merchant ----
+// Hierarchy: MerchantAccount -> MerchantStore[] -> MerchantProduct[] -> ProductVariant[].
+// Products belong only to stores; variants belong only to products -- no global products.
 export type MerchantApprovalStatus = "pending" | "approved" | "rejected";
+export type MerchantVerificationStatus = "unverified" | "pending" | "verified";
+export type MerchantStoreStatus = "online" | "offline";
 
-export type MerchantProfile = {
+export type MerchantAccount = {
   id: ID;
-  storeName: string;
+  ownerName: string;
+  email: string;
+  verificationStatus: MerchantVerificationStatus;
+};
+
+export type MerchantStore = {
+  id: ID;
+  merchantAccountId: ID;
+  name: string;
+  category: string;
+  status: MerchantStoreStatus;
   approvalStatus: MerchantApprovalStatus;
+  address: string;
+  coverageRadiusKm: number;
+  rating: number;
+  productCount: number;
+};
+
+export type MerchantProduct = ProductSummary & {
+  stock: number;
+  isActive: boolean;
+  variantCount: number;
+};
+
+export type ProductVariant = {
+  id: ID;
+  productId: ID;
+  name: string;
+  priceDelta: number;
+  stock: number;
+  sku: string;
 };
 
 export type MerchantOrder = OrderSummary & {

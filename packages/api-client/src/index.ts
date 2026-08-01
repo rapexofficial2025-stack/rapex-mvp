@@ -15,7 +15,15 @@ export type { AuthRepository, RegisterInput, LoginInput } from "./repositories/a
 export type { MarketplaceRepository } from "./repositories/marketplace/MarketplaceRepository";
 export type { OrdersRepository } from "./repositories/orders/OrdersRepository";
 export type { WalletRepository } from "./repositories/wallet/WalletRepository";
-export type { MerchantRepository } from "./repositories/merchant/MerchantRepository";
+export type {
+  MerchantRepository,
+  CreateStoreInput,
+  UpdateStoreInput,
+  CreateProductInput,
+  UpdateProductInput,
+  CreateVariantInput,
+  UpdateVariantInput,
+} from "./repositories/merchant/MerchantRepository";
 export type { AdminRepository } from "./repositories/admin/AdminRepository";
 
 // Hooks
@@ -24,3 +32,4 @@ export * from "./hooks/useAsyncAction";
 export * from "./hooks/useMarketplace";
 export * from "./hooks/useOrders";
 export * from "./hooks/useWallet";
+export * from "./hooks/useMerchant";
