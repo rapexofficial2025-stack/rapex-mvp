@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
@@ -33,10 +33,14 @@ function CategoryChip({ label, active, onPress }: { label: string; active: boole
   );
 }
 
-export function MarketplaceScreen({ navigation }: Props) {
+export function MarketplaceScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
-  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
+  const [categoryId, setCategoryId] = useState<string | undefined>(route.params?.categoryId);
   const { data: categories } = useCategories();
+
+  useEffect(() => {
+    if (route.params?.categoryId) setCategoryId(route.params.categoryId);
+  }, [route.params?.categoryId]);
   const { data: stores, loading, error, refetch } = useStores(categoryId);
 
   return (

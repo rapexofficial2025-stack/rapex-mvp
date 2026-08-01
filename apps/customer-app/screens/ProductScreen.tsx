@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Loading, ErrorState, EmptyState, Button } from "@rapex/ui-native";
@@ -6,12 +7,17 @@ import { useProduct } from "@rapex/api-client";
 import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
 import { useAppTheme } from "../hooks/useAppTheme";
+import { recordProductView } from "../services/recentlyViewedStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Product">;
 
 export function ProductScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
   const { data: product, loading, error, refetch } = useProduct(route.params.productId);
+
+  useEffect(() => {
+    if (product) recordProductView(product.id);
+  }, [product]);
 
   if (loading) return <Loading label="Loading product…" />;
   if (error) return <ErrorState description={error} onRetry={refetch} />;

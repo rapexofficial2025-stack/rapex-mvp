@@ -38,6 +38,9 @@ export const primitive = {
   green700: "#15803D",
   blue500: "#3B82F6",
   blue700: "#1D4ED8",
+  orange300: "#FDBA74",
+  orange500: "#F97316",
+  orange700: "#C2410C",
 } as const;
 
 export const semanticLight = {
@@ -54,6 +57,8 @@ export const semanticLight = {
   brandPrimary: primitive.purple500,
   brandPrimaryHover: primitive.purple700,
   brandSecondary: primitive.teal500,
+  accent: primitive.orange500,
+  accentHover: primitive.orange700,
 
   success: primitive.green500,
   successStrong: primitive.green700,
@@ -81,6 +86,8 @@ export const semanticDark = {
   brandPrimary: primitive.purple300,
   brandPrimaryHover: primitive.purple500,
   brandSecondary: primitive.teal300,
+  accent: primitive.orange300,
+  accentHover: primitive.orange500,
 
   success: primitive.green500,
   successStrong: primitive.green700,

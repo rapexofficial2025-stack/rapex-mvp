@@ -1,6 +1,6 @@
 import { useTheme } from "./useTheme";
 
-export type BadgeTone = "neutral" | "success" | "warning" | "error" | "info" | "brand";
+export type BadgeTone = "neutral" | "success" | "warning" | "error" | "info" | "brand" | "accent";
 
 export type BadgeProps = {
   label: string;
@@ -17,6 +17,7 @@ export function Badge({ label, tone = "neutral" }: BadgeProps) {
     error: theme.colors.error,
     info: theme.colors.info,
     brand: theme.colors.brandPrimary,
+    accent: theme.colors.accent,
   };
 
   const color: Record<BadgeTone, string> = {
@@ -26,6 +27,7 @@ export function Badge({ label, tone = "neutral" }: BadgeProps) {
     error: theme.colors.textInverse,
     info: theme.colors.textInverse,
     brand: theme.colors.textInverse,
+    accent: theme.colors.textInverse,
   };
 
   return (
