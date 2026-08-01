@@ -13,6 +13,16 @@ Source of truth for endpoints the frontend integrates against. Auth headers and 
 
 Implemented in [`packages/api-client/src/core/createRapexHttpClient.ts`](../../packages/api-client/src/core/createRapexHttpClient.ts).
 
+## Base URLs (configured per environment, never hardcoded)
+
+| App | Env var | Production value |
+|---|---|---|
+| Customer App | `EXPO_PUBLIC_API_BASE_URL` | `https://rapexmarketplace.ph` |
+| Merchant Portal | `VITE_API_BASE_URL` | `https://rapexmarketplace.ph` |
+| Admin Portal | `VITE_ADMIN_API_BASE_URL` | Alpha: temporary GitHub deployment URL, until the production admin domain is ready |
+
+Each app has an `.env.example` documenting this; copy to `.env.local` and fill in for local dev. See each app's `services/apiConfig.ts`.
+
 ## Endpoints, in integration order
 
 ### 1. Authentication
@@ -62,15 +72,24 @@ Prepare UI using this documented structure; keep Mock repositories where the spe
 - Do not calculate totals, commissions, or markups on the frontend — always trust Xano responses.
 - If an endpoint is incomplete or missing fields, stop and report it — do not guess.
 
+## Infrastructure ready (independent of field schemas)
+
+- **HTTP client** — [`core/httpClient.ts`](../../packages/api-client/src/core/httpClient.ts): generic fetch wrapper, request/response interceptors.
+- **Retry strategy** — [`core/retry.ts`](../../packages/api-client/src/core/retry.ts): exponential backoff, GET-only by default (mutating requests aren't retried automatically, to avoid duplicate side effects), configurable per app or per request.
+- **Auth middleware** — a 401 response automatically clears the stored token via `onUnauthorized`, so the next auth check naturally routes back to login.
+- **Token storage** — [`core/tokenStorage.ts`](../../packages/api-client/src/core/tokenStorage.ts) defines the `TokenStorage` interface; each app has its own platform-specific implementation (`expo-secure-store` for Customer App with a web/localStorage fallback for dev, `localStorage` for the web portals).
+- **API config** — each app's `services/apiConfig.ts` reads its env var and constructs a ready `HttpClient` via `createRapexHttpClient`. Not yet used by any repository or screen.
+
+All of the above verified with a local test server (retry-until-success, no-retry-on-POST, 401-clears-token, retry-exhaustion, auth-header-injection) — not just type-checked. No requests have been made to the real `rapexmarketplace.ph` domain.
+
 ## Still needed before real implementations can be written
 
 For every endpoint above:
-1. **Base URL** — the actual Xano host these paths resolve against.
-2. **Request body fields** (name, type, required/optional) for every POST/PATCH.
-3. **Response body fields** (success shape) for every endpoint.
-4. **Error response shape** (how Xano reports validation errors, auth failures, etc.).
+1. **Request body fields** (name, type, required/optional) for every POST/PATCH.
+2. **Response body fields** (success shape) for every endpoint.
+3. **Error response shape** (how Xano reports validation errors, auth failures, etc.).
 
 Until these land, `packages/api-client` repositories stay on their Mock implementations. One example skeleton exists — [`XanoAuthRepository.ts`](../../packages/api-client/src/repositories/auth/XanoAuthRepository.ts) — with paths/methods/headers wired and request/response bodies explicitly marked `unknown` pending schema, proving the pattern without guessing.
 
 ## Status
-Endpoint list, order, and headers frozen. Field-level schemas pending — requested as a Swagger/OpenAPI export from Xano.
+Endpoint list, order, headers, and base URLs frozen. Infrastructure layer (client, retry, auth middleware, token storage, env config) built and verified. Field-level schemas pending — requested as a Swagger/OpenAPI export from Xano.

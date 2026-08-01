@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@rapex/api-client": "workspace:*",
     "@rapex/constants": "workspace:*",
     "@rapex/theme": "workspace:*",
     "@rapex/types": "workspace:*",

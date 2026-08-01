@@ -2,6 +2,8 @@
 export * from "./core/httpClient";
 export * from "./core/errors";
 export * from "./core/createRapexHttpClient";
+export * from "./core/tokenStorage";
+export * from "./core/retry";
 
 // DI
 export * from "./RepositoryProvider";
