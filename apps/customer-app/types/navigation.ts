@@ -8,7 +8,7 @@ export type RootStackParamList = {
   MainTabs: undefined;
   Store: { storeId: string };
   Product: { productId: string };
-  Checkout: undefined;
+  Checkout: { productId: string; quantity: number };
   Wallet: undefined;
   Rex: undefined;
   AuctionHome: undefined;

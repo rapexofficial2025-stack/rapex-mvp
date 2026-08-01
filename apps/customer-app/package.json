@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@rapex/api-client": "workspace:*",
     "@rapex/constants": "workspace:*",
     "@rapex/theme": "workspace:*",
     "@rapex/types": "workspace:*",
