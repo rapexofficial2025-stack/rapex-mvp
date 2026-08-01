@@ -10,3 +10,5 @@ export * from "./ErrorState";
 export * from "./Toast";
 export * from "./Sidebar";
 export * from "./Topbar";
+export * from "./DataTable";
+export * from "./Modal";
