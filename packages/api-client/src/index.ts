@@ -1,6 +1,7 @@
 // Core
 export * from "./core/httpClient";
 export * from "./core/errors";
+export * from "./core/createRapexHttpClient";
 
 // DI
 export * from "./RepositoryProvider";

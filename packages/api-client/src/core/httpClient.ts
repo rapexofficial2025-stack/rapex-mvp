@@ -23,6 +23,8 @@ export type ResponseInterceptor = (payload: unknown) => unknown | Promise<unknow
 export type HttpClientConfig = {
   baseUrl: string;
   getAuthToken?: () => string | null | Promise<string | null>;
+  /** Headers sent on every request (e.g. X-RAPEX-App, Accept-Language) -- static or computed per-request. */
+  staticHeaders?: Record<string, string> | (() => Record<string, string>);
 };
 
 export type HttpClient = {
@@ -56,7 +58,9 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
         }
       }
 
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const staticHeaders =
+        typeof config.staticHeaders === "function" ? config.staticHeaders() : (config.staticHeaders ?? {});
+      const headers: Record<string, string> = { "Content-Type": "application/json", ...staticHeaders };
       const token = config.getAuthToken ? await config.getAuthToken() : null;
       if (token) headers.Authorization = `Bearer ${token}`;
 
