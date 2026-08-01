@@ -10,8 +10,8 @@ function delay<T>(value: T): Promise<T> {
 const profile: MerchantProfile = { id: "merchant-1", storeName: "Amy's Carinderia", approvalStatus: "approved" };
 
 const products: ProductSummary[] = [
-  { id: "prod-1", storeId: "merchant-1", name: "Chicken Adobo Meal", price: 129, imageLabel: "🍗" },
-  { id: "prod-2", storeId: "merchant-1", name: "Pork Sinigang Meal", price: 139, imageLabel: "🍲" },
+  { id: "prod-1", storeId: "merchant-1", name: "Chicken Adobo Meal", price: 129, imageLabel: "🍗", productCategory: "Rice Meals" },
+  { id: "prod-2", storeId: "merchant-1", name: "Pork Sinigang Meal", price: 139, imageLabel: "🍲", productCategory: "Rice Meals" },
 ];
 
 const orders: MerchantOrder[] = [
@@ -29,7 +29,14 @@ export class MockMerchantRepository implements MerchantRepository {
   }
 
   async createProduct(input: { name: string; price: number }): Promise<ProductSummary> {
-    const product: ProductSummary = { id: `prod-${products.length + 1}`, storeId: profile.id, name: input.name, price: input.price, imageLabel: "🛍️" };
+    const product: ProductSummary = {
+      id: `prod-${products.length + 1}`,
+      storeId: profile.id,
+      name: input.name,
+      price: input.price,
+      imageLabel: "🛍️",
+      productCategory: "Uncategorized",
+    };
     products.push(product);
     return delay(product);
   }

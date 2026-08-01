@@ -1,6 +1,6 @@
 import { useRepositories } from "../RepositoryProvider";
 import { useAsync, type AsyncState } from "./useAsync";
-import type { Category, ProductDetail, ProductSummary, StoreSummary } from "../repositories/types";
+import type { Category, ProductDetail, ProductSummary, StoreDetail, StoreSummary } from "../repositories/types";
 
 export function useCategories(): AsyncState<Category[]> {
   const { marketplace } = useRepositories();
@@ -20,6 +20,11 @@ export function useStores(categoryId?: string): AsyncState<StoreSummary[]> {
 export function useStore(storeId: string): AsyncState<StoreSummary | null> {
   const { marketplace } = useRepositories();
   return useAsync(() => marketplace.getStoreById(storeId), [storeId]);
+}
+
+export function useStoreDetail(storeId: string): AsyncState<StoreDetail | null> {
+  const { marketplace } = useRepositories();
+  return useAsync(() => marketplace.getStoreDetail(storeId), [storeId]);
 }
 
 export function useStoreProducts(storeId: string): AsyncState<ProductSummary[]> {

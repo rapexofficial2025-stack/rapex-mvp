@@ -1,6 +1,6 @@
 import type { MarketplaceRepository } from "./MarketplaceRepository";
-import type { Category, ProductDetail, ProductSummary, StoreSummary } from "../types";
-import { MOCK_CATEGORIES, MOCK_PRODUCTS, MOCK_PRODUCT_DETAILS, MOCK_STORES } from "./mockData";
+import type { Category, ProductDetail, ProductSummary, StoreDetail, StoreSummary } from "../types";
+import { MOCK_CATEGORIES, MOCK_PRODUCTS, MOCK_PRODUCT_DETAILS, MOCK_STORES, MOCK_STORE_DETAILS } from "./mockData";
 
 const MOCK_DELAY_MS = 350;
 
@@ -26,6 +26,10 @@ export class MockMarketplaceRepository implements MarketplaceRepository {
 
   async getStoreById(storeId: string): Promise<StoreSummary | null> {
     return delay(MOCK_STORES.find((s) => s.id === storeId) ?? null);
+  }
+
+  async getStoreDetail(storeId: string): Promise<StoreDetail | null> {
+    return delay(MOCK_STORE_DETAILS[storeId] ?? null);
   }
 
   async getProductsByStore(storeId: string): Promise<ProductSummary[]> {

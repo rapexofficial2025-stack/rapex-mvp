@@ -45,12 +45,34 @@ export type ProductSummary = {
   name: string;
   price: number;
   imageLabel: string;
+  productCategory: string;
 };
 
 export type ProductDetail = ProductSummary & {
   description: string;
   storeName: string;
   stock: number;
+};
+
+export type Review = {
+  id: ID;
+  authorName: string;
+  rating: number;
+  comment: string;
+  date: ISODateString;
+};
+
+export type StoreDetail = StoreSummary & {
+  coverImageLabel: string;
+  logoLabel: string;
+  isVerified: boolean;
+  followerCount: number;
+  reviewCount: number;
+  description: string;
+  businessHours: string;
+  deliveryFee: number;
+  minimumOrder: number;
+  reviews: Review[];
 };
 
 // ---- Cart / Checkout ----
