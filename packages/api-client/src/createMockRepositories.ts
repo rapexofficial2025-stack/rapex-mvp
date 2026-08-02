@@ -3,8 +3,12 @@ import { MockAuthRepository } from "./repositories/auth/MockAuthRepository";
 import { MockMarketplaceRepository } from "./repositories/marketplace/MockMarketplaceRepository";
 import { MockOrdersRepository } from "./repositories/orders/MockOrdersRepository";
 import { MockWalletRepository } from "./repositories/wallet/MockWalletRepository";
+import { MockRiderWalletRepository } from "./repositories/wallet/MockRiderWalletRepository";
 import { MockMerchantRepository } from "./repositories/merchant/MockMerchantRepository";
 import { MockAdminRepository } from "./repositories/admin/MockAdminRepository";
+import { MockRiderRepository } from "./repositories/rider/MockRiderRepository";
+import { MockRiderEconomyRepository } from "./repositories/rider/MockRiderEconomyRepository";
+import { MockDeliveryRepository } from "./repositories/delivery/MockDeliveryRepository";
 
 /** Every app wires this into its root RepositoryProvider until real Xano* implementations exist. */
 export function createMockRepositories(): Repositories {
@@ -15,5 +19,9 @@ export function createMockRepositories(): Repositories {
     wallet: new MockWalletRepository(),
     merchant: new MockMerchantRepository(),
     admin: new MockAdminRepository(),
+    rider: new MockRiderRepository(),
+    riderWallet: new MockRiderWalletRepository(),
+    riderEconomy: new MockRiderEconomyRepository(),
+    delivery: new MockDeliveryRepository(),
   };
 }

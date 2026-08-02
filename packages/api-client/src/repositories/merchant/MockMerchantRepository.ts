@@ -1,13 +1,30 @@
 import type {
+  AddDraftProductInput,
+  CreateExpansionRequestInput,
   CreateProductInput,
   CreateStoreInput,
   CreateVariantInput,
   MerchantRepository,
+  SaveRegistrationDraftInput,
   UpdateProductInput,
   UpdateStoreInput,
   UpdateVariantInput,
 } from "./MerchantRepository";
-import type { MerchantAccount, MerchantOrder, MerchantProduct, MerchantStore, ProductVariant } from "../types";
+import type {
+  MerchantAccount,
+  MerchantOrder,
+  MerchantProduct,
+  MerchantRegistrationDraft,
+  MerchantStore,
+  NearbyRider,
+  ProductImportResult,
+  ProductImportRow,
+  ProductVariant,
+  StoreExpansionRequest,
+  StoreInsights,
+  StoreSlot,
+  StoreTimelineEvent,
+} from "../types";
 
 const MOCK_DELAY_MS = 350;
 
@@ -25,7 +42,65 @@ const account: MerchantAccount = {
   ownerName: "Amy Villanueva",
   email: "amy@example.com",
   verificationStatus: "verified",
+  onboardingStatus: "approved",
+  level: 3,
+  xp: 340,
+  xpForNextLevel: 500,
 };
+
+function blankRegistrationDraft(): MerchantRegistrationDraft {
+  return {
+    merchantAccountId: account.id,
+    currentStep: 1,
+    onboardingStatus: "draft",
+    fullName: account.ownerName,
+    birthday: "",
+    mobileNumber: "",
+    email: account.email,
+    residentialAddress: "",
+    govIdUploaded: false,
+    selfieUploaded: false,
+    mobileOtpVerified: false,
+    emailVerified: false,
+    businessCategory: null,
+    businessNature: null,
+    storeName: "",
+    branchName: "",
+    storeDescription: "",
+    businessContactNumber: "",
+    businessEmail: "",
+    businessHours: "",
+    operatingDays: [],
+    deliveryAvailable: true,
+    pickupAvailable: true,
+    storeAddress: "",
+    latitude: null,
+    longitude: null,
+    businessStructure: null,
+    mayorsPermitUploaded: false,
+    birRegistrationUploaded: false,
+    tin: "",
+    vatStatus: null,
+    supportingDocumentsUploaded: false,
+    logoUploaded: false,
+    coverPhotoUploaded: false,
+    galleryImageCount: 0,
+    draftProducts: [],
+  };
+}
+
+let registrationDraft: MerchantRegistrationDraft = blankRegistrationDraft();
+
+const STORE_SLOT_UNLOCK_LEVELS = [1, 1, 1, 5, 10, 15, 20, 25, 30, 35];
+
+function grantXp(amount: number) {
+  account.xp += amount;
+  while (account.xp >= account.xpForNextLevel) {
+    account.xp -= account.xpForNextLevel;
+    account.level += 1;
+    account.xpForNextLevel = account.level * 200;
+  }
+}
 
 const stores: MerchantStore[] = [
   {
@@ -39,6 +114,13 @@ const stores: MerchantStore[] = [
     coverageRadiusKm: 3,
     rating: 4.9,
     productCount: 0,
+    description: "Home-style Filipino comfort food, cooked fresh every morning.",
+    phone: "+63 917 123 4567",
+    businessHours: "Mon-Sun, 7:00 AM - 8:00 PM",
+    logoLabel: "🍲",
+    coverImageLabel: "🏠",
+    latitude: 14.4297,
+    longitude: 120.936,
   },
   {
     id: "ms-2",
@@ -51,6 +133,13 @@ const stores: MerchantStore[] = [
     coverageRadiusKm: 2,
     rating: 0,
     productCount: 0,
+    description: "Everyday grocery essentials, fresh produce, and pantry staples.",
+    phone: "+63 917 765 4321",
+    businessHours: "Mon-Sat, 8:00 AM - 6:00 PM",
+    logoLabel: "🛒",
+    coverImageLabel: "🏬",
+    latitude: 14.4285,
+    longitude: 120.9351,
   },
 ];
 
@@ -81,6 +170,38 @@ const orders: MerchantOrder[] = [
   },
 ];
 
+const expansionRequests: StoreExpansionRequest[] = [
+  {
+    id: "exp-1",
+    storeId: "ms-1",
+    type: "coverage-increase",
+    proposedAddress: null,
+    requestedCoverageRadiusKm: 5,
+    note: "Getting steady orders from Bayan Luma, just outside our current radius.",
+    status: "pending",
+    submittedAt: "2026-07-28T03:00:00.000Z",
+  },
+];
+
+const NEARBY_RIDERS: NearbyRider[] = [
+  { id: "rider-1", name: "Mark Santos", vehicleType: "Motorcycle", distanceKm: 0.6, rating: 4.9, availability: "available" },
+  { id: "rider-2", name: "Jenny Reyes", vehicleType: "Motorcycle", distanceKm: 1.1, rating: 4.8, availability: "available" },
+  { id: "rider-3", name: "Paolo Cruz", vehicleType: "Bicycle", distanceKm: 1.4, rating: 4.6, availability: "busy" },
+  { id: "rider-4", name: "Liza Ramos", vehicleType: "Motorcycle", distanceKm: 2.2, rating: 4.7, availability: "offline" },
+];
+
+const storeTimelines: Record<string, StoreTimelineEvent[]> = {
+  "ms-1": [
+    { id: "tl-1", storeId: "ms-1", type: "store", message: "Store approved by RAPEX Admin.", occurredAt: "2026-07-10T02:00:00.000Z" },
+    { id: "tl-2", storeId: "ms-1", type: "product", message: "Added \"Chicken Adobo Meal\" to the menu.", occurredAt: "2026-07-12T05:30:00.000Z" },
+    { id: "tl-3", storeId: "ms-1", type: "order", message: "Completed order #2001 for Juan dela Cruz.", occurredAt: "2026-07-30T09:45:00.000Z" },
+    { id: "tl-4", storeId: "ms-1", type: "system", message: "Store went online.", occurredAt: "2026-08-01T00:15:00.000Z" },
+  ],
+  "ms-2": [
+    { id: "tl-5", storeId: "ms-2", type: "store", message: "Store submitted for approval.", occurredAt: "2026-07-25T04:00:00.000Z" },
+  ],
+};
+
 function syncProductCounts() {
   for (const store of stores) {
     store.productCount = products.filter((p) => p.storeId === store.id).length;
@@ -92,6 +213,89 @@ syncProductCounts();
 export class MockMerchantRepository implements MerchantRepository {
   async getMyAccount(): Promise<MerchantAccount> {
     return delay(account);
+  }
+
+  async getRegistrationDraft(): Promise<MerchantRegistrationDraft> {
+    return delay(registrationDraft);
+  }
+
+  async saveRegistrationDraft(input: SaveRegistrationDraftInput): Promise<MerchantRegistrationDraft> {
+    registrationDraft = { ...registrationDraft, ...input };
+    return delay(registrationDraft);
+  }
+
+  async addDraftProduct(input: AddDraftProductInput): Promise<MerchantRegistrationDraft> {
+    const draftProduct = { id: generateId("dp"), ...input };
+    registrationDraft = { ...registrationDraft, draftProducts: [...registrationDraft.draftProducts, draftProduct] };
+    return delay(registrationDraft);
+  }
+
+  async removeDraftProduct(draftProductId: string): Promise<MerchantRegistrationDraft> {
+    registrationDraft = {
+      ...registrationDraft,
+      draftProducts: registrationDraft.draftProducts.filter((p) => p.id !== draftProductId),
+    };
+    return delay(registrationDraft);
+  }
+
+  async submitRegistration(): Promise<MerchantRegistrationDraft> {
+    const submitted = { ...registrationDraft, onboardingStatus: "submitted" as const };
+    registrationDraft = submitted;
+
+    const newStore: MerchantStore = {
+      id: generateId("ms"),
+      merchantAccountId: account.id,
+      name: submitted.storeName || submitted.businessNature || "New Business",
+      category: submitted.businessCategory ?? "shop",
+      status: "offline",
+      approvalStatus: "approved",
+      address: submitted.storeAddress,
+      coverageRadiusKm: 2,
+      rating: 0,
+      productCount: 0,
+      description: submitted.storeDescription,
+      phone: submitted.businessContactNumber,
+      businessHours: submitted.businessHours,
+      logoLabel: "🏪",
+      coverImageLabel: "🏪",
+      latitude: submitted.latitude ?? 14.4297,
+      longitude: submitted.longitude ?? 120.936,
+    };
+    stores.push(newStore);
+
+    for (const draftProduct of submitted.draftProducts) {
+      products.push({
+        id: generateId("mp"),
+        storeId: newStore.id,
+        name: draftProduct.name,
+        price: draftProduct.price,
+        imageLabel: "🛍️",
+        productCategory: draftProduct.productCategory || "Uncategorized",
+        stock: 0,
+        isActive: true,
+        variantCount: 0,
+      });
+    }
+    syncProductCounts();
+
+    grantXp(150);
+    registrationDraft = { ...blankRegistrationDraft(), onboardingStatus: "approved" };
+    return delay({ ...submitted, onboardingStatus: "approved" });
+  }
+
+  async getStoreSlots(): Promise<StoreSlot[]> {
+    const slots: StoreSlot[] = STORE_SLOT_UNLOCK_LEVELS.map((unlockLevel, index) => {
+      const store = stores[index] ?? null;
+      const status = store ? "unlocked" : account.level >= unlockLevel ? "available" : "locked";
+      return {
+        index,
+        label: index === 0 ? "Main Store" : `Branch ${index}`,
+        status,
+        unlockLevel,
+        store,
+      };
+    });
+    return delay(slots);
   }
 
   async getMyStores(): Promise<MerchantStore[]> {
@@ -113,6 +317,13 @@ export class MockMerchantRepository implements MerchantRepository {
       address: input.address,
       coverageRadiusKm: 2,
       rating: 0,
+      description: "",
+      phone: "",
+      businessHours: "",
+      logoLabel: "🏪",
+      coverImageLabel: "🏪",
+      latitude: 14.4297,
+      longitude: 120.936,
       productCount: 0,
     };
     stores.push(store);
@@ -162,6 +373,33 @@ export class MockMerchantRepository implements MerchantRepository {
     return delay(product);
   }
 
+  async bulkImportProducts(storeId: string, rows: ProductImportRow[]): Promise<ProductImportResult> {
+    if (!stores.some((s) => s.id === storeId)) throw new Error(`Store ${storeId} not found`);
+    const imported: MerchantProduct[] = [];
+    let failedCount = 0;
+    for (const row of rows) {
+      if (!row.name || !Number.isFinite(row.price)) {
+        failedCount++;
+        continue;
+      }
+      const product: MerchantProduct = {
+        id: generateId("mp"),
+        storeId,
+        name: row.name,
+        price: row.price,
+        imageLabel: "🛍️",
+        productCategory: row.productCategory || "Uncategorized",
+        stock: Number.isFinite(row.stock) ? row.stock : 0,
+        isActive: true,
+        variantCount: 0,
+      };
+      products.push(product);
+      imported.push(product);
+    }
+    syncProductCounts();
+    return delay({ imported, failedCount });
+  }
+
   async getProductVariants(productId: string): Promise<ProductVariant[]> {
     return delay(variants.filter((v) => v.productId === productId));
   }
@@ -189,6 +427,56 @@ export class MockMerchantRepository implements MerchantRepository {
     const product = products.find((p) => p.id === removed!.productId);
     if (product) product.variantCount = variants.filter((v) => v.productId === product.id).length;
     return delay(undefined);
+  }
+
+  async getStoreExpansionRequests(storeId: string): Promise<StoreExpansionRequest[]> {
+    return delay(expansionRequests.filter((r) => r.storeId === storeId));
+  }
+
+  async createExpansionRequest(storeId: string, input: CreateExpansionRequestInput): Promise<StoreExpansionRequest> {
+    if (!stores.some((s) => s.id === storeId)) throw new Error(`Store ${storeId} not found`);
+    const request: StoreExpansionRequest = {
+      id: generateId("exp"),
+      storeId,
+      type: input.type,
+      proposedAddress: input.proposedAddress ?? null,
+      requestedCoverageRadiusKm: input.requestedCoverageRadiusKm ?? null,
+      note: input.note,
+      status: "pending",
+      submittedAt: new Date().toISOString(),
+    };
+    expansionRequests.push(request);
+    return delay(request);
+  }
+
+  async getNearbyRiders(_storeId: string): Promise<NearbyRider[]> {
+    return delay(NEARBY_RIDERS);
+  }
+
+  async getStoreInsights(storeId: string): Promise<StoreInsights> {
+    const storeProducts = products.filter((p) => p.storeId === storeId);
+    const totalRevenue = storeProducts.reduce((sum, p) => sum + p.price * Math.max(0, 30 - p.stock), 0);
+    const totalOrders = Math.max(1, storeProducts.length * 4);
+    const topProducts = [...storeProducts]
+      .sort((a, b) => b.price - a.price)
+      .slice(0, 5)
+      .map((p) => ({ productId: p.id, name: p.name, unitsSold: Math.max(0, 30 - p.stock), revenue: p.price * Math.max(0, 30 - p.stock) }));
+    const last7DaysRevenue = Array.from({ length: 7 }, (_, i) => ({
+      date: new Date(Date.UTC(2026, 6, 26 + i)).toISOString(),
+      revenue: Math.round((totalRevenue / 7) * (0.7 + 0.1 * i)),
+    }));
+    return delay({
+      totalRevenue,
+      totalOrders,
+      avgOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
+      completionRate: 0.94,
+      last7DaysRevenue,
+      topProducts,
+    });
+  }
+
+  async getStoreTimeline(storeId: string): Promise<StoreTimelineEvent[]> {
+    return delay(storeTimelines[storeId] ?? []);
   }
 
   async getMyOrders(): Promise<MerchantOrder[]> {

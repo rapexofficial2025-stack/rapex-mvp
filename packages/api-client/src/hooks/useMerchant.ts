@@ -1,11 +1,27 @@
 import { useRepositories } from "../RepositoryProvider";
 import { useAsync, type AsyncState } from "./useAsync";
 import { useAsyncAction, type AsyncActionState } from "./useAsyncAction";
-import type { MerchantAccount, MerchantProduct, MerchantStore, ProductVariant } from "../repositories/types";
 import type {
+  MerchantAccount,
+  MerchantProduct,
+  MerchantRegistrationDraft,
+  MerchantStore,
+  NearbyRider,
+  ProductImportResult,
+  ProductImportRow,
+  ProductVariant,
+  StoreExpansionRequest,
+  StoreInsights,
+  StoreSlot,
+  StoreTimelineEvent,
+} from "../repositories/types";
+import type {
+  AddDraftProductInput,
+  CreateExpansionRequestInput,
   CreateProductInput,
   CreateStoreInput,
   CreateVariantInput,
+  SaveRegistrationDraftInput,
   UpdateProductInput,
   UpdateStoreInput,
   UpdateVariantInput,
@@ -14,6 +30,36 @@ import type {
 export function useMyMerchantAccount(): AsyncState<MerchantAccount> {
   const { merchant } = useRepositories();
   return useAsync(() => merchant.getMyAccount(), []);
+}
+
+export function useRegistrationDraft(): AsyncState<MerchantRegistrationDraft> {
+  const { merchant } = useRepositories();
+  return useAsync(() => merchant.getRegistrationDraft(), []);
+}
+
+export function useSaveRegistrationDraftAction(): AsyncActionState<[SaveRegistrationDraftInput], MerchantRegistrationDraft> {
+  const { merchant } = useRepositories();
+  return useAsyncAction((input: SaveRegistrationDraftInput) => merchant.saveRegistrationDraft(input));
+}
+
+export function useAddDraftProductAction(): AsyncActionState<[AddDraftProductInput], MerchantRegistrationDraft> {
+  const { merchant } = useRepositories();
+  return useAsyncAction((input: AddDraftProductInput) => merchant.addDraftProduct(input));
+}
+
+export function useRemoveDraftProductAction(): AsyncActionState<[string], MerchantRegistrationDraft> {
+  const { merchant } = useRepositories();
+  return useAsyncAction((draftProductId: string) => merchant.removeDraftProduct(draftProductId));
+}
+
+export function useSubmitRegistrationAction(): AsyncActionState<[], MerchantRegistrationDraft> {
+  const { merchant } = useRepositories();
+  return useAsyncAction(() => merchant.submitRegistration());
+}
+
+export function useStoreSlots(): AsyncState<StoreSlot[]> {
+  const { merchant } = useRepositories();
+  return useAsync(() => merchant.getStoreSlots(), []);
 }
 
 export function useMyStores(): AsyncState<MerchantStore[]> {
@@ -69,4 +115,34 @@ export function useUpdateVariantAction(): AsyncActionState<[string, UpdateVarian
 export function useDeleteVariantAction(): AsyncActionState<[string], void> {
   const { merchant } = useRepositories();
   return useAsyncAction((variantId: string) => merchant.deleteVariant(variantId));
+}
+
+export function useBulkImportProductsAction(): AsyncActionState<[string, ProductImportRow[]], ProductImportResult> {
+  const { merchant } = useRepositories();
+  return useAsyncAction((storeId: string, rows: ProductImportRow[]) => merchant.bulkImportProducts(storeId, rows));
+}
+
+export function useStoreExpansionRequests(storeId: string | null): AsyncState<StoreExpansionRequest[]> {
+  const { merchant } = useRepositories();
+  return useAsync(() => (storeId ? merchant.getStoreExpansionRequests(storeId) : Promise.resolve([])), [storeId]);
+}
+
+export function useCreateExpansionRequestAction(): AsyncActionState<[string, CreateExpansionRequestInput], StoreExpansionRequest> {
+  const { merchant } = useRepositories();
+  return useAsyncAction((storeId: string, input: CreateExpansionRequestInput) => merchant.createExpansionRequest(storeId, input));
+}
+
+export function useNearbyRiders(storeId: string | null): AsyncState<NearbyRider[]> {
+  const { merchant } = useRepositories();
+  return useAsync(() => (storeId ? merchant.getNearbyRiders(storeId) : Promise.resolve([])), [storeId]);
+}
+
+export function useStoreInsights(storeId: string | null): AsyncState<StoreInsights | null> {
+  const { merchant } = useRepositories();
+  return useAsync(() => (storeId ? merchant.getStoreInsights(storeId) : Promise.resolve(null)), [storeId]);
+}
+
+export function useStoreTimeline(storeId: string | null): AsyncState<StoreTimelineEvent[]> {
+  const { merchant } = useRepositories();
+  return useAsync(() => (storeId ? merchant.getStoreTimeline(storeId) : Promise.resolve([])), [storeId]);
 }

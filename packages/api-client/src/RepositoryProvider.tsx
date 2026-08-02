@@ -3,8 +3,12 @@ import type { AuthRepository } from "./repositories/auth/AuthRepository";
 import type { MarketplaceRepository } from "./repositories/marketplace/MarketplaceRepository";
 import type { OrdersRepository } from "./repositories/orders/OrdersRepository";
 import type { WalletRepository } from "./repositories/wallet/WalletRepository";
+import type { RiderWalletRepository } from "./repositories/wallet/RiderWalletRepository";
 import type { MerchantRepository } from "./repositories/merchant/MerchantRepository";
 import type { AdminRepository } from "./repositories/admin/AdminRepository";
+import type { RiderRepository } from "./repositories/rider/RiderRepository";
+import type { RiderEconomyRepository } from "./repositories/rider/RiderEconomyRepository";
+import type { DeliveryRepository } from "./repositories/delivery/DeliveryRepository";
 
 export type Repositories = {
   auth: AuthRepository;
@@ -13,6 +17,11 @@ export type Repositories = {
   wallet: WalletRepository;
   merchant: MerchantRepository;
   admin: AdminRepository;
+  /** Rider domain -- optional so existing (customer/merchant/admin) apps' repository sets don't need to change. */
+  rider?: RiderRepository;
+  riderWallet?: RiderWalletRepository;
+  riderEconomy?: RiderEconomyRepository;
+  delivery?: DeliveryRepository;
 };
 
 const RepositoriesContext = createContext<Repositories | null>(null);

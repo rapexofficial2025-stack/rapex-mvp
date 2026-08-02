@@ -23,8 +23,20 @@ export type {
   UpdateProductInput,
   CreateVariantInput,
   UpdateVariantInput,
+  CreateExpansionRequestInput,
+  SaveRegistrationDraftInput,
+  AddDraftProductInput,
 } from "./repositories/merchant/MerchantRepository";
-export type { AdminRepository } from "./repositories/admin/AdminRepository";
+export type {
+  AdminRepository,
+  CreateEngineTierInput,
+  UpdateEngineTierInput,
+  GrantEngineAccessInput,
+} from "./repositories/admin/AdminRepository";
+export type { RiderRepository, UpdateRiderProfileInput } from "./repositories/rider/RiderRepository";
+export type { RiderEconomyRepository } from "./repositories/rider/RiderEconomyRepository";
+export type { DeliveryRepository } from "./repositories/delivery/DeliveryRepository";
+export type { RiderWalletRepository } from "./repositories/wallet/RiderWalletRepository";
 
 // Hooks
 export * from "./hooks/useAsync";
@@ -33,3 +45,7 @@ export * from "./hooks/useMarketplace";
 export * from "./hooks/useOrders";
 export * from "./hooks/useWallet";
 export * from "./hooks/useMerchant";
+export * from "./hooks/useAdmin";
+export * from "./hooks/useRider";
+export * from "./hooks/useDelivery";
+export * from "./hooks/useRiderWallet";
