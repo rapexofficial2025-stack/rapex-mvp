@@ -36,15 +36,25 @@ export class XanoAuthRepository implements AuthRepository {
   }
 
   async register(input: RegisterInput): Promise<AuthSession> {
-    const result = await this.client.request<{ authToken: string; user_id: number | string }>({
+    const result = await this.client.request<{
+      authToken: string;
+      user_id?: number | string;
+      rapex_id?: string;
+    }>({
       path: "/auth/signup",
       method: "POST",
       body: { name: input.name, email: input.email, password: input.password },
     });
 
     await this.tokenStorage.setToken(result.authToken);
+    // Per the Hybrid Identity Architecture decision (2026-08-04): `id` is the
+    // internal DB primary key used for all further API calls, `rapexId` is
+    // the branded display ID. Some signup variants only return rapex_id and
+    // no separate internal id yet -- fall back to it so `id` is never empty,
+    // but this is a known gap to close once every signup path returns both.
     const user: AuthUser = {
-      id: String(result.user_id),
+      id: String(result.user_id ?? result.rapex_id ?? ""),
+      rapexId: result.rapex_id,
       name: input.name,
       email: input.email,
       phone: input.phone,
@@ -55,7 +65,11 @@ export class XanoAuthRepository implements AuthRepository {
   }
 
   async login(input: LoginInput): Promise<AuthSession> {
-    const result = await this.client.request<{ authToken: string; user_id: number | string }>({
+    const result = await this.client.request<{
+      authToken: string;
+      user_id?: number | string;
+      rapex_id?: string;
+    }>({
       path: "/auth/login",
       method: "POST",
       body: { email: input.email, password: input.password },
@@ -67,7 +81,8 @@ export class XanoAuthRepository implements AuthRepository {
     // than invent data.
     const previouslyCached = await this.userCache.getUser();
     const user: AuthUser = {
-      id: String(result.user_id),
+      id: String(result.user_id ?? previouslyCached?.id ?? ""),
+      rapexId: result.rapex_id ?? previouslyCached?.rapexId,
       name: previouslyCached?.email === input.email ? previouslyCached.name : "",
       email: input.email,
       phone: previouslyCached?.email === input.email ? previouslyCached.phone : "",

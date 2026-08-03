@@ -9,7 +9,16 @@ import type { DeliveryFeeQuote, OrderFinancials, RouteEstimate } from "@rapex/ut
 
 // ---- Auth ----
 export type AuthUser = {
+  /** Internal DB primary key (UUID/native) -- used for all API calls, never shown to users. */
   id: ID;
+  /**
+   * Branded display ID (e.g. "USR-72726-000001") per the Hybrid Identity
+   * Architecture decision (2026-08-04): DB relationships use the native
+   * `id` above; this text field is for display/receipts/support only.
+   * Optional because Mock repositories and any endpoint predating this
+   * decision won't populate it.
+   */
+  rapexId?: string;
   name: string;
   email: string;
   phone: string;
