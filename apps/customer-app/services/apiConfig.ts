@@ -36,3 +36,23 @@ export const rapexAuthHttpClient = createRapexHttpClient({
   appId: "buyer",
   tokenStorage: secureTokenStorage,
 });
+
+/** Real Xano `rapex-orders` API group -- unverified live, see XanoOrdersRepository doc comment. */
+const ORDERS_API_BASE_URL =
+  process.env.EXPO_PUBLIC_ORDERS_API_BASE_URL ?? "https://x8ki-letl-twmt.n7.xano.io/api:rapex-orders";
+
+export const rapexOrdersHttpClient = createRapexHttpClient({
+  baseUrl: ORDERS_API_BASE_URL,
+  appId: "buyer",
+  tokenStorage: secureTokenStorage,
+});
+
+/** Real Xano `rapex-finance` API group -- unverified live, see XanoWalletRepository doc comment. */
+const FINANCE_API_BASE_URL =
+  process.env.EXPO_PUBLIC_FINANCE_API_BASE_URL ?? "https://x8ki-letl-twmt.n7.xano.io/api:rapex-finance";
+
+export const rapexFinanceHttpClient = createRapexHttpClient({
+  baseUrl: FINANCE_API_BASE_URL,
+  appId: "buyer",
+  tokenStorage: secureTokenStorage,
+});

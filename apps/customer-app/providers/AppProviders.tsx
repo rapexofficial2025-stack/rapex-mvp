@@ -1,8 +1,14 @@
 import type { ReactNode } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { RepositoryProvider, createMockRepositories, XanoAuthRepository } from "@rapex/api-client";
+import {
+  RepositoryProvider,
+  createMockRepositories,
+  XanoAuthRepository,
+  XanoOrdersRepository,
+  XanoWalletRepository,
+} from "@rapex/api-client";
 import { ThemeProvider, ToastProvider } from "@rapex/ui-native";
-import { rapexAuthHttpClient } from "../services/apiConfig";
+import { rapexAuthHttpClient, rapexOrdersHttpClient, rapexFinanceHttpClient } from "../services/apiConfig";
 import { secureTokenStorage } from "../services/secureTokenStorage";
 import { secureUserCache } from "../services/userCache";
 
@@ -10,14 +16,18 @@ type AppProvidersProps = {
   children: ReactNode;
 };
 
-// Real Xano auth (rapex-auth group, live per 2026-08-03 handover); every
-// other domain (marketplace/orders/wallet/merchant) stays Mock until its
-// own contract is confirmed. This is the E2E Alpha auth wiring only --
-// swap createMockRepositories()'s other repos in one at a time as their
+// Real Xano auth/orders/wallet (rapex-auth, rapex-orders, rapex-finance
+// groups per 2026-08-04 handover -- NOT YET CONFIRMED LIVE, see each Xano*
+// repository's doc comment for exact endpoint/gap details); marketplace and
+// merchant stay Mock until their own contract is confirmed. Swap
+// createMockRepositories()'s remaining repos in one at a time as their
 // contracts land. See packages/api-client/README.md.
+const mocks = createMockRepositories();
 const repositories = {
-  ...createMockRepositories(),
+  ...mocks,
   auth: new XanoAuthRepository(rapexAuthHttpClient, secureTokenStorage, secureUserCache, "customer"),
+  orders: new XanoOrdersRepository(rapexOrdersHttpClient, mocks.orders),
+  wallet: new XanoWalletRepository(rapexFinanceHttpClient),
 };
 
 /**

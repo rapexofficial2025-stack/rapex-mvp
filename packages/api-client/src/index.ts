@@ -16,7 +16,9 @@ export type { AuthRepository, RegisterInput, LoginInput } from "./repositories/a
 export { XanoAuthRepository } from "./repositories/auth/XanoAuthRepository";
 export type { MarketplaceRepository } from "./repositories/marketplace/MarketplaceRepository";
 export type { OrdersRepository } from "./repositories/orders/OrdersRepository";
+export { XanoOrdersRepository } from "./repositories/orders/XanoOrdersRepository";
 export type { WalletRepository } from "./repositories/wallet/WalletRepository";
+export { XanoWalletRepository } from "./repositories/wallet/XanoWalletRepository";
 export type {
   MerchantRepository,
   CreateStoreInput,
