@@ -1,6 +1,7 @@
 import type {
   MerchantAccount,
   MerchantOrder,
+  MerchantOrderFinancials,
   MerchantProduct,
   MerchantRegistrationDraft,
   MerchantStore,
@@ -83,4 +84,7 @@ export interface MerchantRepository {
   getMyOrders(): Promise<MerchantOrder[]>;
   acceptOrder(orderId: string): Promise<MerchantOrder>;
   rejectOrder(orderId: string): Promise<MerchantOrder>;
+
+  /** Delivery Fee Engine settlements for this store -- Distance, Delivery Fee, Customer Payment, Merchant Receives. */
+  getOrderFinancials(storeId: string): Promise<MerchantOrderFinancials[]>;
 }

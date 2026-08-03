@@ -17,6 +17,7 @@ export type RootStackParamList = {
   Verification: undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Delivery: undefined;
+  DeliverySuccess: { orderId: string };
   Incentives: undefined;
   Referral: undefined;
   EditProfile: undefined;

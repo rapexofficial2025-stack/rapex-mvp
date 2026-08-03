@@ -23,3 +23,15 @@ export const rapexHttpClient = createRapexHttpClient({
   appId: "admin",
   tokenStorage: webTokenStorage,
 });
+
+/**
+ * Separate client for the `super_app` Xano group -- that's where /login
+ * actually lives (confirmed via live OpenAPI spec fetch), not in
+ * admin-master-data. Same host/instance, same tokenStorage, different API
+ * group path. Only used by XanoLiveTestPage.tsx for now.
+ */
+export const rapexAuthHttpClient = createRapexHttpClient({
+  baseUrl: "https://x8ki-letl-twmt.n7.xano.io/api:super_app",
+  appId: "admin",
+  tokenStorage: webTokenStorage,
+});

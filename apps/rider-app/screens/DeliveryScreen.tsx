@@ -3,7 +3,7 @@ import { Linking, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Badge, Button, EmptyState, ErrorState, GlassCard, Input, Loading } from "@rapex/ui-native";
 import { useActiveDelivery, useAsyncAction, useRepositories } from "@rapex/api-client";
-import type { DeliveryOrderStatus } from "@rapex/api-client";
+import type { ActiveDelivery, DeliveryOrderStatus } from "@rapex/api-client";
 import { formatPeso } from "@rapex/utils";
 import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
@@ -18,6 +18,16 @@ const NEXT_ACTION: Partial<Record<DeliveryOrderStatus, { label: string; next: De
   "picked-up": { label: "On the Way to Customer", next: "on-the-way" },
   "on-the-way": { label: "Arrived at Customer", next: "arrived-customer" },
 };
+
+/** Before pickup, the rider navigates to the merchant; after, to the customer. */
+const PICKUP_PHASE_STATUSES: DeliveryOrderStatus[] = ["accepted", "going-to-merchant", "arrived-merchant"];
+
+function navigationTargetFor(active: ActiveDelivery) {
+  if (PICKUP_PHASE_STATUSES.includes(active.status)) {
+    return { label: "Navigate to Merchant", latitude: active.merchantLatitude, longitude: active.merchantLongitude };
+  }
+  return { label: "Navigate to Customer", latitude: active.customerLatitude, longitude: active.customerLongitude };
+}
 
 export function DeliveryScreen({ navigation }: Props) {
   const theme = useAppTheme();
@@ -36,7 +46,6 @@ export function DeliveryScreen({ navigation }: Props) {
       capturedAt: new Date().toISOString(),
     }),
   );
-  const complete = useAsyncAction(() => delivery!.advanceStatus(active!.orderId, "completed"));
   const fail = useAsyncAction((note: string) => delivery!.advanceStatus(active!.orderId, "failed-delivery", note));
 
   if (loading) return <Loading />;
@@ -44,12 +53,29 @@ export function DeliveryScreen({ navigation }: Props) {
   if (!active) return <EmptyState title="No active delivery" description="Accept a delivery request to get started." actionLabel="Back to Home" onAction={() => navigation.navigate("MainTabs")} />;
 
   const action = NEXT_ACTION[active.status];
+  const navTarget = navigationTargetFor(active);
 
   return (
-    <ScreenContainer title="Active Delivery" subtitle={`Order #${active.orderId} · ${formatPeso(active.deliveryFee)}`}>
+    <ScreenContainer title="Active Delivery" subtitle={`Order #${active.orderId}`}>
       <GlassCard>
         <Badge label={active.status.replace(/-/g, " ").toUpperCase()} tone="brand" />
-        <Text style={{ color: theme.colors.textPrimary, fontWeight: "700", marginTop: theme.spacing.sm }}>Merchant</Text>
+        <View style={{ marginTop: theme.spacing.sm, gap: theme.spacing.xxs }}>
+          <SummaryRow label="Pickup Distance" value={`${active.pickupDistanceKm.toFixed(1)} km`} />
+          <SummaryRow label="Delivery Distance" value={`${active.deliveryDistanceKm.toFixed(1)} km`} />
+          <SummaryRow label="Estimated Time" value={`${active.estimatedTimeMinutes} min`} />
+          <SummaryRow label="Delivery Fee" value={formatPeso(active.deliveryFee)} />
+          <SummaryRow label="Estimated Earnings" value={formatPeso(active.estimatedRiderEarnings)} />
+        </View>
+      </GlassCard>
+
+      <Button
+        label={navTarget.label}
+        variant="secondary"
+        onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${navTarget.latitude},${navTarget.longitude}`)}
+      />
+
+      <GlassCard>
+        <Text style={{ color: theme.colors.textPrimary, fontWeight: "700" }}>Merchant</Text>
         <Text style={{ color: theme.colors.textPrimary }}>{active.merchantName}</Text>
         <Text style={{ color: theme.colors.textSecondary }}>{active.merchantAddress}</Text>
 
@@ -59,7 +85,7 @@ export function DeliveryScreen({ navigation }: Props) {
         <Button label={`Call ${active.customerPhone}`} variant="secondary" onPress={() => Linking.openURL(`tel:${active.customerPhone}`)} />
       </GlassCard>
 
-      {error ? null : advance.error ? <ErrorState description={advance.error} /> : null}
+      {advance.error ? <ErrorState description={advance.error} /> : null}
 
       {action ? (
         <Button
@@ -83,26 +109,16 @@ export function DeliveryScreen({ navigation }: Props) {
           <Input label="Customer Signature (type name to confirm)" value={signature} onChangeText={setSignature} />
           {submitProof.error ? <ErrorState description={submitProof.error} /> : null}
           <Button
-            label="Submit Proof of Delivery"
+            label="Mark as Delivered"
             loading={submitProof.loading}
             disabled={!signature}
             onPress={async () => {
+              const orderId = active.orderId;
               await submitProof.execute();
-              refetch();
+              navigation.replace("DeliverySuccess", { orderId });
             }}
           />
         </GlassCard>
-      ) : null}
-
-      {active.status === "delivered" ? (
-        <Button
-          label="Mark Completed"
-          loading={complete.loading}
-          onPress={async () => {
-            await complete.execute();
-            navigation.navigate("MainTabs");
-          }}
-        />
       ) : null}
 
       {active.status !== "delivered" && active.status !== "completed" ? (
@@ -117,5 +133,15 @@ export function DeliveryScreen({ navigation }: Props) {
         />
       ) : null}
     </ScreenContainer>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  const theme = useAppTheme();
+  return (
+    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+      <Text style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>{label}</Text>
+      <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.fontSize.sm, fontWeight: "600" }}>{value}</Text>
+    </View>
   );
 }

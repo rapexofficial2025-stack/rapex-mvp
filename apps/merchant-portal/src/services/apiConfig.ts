@@ -18,3 +18,22 @@ export const rapexHttpClient = createRapexHttpClient({
   appId: "merchant",
   tokenStorage: webTokenStorage,
 });
+
+/** Real Xano `rapex-auth` group -- confirmed live 2026-08-03 handover. */
+const AUTH_API_BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL ?? "https://x8ki-letl-twmt.n7.xano.io/api:rapex-auth";
+
+export const rapexAuthHttpClient = createRapexHttpClient({
+  baseUrl: AUTH_API_BASE_URL,
+  appId: "merchant",
+  tokenStorage: webTokenStorage,
+});
+
+/** Real Xano `admin-master-data` group (stores/products) -- confirmed live 2026-08-03 handover. */
+const MASTER_DATA_API_BASE_URL =
+  import.meta.env.VITE_MASTER_DATA_API_BASE_URL ?? "https://x8ki-letl-twmt.n7.xano.io/api:admin-master-data";
+
+export const rapexMasterDataHttpClient = createRapexHttpClient({
+  baseUrl: MASTER_DATA_API_BASE_URL,
+  appId: "merchant",
+  tokenStorage: webTokenStorage,
+});

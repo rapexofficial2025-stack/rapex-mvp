@@ -9,7 +9,7 @@ export type SidebarItem = {
 };
 
 export type SidebarProps = {
-  title: string;
+  title: ReactNode;
   items: SidebarItem[];
   footer?: ReactNode;
 };

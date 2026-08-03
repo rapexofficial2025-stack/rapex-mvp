@@ -5,6 +5,7 @@
  * to change at that point.
  */
 import type { ID, ISODateString, Paginated } from "@rapex/types";
+import type { DeliveryFeeQuote, OrderFinancials, RouteEstimate } from "@rapex/utils";
 
 // ---- Auth ----
 export type AuthUser = {
@@ -88,6 +89,8 @@ export type CheckoutSummary = {
   lines: CartLine[];
   subtotal: number;
   deliveryFee: number;
+  /** "Platform Fee (if any)" -- 0 for Alpha, kept so the checkout breakdown never needs new fields to display it later. */
+  platformFee: number;
   total: number;
 };
 
@@ -344,6 +347,73 @@ export type PlatformStats = {
   revenueToday: number;
 };
 
+// ---- Admin Dashboard ----
+export type RecentOrderStatus = "pending" | "accepted" | "preparing" | "out-for-delivery" | "delivered" | "cancelled";
+
+export type RecentOrderSummary = {
+  id: ID;
+  storeName: string;
+  customerName: string;
+  status: RecentOrderStatus;
+  occurredAt: ISODateString;
+};
+
+export type SystemServiceStatus = "operational" | "degraded" | "down";
+
+export type SystemStatusItem = {
+  service: string;
+  status: SystemServiceStatus;
+};
+
+export type MembershipExpiryItem = {
+  merchantName: string;
+  expiresAt: ISODateString;
+  daysLeft: number;
+};
+
+export type RevenueBreakdownSlice = {
+  label: "merchants" | "riders" | "platform-fee";
+  amount: number;
+};
+
+export type DashboardOverview = {
+  revenueToday: number;
+  revenueTodayChangePercent: number;
+  ordersToday: number;
+  ordersTodayChangePercent: number;
+  completedOrdersToday: number;
+  completedOrdersChangePercent: number;
+  pendingOrders: number;
+  pendingOrdersChangePercent: number;
+  onlineRiders: number;
+  onlineStores: number;
+  registeredCustomers: number;
+  registeredMerchants: number;
+  registeredRiders: number;
+  productsListed: number;
+  storesListed: number;
+  categoriesCount: number;
+  municipalitiesCount: number;
+  activeAuctions: number;
+  revenueTrend: { date: ISODateString; revenue: number }[];
+  revenueBreakdown: RevenueBreakdownSlice[];
+  recentOrders: RecentOrderSummary[];
+  systemStatus: SystemStatusItem[];
+  membershipExpirations: MembershipExpiryItem[];
+};
+
+// ---- Verification Queue ----
+export type VerificationApplicantRole = "merchant" | "rider" | "service-provider";
+
+export type VerificationApplicant = {
+  id: ID;
+  name: string;
+  role: VerificationApplicantRole;
+  submittedAt: ISODateString;
+  documentLabels: string[];
+  status: "pending" | "approved" | "rejected";
+};
+
 // ---- Engine Center (Super Admin system configuration) ----
 export type AdminRole = "admin" | "super-admin";
 
@@ -484,10 +554,16 @@ export type DeliveryAssignmentOffer = {
   customerAddress: string;
   customerLatitude: number;
   customerLongitude: number;
-  distanceToMerchantKm: number;
+  /** Rider's current location -> merchant. */
+  pickupDistanceKm: number;
+  /** Merchant -> customer (the leg the Delivery Fee Engine prices). */
+  deliveryDistanceKm: number;
+  /** pickupDistanceKm + deliveryDistanceKm */
   totalDistanceKm: number;
+  estimatedTimeMinutes: number;
+  productTotal: number;
   deliveryFee: number;
-  estimatedRiderNet: number;
+  estimatedRiderEarnings: number;
   itemCount: number;
   isHeavyItem: boolean;
   isPeakHour: boolean;
@@ -508,7 +584,12 @@ export type ActiveDelivery = {
   customerLongitude: number;
   customerPhone: string;
   itemCount: number;
+  pickupDistanceKm: number;
+  deliveryDistanceKm: number;
+  estimatedTimeMinutes: number;
+  productTotal: number;
   deliveryFee: number;
+  estimatedRiderEarnings: number;
   timeline: DeliveryTimelineEntry[];
 };
 
@@ -640,6 +721,28 @@ export type RiderNotification = {
   body: string;
   read: boolean;
   createdAt: ISODateString;
+};
+
+// ---- Delivery Fee Engine (re-exported from @rapex/utils so every app imports the same shapes from one place) ----
+export type { RouteEstimate, DeliveryFeeQuote, OrderFinancials };
+
+/** Admin's view of a settled order -- OrderFinancials plus the identifying/timeline context only admin needs. */
+export type AdminOrderRecord = OrderFinancials & {
+  customerName: string;
+  merchantName: string;
+  riderName: string;
+  status: DeliveryOrderStatus;
+  timeline: DeliveryTimelineEntry[];
+};
+
+/** Merchant's view of a settled order -- just the fields the spec calls out for the merchant screen. */
+export type MerchantOrderFinancials = {
+  orderId: ID;
+  distanceKm: number;
+  deliveryFee: number;
+  /** productTotal + deliveryFee + platformFee -- what the customer paid. */
+  customerPayment: number;
+  merchantReceives: number;
 };
 
 export type { Paginated };

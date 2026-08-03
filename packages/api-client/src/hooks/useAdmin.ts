@@ -3,13 +3,16 @@ import { useAsync, type AsyncState } from "./useAsync";
 import { useAsyncAction, type AsyncActionState } from "./useAsyncAction";
 import type {
   AdminAccessGrant,
+  AdminOrderRecord,
   CurrentAdmin,
   CustomerSummary,
+  DashboardOverview,
   EngineChangeLogEntry,
   EngineKey,
   EngineTierRule,
   PendingMerchantApproval,
   PlatformStats,
+  VerificationApplicant,
 } from "../repositories/types";
 import type {
   CreateEngineTierInput,
@@ -75,4 +78,29 @@ export function useGrantEngineAccessAction(): AsyncActionState<[GrantEngineAcces
 export function useRevokeEngineAccessAction(): AsyncActionState<[string], void> {
   const { admin } = useRepositories();
   return useAsyncAction((grantId: string) => admin.revokeEngineAccess(grantId));
+}
+
+export function useAdminOrderFinancials(): AsyncState<AdminOrderRecord[]> {
+  const { admin } = useRepositories();
+  return useAsync(() => admin.getOrderFinancials(), []);
+}
+
+export function useDashboardOverview(): AsyncState<DashboardOverview> {
+  const { admin } = useRepositories();
+  return useAsync(() => admin.getDashboardOverview(), []);
+}
+
+export function useVerificationQueue(): AsyncState<VerificationApplicant[]> {
+  const { admin } = useRepositories();
+  return useAsync(() => admin.getVerificationQueue(), []);
+}
+
+export function useApproveApplicantAction(): AsyncActionState<[string], void> {
+  const { admin } = useRepositories();
+  return useAsyncAction((applicantId: string) => admin.approveApplicant(applicantId));
+}
+
+export function useRejectApplicantAction(): AsyncActionState<[string], void> {
+  const { admin } = useRepositories();
+  return useAsyncAction((applicantId: string) => admin.rejectApplicant(applicantId));
 }

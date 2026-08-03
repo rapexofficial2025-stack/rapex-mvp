@@ -21,3 +21,18 @@ export const rapexHttpClient = createRapexHttpClient({
   appId: "buyer",
   tokenStorage: secureTokenStorage,
 });
+
+/**
+ * Real Xano `rapex-auth` API group -- confirmed live 2026-08-03 handover.
+ * Separate base URL from rapexHttpClient above because Xano splits each
+ * domain into its own API group with its own `api:{group}` base path
+ * (rapex-auth, rapex-orders, rapex-market, admin-master-data, super_app).
+ * Same token storage across all of them -- one JWT, one Xano instance.
+ */
+const AUTH_API_BASE_URL = process.env.EXPO_PUBLIC_AUTH_API_BASE_URL ?? "https://x8ki-letl-twmt.n7.xano.io/api:rapex-auth";
+
+export const rapexAuthHttpClient = createRapexHttpClient({
+  baseUrl: AUTH_API_BASE_URL,
+  appId: "buyer",
+  tokenStorage: secureTokenStorage,
+});

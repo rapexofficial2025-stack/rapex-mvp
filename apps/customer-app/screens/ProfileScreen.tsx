@@ -1,14 +1,9 @@
-import type { CompositeScreenProps } from "@react-navigation/native";
-import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { MainTabParamList, RootStackParamList } from "../types/navigation";
+import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
 import { NavButton } from "../components/NavButton";
 
-type Props = CompositeScreenProps<
-  BottomTabScreenProps<MainTabParamList, "Profile">,
-  NativeStackScreenProps<RootStackParamList>
->;
+type Props = NativeStackScreenProps<RootStackParamList, "Profile">;
 
 export function ProfileScreen({ navigation }: Props) {
   return (

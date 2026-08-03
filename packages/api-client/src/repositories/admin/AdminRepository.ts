@@ -1,12 +1,15 @@
 import type {
   AdminAccessGrant,
+  AdminOrderRecord,
   CurrentAdmin,
   CustomerSummary,
+  DashboardOverview,
   EngineChangeLogEntry,
   EngineKey,
   EngineTierRule,
   PendingMerchantApproval,
   PlatformStats,
+  VerificationApplicant,
 } from "../types";
 
 export type CreateEngineTierInput = {
@@ -40,4 +43,13 @@ export interface AdminRepository {
   getEngineAccessGrants(): Promise<AdminAccessGrant[]>;
   grantEngineAccess(input: GrantEngineAccessInput): Promise<AdminAccessGrant>;
   revokeEngineAccess(grantId: string): Promise<void>;
+
+  /** Delivery Fee Engine settlements -- Distance, Delivery Fee, Merchant Receives, Platform Revenue, Rider Earnings, Wallet Deduction, Order Timeline. */
+  getOrderFinancials(): Promise<AdminOrderRecord[]>;
+
+  getDashboardOverview(): Promise<DashboardOverview>;
+
+  getVerificationQueue(): Promise<VerificationApplicant[]>;
+  approveApplicant(applicantId: string): Promise<void>;
+  rejectApplicant(applicantId: string): Promise<void>;
 }

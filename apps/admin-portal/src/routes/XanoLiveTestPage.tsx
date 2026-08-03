@@ -1,0 +1,255 @@
+import { useState, type CSSProperties } from "react";
+import { toErrorMessage } from "@rapex/api-client";
+import { rapexHttpClient, rapexAuthHttpClient } from "../services/apiConfig";
+import { webTokenStorage } from "../services/webTokenStorage";
+
+type PendingMerchant = {
+  id: number;
+  merchant_id: string;
+  owner_name: string;
+  email: string;
+  approval_status: string;
+  account_status: string;
+};
+
+type AdminProduct = {
+  id: number;
+  product_id: string;
+  store_id: string;
+  product_name: string;
+  status: string;
+};
+
+type Paginated<T> = { items: T[]; itemsTotal: number };
+
+/**
+ * Direct, unmocked calls against live Xano -- super_app for /login, and
+ * admin-master-data for /merchants and /products (confirmed fields only,
+ * pulled from the real OpenAPI specs). Kept separate from
+ * AdminRepository/MockAdminRepository since most of that interface has no
+ * confirmed Xano endpoint yet.
+ */
+export function XanoLiveTestPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginResult, setLoginResult] = useState<unknown>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
+
+  const [merchants, setMerchants] = useState<PendingMerchant[] | null>(null);
+  const [merchantsError, setMerchantsError] = useState<string | null>(null);
+  const [merchantsLoading, setMerchantsLoading] = useState(false);
+  const [approvingId, setApprovingId] = useState<number | null>(null);
+
+  const [products, setProducts] = useState<AdminProduct[] | null>(null);
+  const [productsError, setProductsError] = useState<string | null>(null);
+  const [productsLoading, setProductsLoading] = useState(false);
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError(null);
+    setLoginResult(null);
+    try {
+      const result = await rapexAuthHttpClient.request<{ authToken?: string }>({
+        path: "/login",
+        method: "POST",
+        body: { email, password },
+      });
+      setLoginResult(result);
+      if (result?.authToken) {
+        await webTokenStorage.setToken(result.authToken);
+        setHasToken(true);
+      }
+    } catch (err) {
+      setLoginError(toErrorMessage(err));
+    } finally {
+      setLoginLoading(false);
+    }
+  }
+
+  async function loadPendingMerchants() {
+    setMerchantsLoading(true);
+    setMerchantsError(null);
+    try {
+      const result = await rapexHttpClient.request<Paginated<PendingMerchant>>({
+        path: "/merchants",
+        method: "GET",
+        query: { approval_status: "pending", page: 1, per_page: 25 },
+      });
+      setMerchants(result.items);
+    } catch (err) {
+      setMerchantsError(toErrorMessage(err));
+    } finally {
+      setMerchantsLoading(false);
+    }
+  }
+
+  async function decideMerchant(id: number, decision: "approved" | "rejected") {
+    setApprovingId(id);
+    setMerchantsError(null);
+    try {
+      await rapexHttpClient.request({
+        path: `/merchants/${id}`,
+        method: "PATCH",
+        body: { approval_status: decision },
+      });
+      setMerchants((prev) => (prev ? prev.filter((m) => m.id !== id) : prev));
+    } catch (err) {
+      setMerchantsError(toErrorMessage(err));
+    } finally {
+      setApprovingId(null);
+    }
+  }
+
+  async function loadProducts() {
+    setProductsLoading(true);
+    setProductsError(null);
+    try {
+      const result = await rapexHttpClient.request<Paginated<AdminProduct>>({
+        path: "/products",
+        method: "GET",
+        query: { page: 1, per_page: 25 },
+      });
+      setProducts(result.items);
+    } catch (err) {
+      setProductsError(toErrorMessage(err));
+    } finally {
+      setProductsLoading(false);
+    }
+  }
+
+  return (
+    <div style={styles.page}>
+      <h1 style={styles.h1}>Xano Live Test (Admin)</h1>
+      <p style={styles.note}>
+        Calls the real Xano backend directly -- <code>super_app</code> for login, <code>admin-master-data</code> for
+        merchants/products. Not mock data.
+      </p>
+
+      <section style={styles.card}>
+        <h2 style={styles.h2}>1. Login (POST /login)</h2>
+        <form style={styles.form} onSubmit={handleLogin}>
+          <input style={styles.input} type="email" placeholder="Admin email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input style={styles.input} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <button type="submit" style={styles.button} disabled={loginLoading}>
+            {loginLoading ? "Signing in..." : "Sign In on Xano"}
+          </button>
+        </form>
+        {loginError ? <pre style={styles.errorBox}>{loginError}</pre> : null}
+        {loginResult ? <pre style={styles.resultBox}>{JSON.stringify(loginResult, null, 2)}</pre> : null}
+        {hasToken ? <p style={styles.success}>Token stored -- sections below will send it as Bearer auth.</p> : null}
+      </section>
+
+      <section style={styles.card}>
+        <h2 style={styles.h2}>2. Merchant Approval (GET /merchants?approval_status=pending, PATCH /merchants/:id)</h2>
+        {!hasToken ? <p style={styles.warn}>Sign in first -- this needs the auth token from step 1.</p> : null}
+        <button type="button" style={styles.button} onClick={loadPendingMerchants} disabled={merchantsLoading || !hasToken}>
+          {merchantsLoading ? "Loading..." : "Load Pending Merchants"}
+        </button>
+        {merchantsError ? <pre style={styles.errorBox}>{merchantsError}</pre> : null}
+        {merchants ? (
+          merchants.length === 0 ? (
+            <p style={styles.note}>No pending merchants.</p>
+          ) : (
+            <ul style={styles.list}>
+              {merchants.map((m) => (
+                <li key={m.id} style={styles.listItem}>
+                  <div>
+                    <strong>{m.owner_name}</strong> -- {m.email} ({m.merchant_id})
+                  </div>
+                  <div style={styles.rowButtons}>
+                    <button
+                      type="button"
+                      style={{ ...styles.smallButton, background: "#166534" }}
+                      disabled={approvingId === m.id}
+                      onClick={() => decideMerchant(m.id, "approved")}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      style={{ ...styles.smallButton, background: "#B91C1C" }}
+                      disabled={approvingId === m.id}
+                      onClick={() => decideMerchant(m.id, "rejected")}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : null}
+      </section>
+
+      <section style={styles.card}>
+        <h2 style={styles.h2}>3. Products (GET /products)</h2>
+        {!hasToken ? <p style={styles.warn}>Sign in first -- this needs the auth token from step 1.</p> : null}
+        <button type="button" style={styles.button} onClick={loadProducts} disabled={productsLoading || !hasToken}>
+          {productsLoading ? "Loading..." : "Load Products"}
+        </button>
+        {productsError ? <pre style={styles.errorBox}>{productsError}</pre> : null}
+        {products ? (
+          products.length === 0 ? (
+            <p style={styles.note}>No products yet.</p>
+          ) : (
+            <ul style={styles.list}>
+              {products.map((p) => (
+                <li key={p.id} style={styles.listItem}>
+                  <strong>{p.product_name}</strong> -- store {p.store_id} -- {p.status}
+                </li>
+              ))}
+            </ul>
+          )
+        ) : null}
+      </section>
+    </div>
+  );
+}
+
+const styles: Record<string, CSSProperties> = {
+  page: { maxWidth: 680, margin: "0 auto", padding: 24, fontFamily: "inherit", color: "#111" },
+  h1: { fontSize: 22, marginBottom: 4 },
+  h2: { fontSize: 16, marginBottom: 12 },
+  note: { fontSize: 13, color: "#666", marginBottom: 12 },
+  card: { border: "1px solid #ddd", borderRadius: 12, padding: 20, marginBottom: 20, background: "#fff" },
+  form: { display: "flex", flexDirection: "column", gap: 10 },
+  input: { border: "1px solid #ccc", borderRadius: 8, padding: "10px 12px", fontSize: 14, fontFamily: "inherit" },
+  button: {
+    border: "none",
+    borderRadius: 8,
+    padding: "10px 12px",
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: "pointer",
+    background: "linear-gradient(90deg, #8B5CF6, #F97316)",
+    color: "#fff",
+  },
+  smallButton: {
+    border: "none",
+    borderRadius: 6,
+    padding: "6px 12px",
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: "pointer",
+    color: "#fff",
+  },
+  errorBox: { background: "#FEF2F2", color: "#B91C1C", padding: 12, borderRadius: 8, fontSize: 12, marginTop: 12, whiteSpace: "pre-wrap" },
+  resultBox: { background: "#F0FDF4", color: "#166534", padding: 12, borderRadius: 8, fontSize: 12, marginTop: 12, whiteSpace: "pre-wrap", overflowX: "auto" },
+  success: { color: "#166534", fontSize: 13, marginTop: 8 },
+  warn: { color: "#B45309", fontSize: 13, marginBottom: 8 },
+  list: { listStyle: "none", padding: 0, marginTop: 12, display: "flex", flexDirection: "column", gap: 8 },
+  listItem: {
+    border: "1px solid #eee",
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 13,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 8,
+  },
+  rowButtons: { display: "flex", gap: 6 },
+};

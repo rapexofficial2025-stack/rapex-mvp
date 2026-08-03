@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { View, Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Loading, ErrorState, Button } from "@rapex/ui-native";
+import { Loading, ErrorState, Button, Badge } from "@rapex/ui-native";
 import { formatPeso } from "@rapex/utils";
 import { useAsync, useAsyncAction, useRepositories, type CartLine } from "@rapex/api-client";
 import type { RootStackParamList } from "../types/navigation";
@@ -21,8 +21,10 @@ function Row({ label, value }: { label: string; value: string }) {
 
 export function CheckoutScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
-  const { marketplace, orders } = useRepositories();
+  const { marketplace, orders, wallet } = useRepositories();
   const { productId, quantity } = route.params;
+
+  const { data: walletSummary, loading: walletLoading } = useAsync(() => wallet.getWalletSummary(), []);
 
   const { data: product, loading: productLoading, error: productError } = useAsync(
     () => marketplace.getProductById(productId),
@@ -59,10 +61,22 @@ export function CheckoutScreen({ navigation, route }: Props) {
         <Row key={line.productId} label={`${line.productName} × ${line.quantity}`} value={formatPeso(line.unitPrice * line.quantity)} />
       ))}
       <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-      <Row label="Subtotal" value={formatPeso(summary.subtotal)} />
+      <Row label="Product Total" value={formatPeso(summary.subtotal)} />
       <Row label="Delivery Fee" value={formatPeso(summary.deliveryFee)} />
+      {summary.platformFee > 0 ? <Row label="Platform Fee" value={formatPeso(summary.platformFee)} /> : null}
       <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-      <Row label="Total" value={formatPeso(summary.total)} />
+      <Row label="Final Total" value={formatPeso(summary.total)} />
+
+      <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+      <Row label="Wallet Balance" value={walletLoading || !walletSummary ? "…" : formatPeso(walletSummary.balance)} />
+      {walletSummary ? (
+        <>
+          <Row label="Remaining Wallet (after this order)" value={formatPeso(walletSummary.balance - summary.total)} />
+          {walletSummary.balance < summary.total ? (
+            <Badge label="Insufficient wallet balance" tone="error" />
+          ) : null}
+        </>
+      ) : null}
 
       {placeOrder.error ? <ErrorState description={placeOrder.error} /> : null}
 

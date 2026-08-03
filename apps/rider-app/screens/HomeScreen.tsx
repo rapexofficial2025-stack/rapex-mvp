@@ -103,10 +103,14 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={{ color: theme.colors.textPrimary, marginTop: theme.spacing.xs }}>{offer.merchantName}</Text>
           <Text style={{ color: theme.colors.textSecondary }}>{offer.merchantAddress}</Text>
           <Text style={{ color: theme.colors.textSecondary, marginTop: theme.spacing.xs }}>
-            {offer.totalDistanceKm.toFixed(1)} km total · {offer.itemCount} item(s)
+            Pickup {offer.pickupDistanceKm.toFixed(1)} km · Delivery {offer.deliveryDistanceKm.toFixed(1)} km ·{" "}
+            {offer.estimatedTimeMinutes} min · {offer.itemCount} item(s)
           </Text>
-          <Text style={{ color: theme.colors.success, fontWeight: "700", marginTop: theme.spacing.xs }}>
-            Est. net: {formatPeso(offer.estimatedRiderNet)}
+          <Text style={{ color: theme.colors.textPrimary, marginTop: theme.spacing.xs }}>
+            Delivery Fee: {formatPeso(offer.deliveryFee)}
+          </Text>
+          <Text style={{ color: theme.colors.success, fontWeight: "700" }}>
+            Est. earnings: {formatPeso(offer.estimatedRiderEarnings)}
           </Text>
           <View style={[styles.row, { marginTop: theme.spacing.md }]}>
             <View style={{ flex: 1, marginRight: theme.spacing.sm }}>

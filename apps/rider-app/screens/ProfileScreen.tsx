@@ -2,7 +2,7 @@ import { Text, View } from "react-native";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Avatar, Badge, Button, ErrorState, GlassCard, Loading } from "@rapex/ui-native";
+import { Avatar, Badge, Button, ErrorState, GlassCard, Loading, ThemeToggle } from "@rapex/ui-native";
 import { useAsyncAction, useRepositories, useRiderPerformance, useRiderProfile } from "@rapex/api-client";
 import { formatPeso } from "@rapex/utils";
 import type { MainTabParamList, RootStackParamList } from "../types/navigation";
@@ -50,6 +50,10 @@ export function ProfileScreen({ navigation }: Props) {
           <Text style={{ color: theme.colors.textSecondary }}>Lifetime Earnings: {formatPeso(performance.lifetimeEarnings)}</Text>
         </GlassCard>
       ) : null}
+
+      <GlassCard>
+        <ThemeToggle />
+      </GlassCard>
 
       <Button label="Edit Profile" onPress={() => navigation.navigate("EditProfile")} />
       <Button label="Verification Status" variant="secondary" onPress={() => navigation.navigate("Verification")} />

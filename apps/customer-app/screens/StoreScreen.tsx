@@ -11,6 +11,7 @@ import { ProductCard } from "../components/ProductCard";
 import { ProductCardCompact } from "../components/ProductCardCompact";
 import { SectionHeader } from "../components/SectionHeader";
 import { isFavoriteStore, toggleFavoriteStore, useFavoriteStoreIds } from "../services/favoriteStoresStore";
+import { GradientScreenBackground } from "../components/GradientScreenBackground";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Store">;
 
@@ -72,7 +73,8 @@ export function StoreScreen({ navigation, route }: Props) {
   const isFavorite = favoriteIds.has(store.id) || isFavoriteStore(store.id);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1 }}>
+      <GradientScreenBackground />
       <FlatList
         data={visibleProducts}
         keyExtractor={(item) => item.id}

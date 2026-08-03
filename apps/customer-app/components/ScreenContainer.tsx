@@ -2,10 +2,12 @@ import type { ReactNode } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "../hooks/useAppTheme";
+import { GradientScreenBackground } from "./GradientScreenBackground";
 
 type ScreenContainerProps = {
   title: string;
   subtitle?: string;
+  headerAction?: ReactNode;
   children?: ReactNode;
 };
 
@@ -14,24 +16,29 @@ type ScreenContainerProps = {
  * screen consistent theme-driven chrome without duplicating boilerplate.
  * Gets replaced screen-by-screen once Base44 UI lands.
  */
-export function ScreenContainer({ title, subtitle, children }: ScreenContainerProps) {
+export function ScreenContainer({ title, subtitle, headerAction, children }: ScreenContainerProps) {
   const theme = useAppTheme();
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
-      <ScrollView contentContainerStyle={[styles.content, { padding: theme.spacing.xl }]}>
-        <Text
-          style={[
-            styles.title,
-            {
-              fontSize: theme.typography.fontSize["2xl"],
-              color: theme.colors.brandPrimary,
-              marginBottom: theme.spacing.xs,
-            },
-          ]}
-        >
-          {title}
-        </Text>
+    <View style={{ flex: 1 }}>
+      <GradientScreenBackground />
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={[styles.content, { padding: theme.spacing.xl }]}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
+          <Text
+            style={[
+              styles.title,
+              {
+                fontSize: theme.typography.fontSize["2xl"],
+                color: theme.colors.brandPrimary,
+                marginBottom: theme.spacing.xs,
+              },
+            ]}
+          >
+            {title}
+          </Text>
+          {headerAction}
+        </View>
         {subtitle ? (
           <Text
             style={[
@@ -43,8 +50,9 @@ export function ScreenContainer({ title, subtitle, children }: ScreenContainerPr
           </Text>
         ) : null}
         <View style={{ gap: theme.spacing.sm }}>{children}</View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 

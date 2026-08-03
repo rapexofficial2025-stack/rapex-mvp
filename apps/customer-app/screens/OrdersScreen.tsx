@@ -3,6 +3,7 @@ import { Badge, Loading, ErrorState, EmptyState } from "@rapex/ui-native";
 import { formatPeso, formatDateTime } from "@rapex/utils";
 import { useMyOrders, type OrderSummary } from "@rapex/api-client";
 import { useAppTheme } from "../hooks/useAppTheme";
+import { GradientScreenBackground } from "../components/GradientScreenBackground";
 
 const STATUS_TONE: Record<OrderSummary["status"], "success" | "warning" | "error" | "info" | "neutral" | "brand"> = {
   pending: "warning",
@@ -23,7 +24,8 @@ export function OrdersScreen() {
   if (!orders || orders.length === 0) return <EmptyState title="No orders yet" description="Your orders will show up here." />;
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1 }}>
+      <GradientScreenBackground />
       <FlatList
         data={orders}
         keyExtractor={(item) => item.id}

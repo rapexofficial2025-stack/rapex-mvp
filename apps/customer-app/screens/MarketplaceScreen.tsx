@@ -8,6 +8,7 @@ import { useCategories, useStores } from "@rapex/api-client";
 import type { MainTabParamList, RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { StoreCard } from "../components/StoreCard";
+import { GradientScreenBackground } from "../components/GradientScreenBackground";
 import { toggleFavoriteStore, useFavoriteStoreIds } from "../services/favoriteStoresStore";
 
 type Props = CompositeScreenProps<
@@ -90,7 +91,8 @@ export function MarketplaceScreen({ navigation, route }: Props) {
   }, [stores, searchQuery, openOnly, topRatedOnly, nearbyOnly, favoritesOnly, sortBy, favoriteIds]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1 }}>
+      <GradientScreenBackground />
       <View style={{ padding: theme.spacing.lg, gap: theme.spacing.sm }}>
         <Text style={{ fontSize: theme.typography.fontSize["2xl"], fontWeight: "700", color: theme.colors.brandPrimary }}>
           Marketplace

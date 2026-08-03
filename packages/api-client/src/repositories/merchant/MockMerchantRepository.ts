@@ -1,3 +1,4 @@
+import { calculateOrderFinancials } from "@rapex/utils";
 import type {
   AddDraftProductInput,
   CreateExpansionRequestInput,
@@ -13,6 +14,7 @@ import type {
 import type {
   MerchantAccount,
   MerchantOrder,
+  MerchantOrderFinancials,
   MerchantProduct,
   MerchantRegistrationDraft,
   MerchantStore,
@@ -39,11 +41,11 @@ function generateId(prefix: string): string {
 
 const account: MerchantAccount = {
   id: "merchant-account-1",
-  ownerName: "Amy Villanueva",
-  email: "amy@example.com",
+  ownerName: "Juan Dela Cruz",
+  email: "juan@example.com",
   verificationStatus: "verified",
   onboardingStatus: "approved",
-  level: 3,
+  level: 15,
   xp: 340,
   xpForNextLevel: 500,
 };
@@ -91,7 +93,7 @@ function blankRegistrationDraft(): MerchantRegistrationDraft {
 
 let registrationDraft: MerchantRegistrationDraft = blankRegistrationDraft();
 
-const STORE_SLOT_UNLOCK_LEVELS = [1, 1, 1, 5, 10, 15, 20, 25, 30, 35];
+const STORE_SLOT_UNLOCK_LEVELS = [1, 1, 1, 20, 25, 30, 35, 40, 45, 50];
 
 function grantXp(amount: number) {
   account.xp += amount;
@@ -106,56 +108,85 @@ const stores: MerchantStore[] = [
   {
     id: "ms-1",
     merchantAccountId: account.id,
-    name: "Amy's Carinderia",
-    category: "Food",
+    name: "JB Grocery",
+    category: "Grocery",
     status: "online",
     approvalStatus: "approved",
-    address: "Anabu I-A, Imus, Cavite",
+    address: "Imus, Cavite",
     coverageRadiusKm: 3,
-    rating: 4.9,
+    rating: 4.8,
     productCount: 0,
-    description: "Home-style Filipino comfort food, cooked fresh every morning.",
+    description: "Everyday grocery essentials, fresh produce, and pantry staples.",
     phone: "+63 917 123 4567",
     businessHours: "Mon-Sun, 7:00 AM - 8:00 PM",
-    logoLabel: "🍲",
-    coverImageLabel: "🏠",
+    logoLabel: "🛒",
+    coverImageLabel: "🏬",
     latitude: 14.4297,
     longitude: 120.936,
   },
   {
     id: "ms-2",
     merchantAccountId: account.id,
-    name: "Amy's Grocery Corner",
-    category: "Grocery",
-    status: "offline",
-    approvalStatus: "pending",
-    address: "Anabu I-A, Imus, Cavite",
+    name: "JB's Hardware",
+    category: "Hardware",
+    status: "online",
+    approvalStatus: "approved",
+    address: "Alapan, Imus, Cavite",
     coverageRadiusKm: 2,
-    rating: 0,
+    rating: 4.6,
     productCount: 0,
-    description: "Everyday grocery essentials, fresh produce, and pantry staples.",
+    description: "Hardware, tools, and construction supplies.",
     phone: "+63 917 765 4321",
     businessHours: "Mon-Sat, 8:00 AM - 6:00 PM",
-    logoLabel: "🛒",
+    logoLabel: "🛠",
     coverImageLabel: "🏬",
     latitude: 14.4285,
     longitude: 120.9351,
   },
+  {
+    id: "ms-3",
+    merchantAccountId: account.id,
+    name: "Jenny's Carenderia",
+    category: "Food",
+    status: "online",
+    approvalStatus: "approved",
+    address: "Lancaster, General Trias, Cavite",
+    coverageRadiusKm: 3,
+    rating: 4.9,
+    productCount: 0,
+    description: "Home-style Filipino comfort food, cooked fresh every day.",
+    phone: "+63 917 555 8888",
+    businessHours: "Mon-Sun, 6:00 AM - 8:00 PM",
+    logoLabel: "🍲",
+    coverImageLabel: "🏠",
+    latitude: 14.339,
+    longitude: 120.882,
+  },
 ];
 
 const products: MerchantProduct[] = [
-  { id: "mp-1", storeId: "ms-1", name: "Chicken Adobo Meal", price: 129, imageLabel: "🍗", productCategory: "Rice Meals", stock: 30, isActive: true, variantCount: 2 },
-  { id: "mp-2", storeId: "ms-1", name: "Pork Sinigang Meal", price: 139, imageLabel: "🍲", productCategory: "Rice Meals", stock: 22, isActive: true, variantCount: 0 },
-  { id: "mp-3", storeId: "ms-1", name: "Grilled Pork Belly", price: 159, imageLabel: "🥓", productCategory: "Grilled", stock: 15, isActive: true, variantCount: 2 },
-  { id: "mp-4", storeId: "ms-2", name: "Fresh Bangus (1kg)", price: 180, imageLabel: "🐟", productCategory: "Fresh Seafood", stock: 0, isActive: false, variantCount: 0 },
-  { id: "mp-5", storeId: "ms-2", name: "Red Rice (5kg)", price: 250, imageLabel: "🍚", productCategory: "Staples", stock: 40, isActive: true, variantCount: 0 },
+  { id: "mp-1", storeId: "ms-1", name: "Rice", price: 55, imageLabel: "🍚", productCategory: "Staples", stock: 40, isActive: true, variantCount: 2 },
+  { id: "mp-2", storeId: "ms-1", name: "Cooking Oil", price: 95, imageLabel: "🛢️", productCategory: "Staples", stock: 25, isActive: true, variantCount: 0 },
+  { id: "mp-3", storeId: "ms-1", name: "Eggs", price: 8, imageLabel: "🥚", productCategory: "Fresh", stock: 120, isActive: true, variantCount: 0 },
+  { id: "mp-4", storeId: "ms-1", name: "Milk", price: 65, imageLabel: "🥛", productCategory: "Dairy", stock: 30, isActive: true, variantCount: 0 },
+  { id: "mp-5", storeId: "ms-1", name: "Soft Drinks", price: 45, imageLabel: "🥤", productCategory: "Beverages", stock: 3, isActive: true, variantCount: 0 },
+  { id: "mp-6", storeId: "ms-2", name: "Hammer", price: 250, imageLabel: "🔨", productCategory: "Hand Tools", stock: 12, isActive: true, variantCount: 0 },
+  { id: "mp-7", storeId: "ms-2", name: "Nails", price: 60, imageLabel: "📌", productCategory: "Fasteners", stock: 200, isActive: true, variantCount: 0 },
+  { id: "mp-8", storeId: "ms-2", name: "PVC Pipe", price: 180, imageLabel: "🧵", productCategory: "Plumbing", stock: 0, isActive: false, variantCount: 0 },
+  { id: "mp-9", storeId: "ms-2", name: "Paint", price: 320, imageLabel: "🎨", productCategory: "Finishing", stock: 18, isActive: true, variantCount: 0 },
+  { id: "mp-10", storeId: "ms-2", name: "Cement", price: 245, imageLabel: "🧱", productCategory: "Building Materials", stock: 5, isActive: true, variantCount: 0 },
+  { id: "mp-11", storeId: "ms-3", name: "Chicken Adobo", price: 129, imageLabel: "🍗", productCategory: "Rice Meals", stock: 30, isActive: true, variantCount: 2 },
+  { id: "mp-12", storeId: "ms-3", name: "Pork Sinigang", price: 139, imageLabel: "🍲", productCategory: "Rice Meals", stock: 22, isActive: true, variantCount: 0 },
+  { id: "mp-13", storeId: "ms-3", name: "Beef Steak", price: 159, imageLabel: "🥩", productCategory: "Rice Meals", stock: 15, isActive: true, variantCount: 0 },
+  { id: "mp-14", storeId: "ms-3", name: "Rice Meal", price: 99, imageLabel: "🍱", productCategory: "Rice Meals", stock: 40, isActive: true, variantCount: 0 },
+  { id: "mp-15", storeId: "ms-3", name: "Halo Halo", price: 89, imageLabel: "🍧", productCategory: "Dessert", stock: 20, isActive: true, variantCount: 0 },
 ];
 
 const variants: ProductVariant[] = [
-  { id: "mv-1", productId: "mp-1", name: "Regular", priceDelta: 0, stock: 20, sku: "ADB-REG" },
-  { id: "mv-2", productId: "mp-1", name: "Large", priceDelta: 30, stock: 10, sku: "ADB-LRG" },
-  { id: "mv-3", productId: "mp-3", name: "250g", priceDelta: 0, stock: 15, sku: "GPB-250" },
-  { id: "mv-4", productId: "mp-3", name: "500g", priceDelta: 80, stock: 8, sku: "GPB-500" },
+  { id: "mv-1", productId: "mp-1", name: "5kg", priceDelta: 0, stock: 20, sku: "RICE-5KG" },
+  { id: "mv-2", productId: "mp-1", name: "10kg", priceDelta: 50, stock: 10, sku: "RICE-10KG" },
+  { id: "mv-3", productId: "mp-11", name: "Regular", priceDelta: 0, stock: 15, sku: "ADB-REG" },
+  { id: "mv-4", productId: "mp-11", name: "Large", priceDelta: 30, stock: 8, sku: "ADB-LRG" },
 ];
 
 const orders: MerchantOrder[] = [
@@ -201,6 +232,23 @@ const storeTimelines: Record<string, StoreTimelineEvent[]> = {
     { id: "tl-5", storeId: "ms-2", type: "store", message: "Store submitted for approval.", occurredAt: "2026-07-25T04:00:00.000Z" },
   ],
 };
+
+/** Delivery Fee Engine settlements, seeded per store using the same formula rider/customer/admin screens use. */
+const orderFinancialsByStoreId: Record<string, MerchantOrderFinancials[]> = {
+  "ms-1": [
+    { orderId: "order-6001", distanceKm: 1.8, ...toMerchantView(calculateOrderFinancials({ orderId: "order-6001", distanceKm: 1.8, productTotal: 163 })) },
+    { orderId: "order-6002", distanceKm: 3.8, ...toMerchantView(calculateOrderFinancials({ orderId: "order-6002", distanceKm: 3.8, productTotal: 218 })) },
+  ],
+  "ms-2": [{ orderId: "order-6003", distanceKm: 2.5, ...toMerchantView(calculateOrderFinancials({ orderId: "order-6003", distanceKm: 2.5, productTotal: 505 })) }],
+  "ms-3": [
+    { orderId: "order-6004", distanceKm: 2.5, ...toMerchantView(calculateOrderFinancials({ orderId: "order-6004", distanceKm: 2.5, productTotal: 129 })) },
+    { orderId: "order-6005", distanceKm: 5.2, ...toMerchantView(calculateOrderFinancials({ orderId: "order-6005", distanceKm: 5.2, productTotal: 347 })) },
+  ],
+};
+
+function toMerchantView(financials: ReturnType<typeof calculateOrderFinancials>): Omit<MerchantOrderFinancials, "orderId" | "distanceKm"> {
+  return { deliveryFee: financials.deliveryFee, customerPayment: financials.finalTotal, merchantReceives: financials.merchantReceives };
+}
 
 function syncProductCounts() {
   for (const store of stores) {
@@ -495,5 +543,9 @@ export class MockMerchantRepository implements MerchantRepository {
     if (!order) throw new Error(`Order ${orderId} not found`);
     order.status = "cancelled";
     return delay(order);
+  }
+
+  async getOrderFinancials(storeId: string): Promise<MerchantOrderFinancials[]> {
+    return delay(orderFinancialsByStoreId[storeId] ?? []);
   }
 }

@@ -3,6 +3,7 @@ import { useAsync, type AsyncState } from "./useAsync";
 import { useAsyncAction, type AsyncActionState } from "./useAsyncAction";
 import type {
   MerchantAccount,
+  MerchantOrderFinancials,
   MerchantProduct,
   MerchantRegistrationDraft,
   MerchantStore,
@@ -145,4 +146,9 @@ export function useStoreInsights(storeId: string | null): AsyncState<StoreInsigh
 export function useStoreTimeline(storeId: string | null): AsyncState<StoreTimelineEvent[]> {
   const { merchant } = useRepositories();
   return useAsync(() => (storeId ? merchant.getStoreTimeline(storeId) : Promise.resolve([])), [storeId]);
+}
+
+export function useMerchantOrderFinancials(storeId: string | null): AsyncState<MerchantOrderFinancials[]> {
+  const { merchant } = useRepositories();
+  return useAsync(() => (storeId ? merchant.getOrderFinancials(storeId) : Promise.resolve([])), [storeId]);
 }

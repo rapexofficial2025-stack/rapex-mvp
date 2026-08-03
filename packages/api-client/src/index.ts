@@ -3,6 +3,7 @@ export * from "./core/httpClient";
 export * from "./core/errors";
 export * from "./core/createRapexHttpClient";
 export * from "./core/tokenStorage";
+export * from "./core/userCache";
 export * from "./core/retry";
 
 // DI
@@ -12,6 +13,7 @@ export * from "./createMockRepositories";
 // Repository interfaces + DTOs
 export * from "./repositories/types";
 export type { AuthRepository, RegisterInput, LoginInput } from "./repositories/auth/AuthRepository";
+export { XanoAuthRepository } from "./repositories/auth/XanoAuthRepository";
 export type { MarketplaceRepository } from "./repositories/marketplace/MarketplaceRepository";
 export type { OrdersRepository } from "./repositories/orders/OrdersRepository";
 export type { WalletRepository } from "./repositories/wallet/WalletRepository";
@@ -27,6 +29,7 @@ export type {
   SaveRegistrationDraftInput,
   AddDraftProductInput,
 } from "./repositories/merchant/MerchantRepository";
+export { XanoMerchantRepository } from "./repositories/merchant/XanoMerchantRepository";
 export type {
   AdminRepository,
   CreateEngineTierInput,

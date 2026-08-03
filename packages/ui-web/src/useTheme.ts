@@ -1,10 +1,7 @@
-import { getTheme, type Theme } from "@rapex/theme";
+import type { Theme } from "@rapex/theme";
+import { useThemeContext } from "./ThemeProvider";
 
-/**
- * Single point of theme access for every component in this package. Hardcoded
- * to light mode until a real ThemeContext exists -- swap the implementation
- * here once it does, no component call sites change.
- */
+/** Single point of theme access for every component in this package -- reads the live mode from ThemeProvider. */
 export function useTheme(): Theme {
-  return getTheme("light");
+  return useThemeContext().theme;
 }

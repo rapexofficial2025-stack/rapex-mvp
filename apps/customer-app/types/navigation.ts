@@ -5,7 +5,6 @@ export type MainTabParamList = {
   Marketplace: { categoryId?: string } | undefined;
   Wishlist: undefined;
   Orders: undefined;
-  Profile: undefined;
 };
 
 export type RootStackParamList = {
@@ -20,6 +19,7 @@ export type RootStackParamList = {
   Product: { productId: string };
   Checkout: { productId: string; quantity: number };
   Wallet: undefined;
+  Profile: undefined;
   Rex: undefined;
   AuctionHome: undefined;
   AuctionDetails: { auctionId: string };

@@ -33,5 +33,5 @@ export function SplashScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center" },
   title: { fontSize: 28, fontWeight: "700", marginBottom: 8 },
-  subtitle: { fontSize: 14 },
+  subtitle: { fontSize: 18 },
 });

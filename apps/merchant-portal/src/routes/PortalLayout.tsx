@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Sidebar, Topbar } from "@rapex/ui-web";
+import { Sidebar, Topbar, ThemeToggle } from "@rapex/ui-web";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", path: "/portal/dashboard" },
@@ -25,7 +25,7 @@ export function PortalLayout() {
         }))}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <Topbar title={activeItem?.label ?? "RAPEX Merchant"} />
+        <Topbar title={activeItem?.label ?? "RAPEX Merchant"} actions={<ThemeToggle />} />
         <Outlet />
       </div>
     </div>

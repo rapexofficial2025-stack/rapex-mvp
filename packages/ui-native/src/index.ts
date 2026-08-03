@@ -1,4 +1,6 @@
 export * from "./useTheme";
+export * from "./ThemeProvider";
+export * from "./ThemeToggle";
 export * from "./Button";
 export * from "./Input";
 export * from "./Badge";

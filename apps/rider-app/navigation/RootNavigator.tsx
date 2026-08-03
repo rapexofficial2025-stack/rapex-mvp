@@ -9,6 +9,7 @@ import { OtpScreen } from "../screens/OtpScreen";
 import { VerificationScreen } from "../screens/VerificationScreen";
 import { MainTabNavigator } from "./MainTabNavigator";
 import { DeliveryScreen } from "../screens/DeliveryScreen";
+import { DeliverySuccessScreen } from "../screens/DeliverySuccessScreen";
 import { EditProfileScreen } from "../screens/EditProfileScreen";
 import { IncentivesScreen } from "../screens/IncentivesScreen";
 import { ReferralScreen } from "../screens/ReferralScreen";
@@ -27,6 +28,11 @@ export function RootNavigator() {
       <Stack.Screen name="Verification" component={VerificationScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="Delivery" component={DeliveryScreen} options={{ headerShown: true, title: "Active Delivery" }} />
+      <Stack.Screen
+        name="DeliverySuccess"
+        component={DeliverySuccessScreen}
+        options={{ headerShown: true, title: "Order Completed", gestureEnabled: false }}
+      />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: true, title: "Edit Profile" }} />
       <Stack.Screen name="Incentives" component={IncentivesScreen} options={{ headerShown: true, title: "Weekly Incentive" }} />
       <Stack.Screen name="Referral" component={ReferralScreen} options={{ headerShown: true, title: "Referral Program" }} />

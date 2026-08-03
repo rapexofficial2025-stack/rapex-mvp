@@ -15,6 +15,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { PromoBanner } from "../components/PromoBanner";
 import { ComingSoonCard } from "../components/ComingSoonCard";
 import { WalletSummaryCard } from "../components/WalletSummaryCard";
+import { GradientScreenBackground } from "../components/GradientScreenBackground";
 import { useRecentlyViewedIds } from "../services/recentlyViewedStore";
 
 type Props = CompositeScreenProps<
@@ -64,7 +65,8 @@ export function HomeScreen({ navigation }: Props) {
   const lastViewed = recentlyViewedProducts[0];
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View style={{ flex: 1 }}>
+      <GradientScreenBackground />
       <ScrollView contentContainerStyle={{ paddingVertical: theme.spacing.lg, gap: theme.spacing.xl }}>
         {/* Header: delivery address + notifications */}
         <View
@@ -84,6 +86,20 @@ export function HomeScreen({ navigation }: Props) {
             </Text>
           </Pressable>
           <NotificationBell count={2} />
+          <Pressable
+            onPress={() => navigation.navigate("Profile")}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              marginLeft: theme.spacing.sm,
+              backgroundColor: theme.colors.brandPrimary,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: theme.colors.textInverse, fontWeight: "700" }}>👤</Text>
+          </Pressable>
         </View>
 
         {/* Search */}
