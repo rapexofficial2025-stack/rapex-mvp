@@ -1,6 +1,12 @@
 import { useState, type CSSProperties } from "react";
 import { toErrorMessage } from "@rapex/api-client";
-import { rapexHttpClient, rapexAuthHttpClient } from "../services/apiConfig";
+import {
+  rapexHttpClient,
+  rapexAuthHttpClient,
+  rapexAlphaAuthHttpClient,
+  rapexOrdersHttpClient,
+  rapexFinanceHttpClient,
+} from "../services/apiConfig";
 import { webTokenStorage } from "../services/webTokenStorage";
 
 type PendingMerchant = {
@@ -45,6 +51,27 @@ export function XanoLiveTestPage() {
   const [products, setProducts] = useState<AdminProduct[] | null>(null);
   const [productsError, setProductsError] = useState<string | null>(null);
   const [productsLoading, setProductsLoading] = useState(false);
+
+  // Alpha E2E: orders + wallet, unverified live -- reuses whatever token is
+  // currently stored (from either login section above), same as testing
+  // by hand with curl but from the browser and against real requests.
+  const [alphaLog, setAlphaLog] = useState<{ label: string; ok: boolean; body: string }[]>([]);
+  const [alphaLoading, setAlphaLoading] = useState<string | null>(null);
+  const [productId, setProductId] = useState("BURGER-001");
+  const [orderId, setOrderId] = useState("");
+  const [walletUserId, setWalletUserId] = useState("");
+
+  async function runAlpha(label: string, fn: () => Promise<unknown>) {
+    setAlphaLoading(label);
+    try {
+      const result = await fn();
+      setAlphaLog((prev) => [{ label, ok: true, body: JSON.stringify(result, null, 2) }, ...prev]);
+    } catch (err) {
+      setAlphaLog((prev) => [{ label, ok: false, body: toErrorMessage(err) }, ...prev]);
+    } finally {
+      setAlphaLoading(null);
+    }
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -205,6 +232,140 @@ export function XanoLiveTestPage() {
           )
         ) : null}
       </section>
+
+      <section style={styles.card}>
+        <h2 style={styles.h2}>4. Alpha E2E: Auth / Orders / Wallet (unverified live)</h2>
+        <p style={styles.note}>
+          Reuses whichever token is currently stored above. Log in with the role you're about to test first (e.g. use
+          section 1 with irvin@rapex.ph / password123 for customer, burger@rapex.ph / password123 for merchant,
+          rider@rapex.ph / password123 for rider), then click the buttons for that role below in order.
+        </p>
+
+        <div style={styles.rowButtons}>
+          <button
+            type="button"
+            style={styles.smallButton2}
+            disabled={alphaLoading !== null}
+            onClick={() =>
+              runAlpha("Login (rapex-auth group)", async () => {
+                const r = await rapexAlphaAuthHttpClient.request<{ authToken?: string; data?: { authToken?: string } }>({
+                  path: "/auth/login",
+                  method: "POST",
+                  body: { email, password },
+                });
+                const token = r?.data?.authToken ?? r?.authToken;
+                if (token) await webTokenStorage.setToken(token);
+                return r;
+              })
+            }
+          >
+            Login (rapex-auth)
+          </button>
+          <button
+            type="button"
+            style={styles.smallButton2}
+            disabled={alphaLoading !== null}
+            onClick={() => runAlpha("Get Wallet", () => rapexFinanceHttpClient.request({ path: "/balance", method: "GET" }))}
+          >
+            Get Wallet
+          </button>
+        </div>
+
+        <div style={styles.rowButtons}>
+          <input style={styles.input} value={productId} onChange={(e) => setProductId(e.target.value)} placeholder="product id" />
+          <button
+            type="button"
+            style={styles.smallButton2}
+            disabled={alphaLoading !== null}
+            onClick={() =>
+              runAlpha("Checkout / Create Order", async () => {
+                const r = await rapexOrdersHttpClient.request<{ order_id?: string | number }>({
+                  path: "/create",
+                  method: "POST",
+                  body: {
+                    items: [{ product_id: productId, quantity: 1 }],
+                    delivery_lat: 14.5995,
+                    delivery_lng: 120.9842,
+                    payment_method: "wallet",
+                  },
+                });
+                if (r?.order_id) setOrderId(String(r.order_id));
+                return r;
+              })
+            }
+          >
+            Checkout / Create Order
+          </button>
+        </div>
+        <p style={styles.note}>No separate cart endpoint confirmed -- Checkout creates the order directly.</p>
+
+        <div style={styles.rowButtons}>
+          <input style={styles.input} value={orderId} onChange={(e) => setOrderId(e.target.value)} placeholder="order id" />
+        </div>
+        <div style={styles.rowButtons}>
+          <span style={styles.note}>Merchant:</span>
+          {(["merchant_accepted", "preparing", "ready_for_pickup"] as const).map((status) => (
+            <button
+              key={status}
+              type="button"
+              style={styles.smallButton2}
+              disabled={alphaLoading !== null || !orderId}
+              onClick={() =>
+                runAlpha(status, () =>
+                  rapexOrdersHttpClient.request({ path: "/update_status", method: "PATCH", body: { order_id: orderId, status } }),
+                )
+              }
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+        <div style={styles.rowButtons}>
+          <span style={styles.note}>Rider:</span>
+          {(["rider_accepted", "picked_up", "delivering", "completed"] as const).map((status) => (
+            <button
+              key={status}
+              type="button"
+              style={styles.smallButton2}
+              disabled={alphaLoading !== null || !orderId}
+              onClick={() =>
+                runAlpha(status, () =>
+                  rapexOrdersHttpClient.request({ path: "/update_status", method: "PATCH", body: { order_id: orderId, status } }),
+                )
+              }
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+
+        <div style={styles.rowButtons}>
+          <input style={styles.input} value={walletUserId} onChange={(e) => setWalletUserId(e.target.value)} placeholder="user_id (admin only)" />
+          <button
+            type="button"
+            style={styles.smallButton2}
+            disabled={alphaLoading !== null || !walletUserId}
+            onClick={() =>
+              runAlpha("Admin Wallet Adjust (probe, amount 0)", () =>
+                rapexHttpClient.request({
+                  path: "/wallet/adjust",
+                  method: "PATCH",
+                  body: { user_id: walletUserId, amount: 0, action: "add", reason: "Alpha console probe" },
+                }),
+              )
+            }
+          >
+            Wallet Summary (Admin)
+          </button>
+        </div>
+
+        {alphaLog.map((entry, i) => (
+          <div key={i} style={{ marginTop: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: entry.ok ? "#166534" : "#B91C1C" }}>{entry.label}</div>
+            <pre style={entry.ok ? styles.resultBox : styles.errorBox}>{entry.body}</pre>
+          </div>
+        ))}
+      </section>
     </div>
   );
 }
@@ -235,6 +396,16 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 600,
     cursor: "pointer",
     color: "#fff",
+  },
+  smallButton2: {
+    border: "none",
+    borderRadius: 6,
+    padding: "6px 10px",
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: "pointer",
+    color: "#fff",
+    background: "#4C1D95",
   },
   errorBox: { background: "#FEF2F2", color: "#B91C1C", padding: 12, borderRadius: 8, fontSize: 12, marginTop: 12, whiteSpace: "pre-wrap" },
   resultBox: { background: "#F0FDF4", color: "#166534", padding: 12, borderRadius: 8, fontSize: 12, marginTop: 12, whiteSpace: "pre-wrap", overflowX: "auto" },

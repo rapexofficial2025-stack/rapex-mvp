@@ -35,3 +35,24 @@ export const rapexAuthHttpClient = createRapexHttpClient({
   appId: "admin",
   tokenStorage: webTokenStorage,
 });
+
+/** rapex-auth group's own /auth/login (distinct from super_app's /login) -- used by XanoLiveTestPage's Alpha E2E section. */
+export const rapexAlphaAuthHttpClient = createRapexHttpClient({
+  baseUrl: "https://x8ki-letl-twmt.n7.xano.io/api:rapex-auth",
+  appId: "admin",
+  tokenStorage: webTokenStorage,
+});
+
+/** rapex-orders group -- order create/status transitions, unverified live, Alpha E2E test section only. */
+export const rapexOrdersHttpClient = createRapexHttpClient({
+  baseUrl: "https://x8ki-letl-twmt.n7.xano.io/api:rapex-orders",
+  appId: "admin",
+  tokenStorage: webTokenStorage,
+});
+
+/** rapex-finance group -- wallet balance, unverified live, Alpha E2E test section only. */
+export const rapexFinanceHttpClient = createRapexHttpClient({
+  baseUrl: "https://x8ki-letl-twmt.n7.xano.io/api:rapex-finance",
+  appId: "admin",
+  tokenStorage: webTokenStorage,
+});
