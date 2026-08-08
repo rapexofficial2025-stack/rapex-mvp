@@ -34,6 +34,8 @@ export function EngineCenterPage() {
           <span style={{ fontSize: theme.typography.fontSize.sm, fontWeight: 700, color: theme.colors.textSecondary }}>Engines</span>
           <Badge label={isSuperAdmin ? "Super Admin" : "Admin"} tone={isSuperAdmin ? "accent" : "neutral"} />
         </div>
+        <Badge label="Mock data — backend endpoint required" tone="warning" />
+        <div style={{ height: theme.spacing.xs }} />
         {ENGINES.map((engine) => (
           <button
             key={engine.key}

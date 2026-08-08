@@ -14,6 +14,7 @@ export * from "./createMockRepositories";
 export * from "./repositories/types";
 export type { AuthRepository, RegisterInput, LoginInput } from "./repositories/auth/AuthRepository";
 export { XanoAuthRepository } from "./repositories/auth/XanoAuthRepository";
+export { XanoAdminAuthRepository } from "./repositories/auth/XanoAdminAuthRepository";
 export type { MarketplaceRepository } from "./repositories/marketplace/MarketplaceRepository";
 export type { OrdersRepository } from "./repositories/orders/OrdersRepository";
 export { XanoOrdersRepository } from "./repositories/orders/XanoOrdersRepository";

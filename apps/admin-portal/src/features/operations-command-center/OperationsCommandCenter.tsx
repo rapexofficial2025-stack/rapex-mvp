@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useTheme } from "@rapex/ui-web";
+import { Badge, useTheme } from "@rapex/ui-web";
 import { KpiBar } from "./KpiBar";
 import { FilterPanel } from "./FilterPanel";
 import { MapPlaceholder } from "./MapPlaceholder";
@@ -57,7 +57,10 @@ export function OperationsCommandCenter() {
   }, [activeFilters, showMerchants]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: theme.colors.background }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: theme.colors.background, position: "relative" }}>
+      <div style={{ position: "absolute", top: theme.spacing.sm, right: theme.spacing.sm, zIndex: 1 }}>
+        <Badge label="Mock data — backend endpoint required" tone="warning" />
+      </div>
       <KpiBar riders={MOCK_RIDERS} merchants={MOCK_MERCHANTS} />
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         <FilterPanel activeFilters={activeFilters} onToggle={toggleFilter} />

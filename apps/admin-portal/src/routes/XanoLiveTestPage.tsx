@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from "react";
-import { toErrorMessage } from "@rapex/api-client";
+import { ApiClientError, toErrorMessage, XanoAdminAuthRepository } from "@rapex/api-client";
 import {
   rapexHttpClient,
   rapexAuthHttpClient,
@@ -8,6 +8,7 @@ import {
   rapexFinanceHttpClient,
 } from "../services/apiConfig";
 import { webTokenStorage } from "../services/webTokenStorage";
+import { webUserCache } from "../services/userCache";
 
 type PendingMerchant = {
   id: number;
@@ -55,19 +56,28 @@ export function XanoLiveTestPage() {
   // Alpha E2E: orders + wallet, unverified live -- reuses whatever token is
   // currently stored (from either login section above), same as testing
   // by hand with curl but from the browser and against real requests.
-  const [alphaLog, setAlphaLog] = useState<{ label: string; ok: boolean; body: string }[]>([]);
+  type AlphaLogEntry = { label: string; ok: boolean; method: string; path: string; body: string };
+  const [alphaLog, setAlphaLog] = useState<AlphaLogEntry[]>([]);
   const [alphaLoading, setAlphaLoading] = useState<string | null>(null);
   const [productId, setProductId] = useState("BURGER-001");
   const [orderId, setOrderId] = useState("");
   const [walletUserId, setWalletUserId] = useState("");
 
-  async function runAlpha(label: string, fn: () => Promise<unknown>) {
+  const adminAuthRepo = new XanoAdminAuthRepository(rapexAuthHttpClient, webTokenStorage, webUserCache, "admin");
+
+  /**
+   * `endpoint` is recorded on every entry so a failure shows exactly which
+   * Xano API group + path + HTTP method was hit (Phase 11 requirement) --
+   * not just "something failed".
+   */
+  async function runAlpha(label: string, endpoint: { method: string; path: string }, fn: () => Promise<unknown>) {
     setAlphaLoading(label);
     try {
       const result = await fn();
-      setAlphaLog((prev) => [{ label, ok: true, body: JSON.stringify(result, null, 2) }, ...prev]);
+      setAlphaLog((prev) => [{ label, ok: true, ...endpoint, body: JSON.stringify(result, null, 2) }, ...prev]);
     } catch (err) {
-      setAlphaLog((prev) => [{ label, ok: false, body: toErrorMessage(err) }, ...prev]);
+      const detail = err instanceof ApiClientError ? `HTTP ${err.status} (${err.code})\n${err.message}` : toErrorMessage(err);
+      setAlphaLog((prev) => [{ label, ok: false, ...endpoint, body: detail }, ...prev]);
     } finally {
       setAlphaLoading(null);
     }
@@ -234,7 +244,34 @@ export function XanoLiveTestPage() {
       </section>
 
       <section style={styles.card}>
-        <h2 style={styles.h2}>4. Alpha E2E: Auth / Orders / Wallet (unverified live)</h2>
+        <h2 style={styles.h2}>4. Phase 1: Admin Auth via the real repository (super_app)</h2>
+        <p style={styles.note}>
+          Exercises the exact code path AppProviders.tsx wires up (XanoAdminAuthRepository → POST /login on the
+          super_app group), not a raw fetch -- proves Admin Login → Xano authentication → session token →
+          getCurrentUser() end-to-end.
+        </p>
+        <div style={styles.rowButtons}>
+          <button
+            type="button"
+            style={styles.smallButton2}
+            disabled={alphaLoading !== null}
+            onClick={() => runAlpha("Admin Login (repository)", { method: "POST", path: "super_app: /login" }, () => adminAuthRepo.login({ email, password }))}
+          >
+            Admin Login (repository)
+          </button>
+          <button
+            type="button"
+            style={styles.smallButton2}
+            disabled={alphaLoading !== null}
+            onClick={() => runAlpha("getCurrentUser() (session check)", { method: "n/a", path: "local token + user cache" }, () => adminAuthRepo.getCurrentUser())}
+          >
+            getCurrentUser() (session check)
+          </button>
+        </div>
+      </section>
+
+      <section style={styles.card}>
+        <h2 style={styles.h2}>5. Alpha E2E: Auth / Orders / Wallet (unverified live)</h2>
         <p style={styles.note}>
           Reuses whichever token is currently stored above. Log in with the role you're about to test first (e.g. use
           section 1 with irvin@rapex.ph / password123 for customer, burger@rapex.ph / password123 for merchant,
@@ -247,7 +284,7 @@ export function XanoLiveTestPage() {
             style={styles.smallButton2}
             disabled={alphaLoading !== null}
             onClick={() =>
-              runAlpha("Login (rapex-auth group)", async () => {
+              runAlpha("Login (rapex-auth group)", { method: "POST", path: "rapex-auth: /auth/login" }, async () => {
                 const r = await rapexAlphaAuthHttpClient.request<{ authToken?: string; data?: { authToken?: string } }>({
                   path: "/auth/login",
                   method: "POST",
@@ -265,7 +302,7 @@ export function XanoLiveTestPage() {
             type="button"
             style={styles.smallButton2}
             disabled={alphaLoading !== null}
-            onClick={() => runAlpha("Get Wallet", () => rapexFinanceHttpClient.request({ path: "/balance", method: "GET" }))}
+            onClick={() => runAlpha("Get Wallet", { method: "GET", path: "rapex-finance: /balance" }, () => rapexFinanceHttpClient.request({ path: "/balance", method: "GET" }))}
           >
             Get Wallet
           </button>
@@ -278,7 +315,7 @@ export function XanoLiveTestPage() {
             style={styles.smallButton2}
             disabled={alphaLoading !== null}
             onClick={() =>
-              runAlpha("Checkout / Create Order", async () => {
+              runAlpha("Checkout / Create Order", { method: "POST", path: "rapex-orders: /create" }, async () => {
                 const r = await rapexOrdersHttpClient.request<{ order_id?: string | number }>({
                   path: "/create",
                   method: "POST",
@@ -311,7 +348,7 @@ export function XanoLiveTestPage() {
               style={styles.smallButton2}
               disabled={alphaLoading !== null || !orderId}
               onClick={() =>
-                runAlpha(status, () =>
+                runAlpha(status, { method: "PATCH", path: "rapex-orders: /update_status" }, () =>
                   rapexOrdersHttpClient.request({ path: "/update_status", method: "PATCH", body: { order_id: orderId, status } }),
                 )
               }
@@ -329,7 +366,7 @@ export function XanoLiveTestPage() {
               style={styles.smallButton2}
               disabled={alphaLoading !== null || !orderId}
               onClick={() =>
-                runAlpha(status, () =>
+                runAlpha(status, { method: "PATCH", path: "rapex-orders: /update_status" }, () =>
                   rapexOrdersHttpClient.request({ path: "/update_status", method: "PATCH", body: { order_id: orderId, status } }),
                 )
               }
@@ -346,7 +383,7 @@ export function XanoLiveTestPage() {
             style={styles.smallButton2}
             disabled={alphaLoading !== null || !walletUserId}
             onClick={() =>
-              runAlpha("Admin Wallet Adjust (probe, amount 0)", () =>
+              runAlpha("Admin Wallet Adjust (probe, amount 0)", { method: "PATCH", path: "admin: /wallet/adjust" }, () =>
                 rapexHttpClient.request({
                   path: "/wallet/adjust",
                   method: "PATCH",
@@ -361,7 +398,9 @@ export function XanoLiveTestPage() {
 
         {alphaLog.map((entry, i) => (
           <div key={i} style={{ marginTop: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: entry.ok ? "#166534" : "#B91C1C" }}>{entry.label}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: entry.ok ? "#166534" : "#B91C1C" }}>
+              {entry.ok ? "✓" : "✗ STOP —"} {entry.label} <span style={{ fontWeight: 400, color: "#666" }}>({entry.method} {entry.path})</span>
+            </div>
             <pre style={entry.ok ? styles.resultBox : styles.errorBox}>{entry.body}</pre>
           </div>
         ))}
