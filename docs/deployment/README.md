@@ -4,11 +4,27 @@ How RAPEX apps get built and shipped — Expo builds/EAS for mobile, hosting for
 
 ## Status (as of 2026-08-09, 23 days before the Sept 1 launch target)
 
-CI and a staging deploy path now exist. Nothing has been deployed to a real, reachable URL yet — every item below marked **UNVERIFIED** needs a manual step from someone with the right account access before it's actually proven, not just configured.
+CI is **VERIFIED GREEN** (confirmed as an actual GitHub Actions run, not just reproduced locally -- see below). A staging deploy path exists but is unverified. Nothing has been deployed to a real, reachable URL yet — every item below marked **UNVERIFIED** needs a manual step from someone with the right account access before it's actually proven, not just configured.
 
-## CI — `.github/workflows/ci.yml`
+## CI — `.github/workflows/ci.yml` — VERIFIED GREEN
 
-Runs on every push to `main` and every PR: `pnpm install`, `pnpm typecheck` (every workspace package now has a `typecheck` script — this used to be a no-op), lint (`oxlint`) and production `build` for the three web portals (admin/merchant/provider). Verified locally end-to-end before being committed (all 12 typed workspaces pass, all 3 web builds succeed, lint is clean/warning-only). **Not yet verified running as an actual GitHub Actions run** — needs a push/PR to trigger it for real.
+Runs on every push to `main` and every PR: `pnpm install`, `pnpm typecheck` (every workspace package now has a `typecheck` script — this used to be a no-op), lint (`oxlint`) and production `build` for the three web portals (admin/merchant/provider). Its first real run failed (`.nvmrc` pinned Node 20, but the pinned `pnpm@11.18.0` requires Node >=22.13 -- fixed by bumping `.nvmrc` to 22); the rerun on PR #3 passed as an actual GitHub Actions run (run 31309123021, conclusion `success`).
+
+## Manual account-level actions required
+
+Nothing below can be done from an automated sandbox -- each needs a human with the relevant account:
+
+| # | Action | Blocks | Who |
+|---|---|---|---|
+| 1 | Fix the Xano `22P02` signup/seed error (rider-table column type/index) | All real signup/login testing, the entire live order lifecycle | Whoever has Xano workspace access |
+| 2 | Confirm the rider `X-RAPEX-App` header value (see `docs/api/README.md`) | Rider App auth -- currently 100% Mock | Whoever owns the Xano backend contract |
+| 3 | Repo **Settings → Pages → Source → GitHub Actions**, then manually run "Deploy staging" | The one staging URL for the 3 web portals | Repo admin |
+| 4 | `npx eas login` + `npx eas init` (per app) -- links a real EAS project, writes `extra.eas.projectId` | Any real mobile build | Someone with an Expo account |
+| 5 | Create a Google Cloud project, enable Maps SDK for Android/iOS + Maps JavaScript API + Directions/Distance Matrix as needed, generate an API key, enable billing | Any map actually rendering (web or native) | Whoever manages RAPEX's Google Cloud billing |
+| 6 | Decide production hosting for the 3 web portals (GitHub Pages staging is a stopgap, not launch-ready) | Real production URLs | Product/eng decision |
+| 7 | Apple Developer + Google Play Console accounts, when ready for store submission (`eas submit`) | App store distribution (post-MVP, not a Sept 1 blocker) | Whoever owns those accounts |
+
+## Web portals (admin-portal, merchant-portal, provider-portal)
 
 ## Web portals (admin-portal, merchant-portal, provider-portal)
 
