@@ -1,10 +1,17 @@
 import type { ReactNode } from "react";
-import { RepositoryProvider, createMockRepositories } from "@rapex/api-client";
+import { RepositoryProvider, createMockRepositories, XanoAdminAuthRepository } from "@rapex/api-client";
 import { ThemeProvider } from "@rapex/ui-web";
+import { rapexAuthHttpClient } from "./services/apiConfig";
+import { webTokenStorage } from "./services/webTokenStorage";
+import { webUserCache } from "./services/userCache";
 
-// Swap createMockRepositories() for a real Xano-backed set once the API
-// contract lands -- this is the only line that needs to change.
-const repositories = createMockRepositories();
+// Real Xano auth (super_app group's confirmed POST /login); everything else
+// stays Mock until its own contract is confirmed -- see
+// packages/api-client/README.md and docs/change-log for what's real vs mock.
+const repositories = {
+  ...createMockRepositories(),
+  auth: new XanoAdminAuthRepository(rapexAuthHttpClient, webTokenStorage, webUserCache, "admin"),
+};
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (

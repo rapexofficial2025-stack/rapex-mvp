@@ -24,12 +24,15 @@ export function OrderFinancialsPage() {
 
   return (
     <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: theme.spacing.md }}>
-      <div>
-        <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Order Financials</h2>
-        <p style={{ margin: 0, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
-          Delivery Fee Engine settlements -- Distance, Delivery Fee, Merchant Receives, Platform Revenue, Rider Earnings,
-          Wallet Deduction, per order. Click a row for the full order timeline.
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Order Financials</h2>
+          <p style={{ margin: 0, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
+            Delivery Fee Engine settlements -- Distance, Delivery Fee, Merchant Receives, Platform Revenue, Rider Earnings,
+            Wallet Deduction, per order. Click a row for the full order timeline.
+          </p>
+        </div>
+        <Badge label="Mock data — backend endpoint required" tone="warning" />
       </div>
 
       <DataTable

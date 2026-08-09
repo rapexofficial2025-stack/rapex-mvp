@@ -69,11 +69,14 @@ export function DashboardPage() {
 
   return (
     <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
-      <div>
-        <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Dashboard</h2>
-        <p style={{ margin: 0, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
-          Welcome back{admin ? `, ${admin.name.split(" ")[0]}` : ""}! Here's what's happening today.
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Dashboard</h2>
+          <p style={{ margin: 0, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
+            Welcome back{admin ? `, ${admin.name.split(" ")[0]}` : ""}! Here's what's happening today.
+          </p>
+        </div>
+        <Badge label="Mock data — backend endpoint required" tone="warning" />
       </div>
 
       {/* Top KPI row */}
