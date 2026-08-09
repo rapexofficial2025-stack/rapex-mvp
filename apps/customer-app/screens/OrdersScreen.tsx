@@ -32,9 +32,12 @@ export function OrdersScreen() {
         contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.sm }}
         ItemSeparatorComponent={() => <View style={{ height: theme.spacing.sm }} />}
         ListHeaderComponent={
-          <Text style={{ fontSize: theme.typography.fontSize["2xl"], fontWeight: "700", color: theme.colors.brandPrimary, marginBottom: theme.spacing.sm }}>
-            Orders
-          </Text>
+          <View style={{ marginBottom: theme.spacing.sm, gap: theme.spacing.xxs }}>
+            <Text style={{ fontSize: theme.typography.fontSize["2xl"], fontWeight: "700", color: theme.colors.brandPrimary }}>
+              Orders
+            </Text>
+            <Badge label="Mock data — no confirmed order-list endpoint yet" tone="warning" />
+          </View>
         }
         renderItem={({ item }) => (
           <View

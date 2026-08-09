@@ -3,7 +3,7 @@ import { FlatList, Pressable, Text, View } from "react-native";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { SearchBar, Loading, ErrorState, EmptyState } from "@rapex/ui-native";
+import { Badge, SearchBar, Loading, ErrorState, EmptyState } from "@rapex/ui-native";
 import { useCategories, useStores } from "@rapex/api-client";
 import type { MainTabParamList, RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
@@ -94,9 +94,12 @@ export function MarketplaceScreen({ navigation, route }: Props) {
     <View style={{ flex: 1 }}>
       <GradientScreenBackground />
       <View style={{ padding: theme.spacing.lg, gap: theme.spacing.sm }}>
-        <Text style={{ fontSize: theme.typography.fontSize["2xl"], fontWeight: "700", color: theme.colors.brandPrimary }}>
-          Marketplace
-        </Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={{ fontSize: theme.typography.fontSize["2xl"], fontWeight: "700", color: theme.colors.brandPrimary }}>
+            Marketplace
+          </Text>
+          <Badge label="Mock data — backend endpoint required" tone="warning" />
+        </View>
 
         <SearchBar placeholder="Search stores…" value={searchQuery} onChangeText={setSearchQuery} />
 

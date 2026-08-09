@@ -57,6 +57,7 @@ export function CheckoutScreen({ navigation, route }: Props) {
       <Text style={{ fontSize: theme.typography.fontSize.xl, fontWeight: "700", color: theme.colors.textPrimary }}>
         Order Summary
       </Text>
+      <Badge label="Preview totals are a mock estimate — no confirmed Xano pricing endpoint yet" tone="warning" />
       {summary.lines.map((line) => (
         <Row key={line.productId} label={`${line.productName} × ${line.quantity}`} value={formatPeso(line.unitPrice * line.quantity)} />
       ))}
@@ -80,6 +81,7 @@ export function CheckoutScreen({ navigation, route }: Props) {
 
       {placeOrder.error ? <ErrorState description={placeOrder.error} /> : null}
 
+      <Badge label="Place Order calls the real Xano backend — response shape unverified live" tone="info" />
       <Button
         label="Place Order"
         loading={placeOrder.loading}
