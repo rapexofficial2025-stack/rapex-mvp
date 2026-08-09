@@ -1,0 +1,89 @@
+name: Deploy staging (GitHub Pages)
+
+# Manual only, on purpose: this will fail until GitHub Pages is enabled for
+# this repo (Settings -> Pages -> Source: GitHub Actions), which only a repo
+# admin can do. Auto-running this on every push would just spam failures
+# until that one-time manual step happens. See docs/deployment/README.md.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Each portal is built with its own subpath base so one Pages site can
+      # serve all three. This is a temporary Alpha staging URL, not the
+      # production domain -- see each app's services/apiConfig.ts comments.
+      - name: Build admin-portal (/admin/)
+        run: pnpm --filter admin-portal build
+        env:
+          VITE_BASE_PATH: /admin/
+
+      - name: Build merchant-portal (/merchant/)
+        run: pnpm --filter merchant-portal build
+        env:
+          VITE_BASE_PATH: /merchant/
+
+      - name: Build provider-portal (/provider/)
+        run: pnpm --filter provider-portal build
+        env:
+          VITE_BASE_PATH: /provider/
+
+      - name: Assemble combined Pages site
+        run: |
+          mkdir -p site
+          cp -r apps/admin-portal/dist site/admin
+          cp -r apps/merchant-portal/dist site/merchant
+          cp -r apps/provider-portal/dist site/provider
+          cat > site/index.html <<'HTML'
+          <!doctype html>
+          <html><head><meta charset="utf-8"><title>RAPEX Staging</title></head>
+          <body style="font-family: sans-serif; padding: 2rem;">
+            <h1>RAPEX Alpha Staging</h1>
+            <p>Temporary GitHub Pages deployment -- not the production domain.</p>
+            <ul>
+              <li><a href="/admin/">Admin Portal</a></li>
+              <li><a href="/merchant/">Merchant Portal</a></li>
+              <li><a href="/provider/">Provider Portal</a></li>
+            </ul>
+          </body></html>
+          HTML
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

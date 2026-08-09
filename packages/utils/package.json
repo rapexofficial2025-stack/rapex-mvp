@@ -6,5 +6,8 @@
   "types": "src/index.ts",
   "dependencies": {
     "@rapex/constants": "workspace:*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   }
 }

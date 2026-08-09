@@ -18,5 +18,8 @@
     "@types/react": "~19.2.2",
     "react": "19.2.3",
     "react-native": "0.86.2"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   }
 }
