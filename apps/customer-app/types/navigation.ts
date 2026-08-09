@@ -5,6 +5,7 @@ export type MainTabParamList = {
   Marketplace: { categoryId?: string } | undefined;
   Wishlist: undefined;
   Orders: undefined;
+  Earn: undefined;
 };
 
 export type RootStackParamList = {
@@ -17,7 +18,8 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Store: { storeId: string };
   Product: { productId: string };
-  Checkout: { productId: string; quantity: number };
+  Checkout: { productId: string; quantity: number } | undefined;
+  Address: undefined;
   Wallet: undefined;
   Profile: undefined;
   Rex: undefined;

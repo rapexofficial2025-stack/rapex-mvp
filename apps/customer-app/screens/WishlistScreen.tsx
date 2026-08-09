@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Badge, Loading, ErrorState, EmptyState, useToast } from "@rapex/ui-native";
+import { Badge, Loading, ErrorState, EmptyState } from "@rapex/ui-native";
 import { useStores, useWalletSummary, type StoreSummary } from "@rapex/api-client";
 import type { MainTabParamList, RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
@@ -11,7 +11,7 @@ import { WalletGlassCard } from "../components/WalletGlassCard";
 import { StoreCartModal } from "../components/StoreCartModal";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { useFavoriteStoreIds } from "../services/favoriteStoresStore";
-import { useCartLines, clearCart } from "../services/cartStore";
+import { useCartLines } from "../services/cartStore";
 
 type Props = CompositeScreenProps<BottomTabScreenProps<MainTabParamList, "Wishlist">, NativeStackScreenProps<RootStackParamList>>;
 
@@ -21,7 +21,6 @@ export function WishlistScreen({ navigation }: Props) {
   const { data: wallet } = useWalletSummary();
   const favoriteIds = useFavoriteStoreIds();
   const cartLines = useCartLines();
-  const { showToast } = useToast();
   const [openStoreId, setOpenStoreId] = useState<string | null>(null);
 
   const favoriteStores = (allStores ?? []).filter((s) => favoriteIds.has(s.id));
@@ -115,12 +114,9 @@ export function WishlistScreen({ navigation }: Props) {
         storeId={openStoreId}
         onClose={() => setOpenStoreId(null)}
         onProceed={() => {
-          const firstLine = cartLines[0];
           setOpenStoreId(null);
-          if (!firstLine) return;
-          showToast("Address, vehicle & payment selection coming next -- jumping to quick checkout for now.");
-          navigation.navigate("Checkout", { productId: firstLine.productId, quantity: firstLine.quantity });
-          clearCart();
+          if (cartLines.length === 0) return;
+          navigation.navigate("Checkout", undefined);
         }}
       />
     </ScreenContainer>

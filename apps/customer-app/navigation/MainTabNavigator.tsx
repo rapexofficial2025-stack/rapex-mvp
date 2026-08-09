@@ -5,6 +5,7 @@ import { HomeScreen } from "../screens/HomeScreen";
 import { MarketplaceScreen } from "../screens/MarketplaceScreen";
 import { WishlistScreen } from "../screens/WishlistScreen";
 import { OrdersScreen } from "../screens/OrdersScreen";
+import { EarnScreen } from "../screens/EarnScreen";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -24,6 +25,7 @@ export function MainTabNavigator() {
       <Tab.Screen name="Marketplace" component={MarketplaceScreen} />
       <Tab.Screen name="Wishlist" component={WishlistScreen} />
       <Tab.Screen name="Orders" component={OrdersScreen} />
+      <Tab.Screen name="Earn" component={EarnScreen} />
     </Tab.Navigator>
   );
 }
