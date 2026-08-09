@@ -21,6 +21,61 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
+/**
+ * UI-only architecture prep, per instruction: RAPEX Wallet is the only
+ * `payment_method` value the confirmed Xano contract accepts for Alpha
+ * (see XanoOrdersRepository's doc comment) -- COD/GCash/Maya/QRPH are shown
+ * so the future shape is visible, but disabled rather than wired to a fake
+ * parameter. OrdersRepository.placeOrder() intentionally does not take a
+ * payment method argument yet -- adding one would imply the backend can
+ * accept it, which it can't confirm today.
+ */
+const DISABLED_PAYMENT_METHODS = ["Cash on Delivery (COD)", "GCash", "Maya", "QRPH"] as const;
+
+function PaymentMethodSelector() {
+  const theme = useAppTheme();
+  return (
+    <View style={{ gap: theme.spacing.xs }}>
+      <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>Payment Method</Text>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: theme.spacing.md,
+          borderRadius: theme.radius.md,
+          borderWidth: 1,
+          borderColor: theme.colors.brandPrimary,
+          backgroundColor: theme.colors.surfaceAlt,
+        }}
+      >
+        <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.fontSize.sm, fontWeight: "600" }}>
+          RAPEX Wallet
+        </Text>
+        <Badge label="Selected" tone="success" />
+      </View>
+      {DISABLED_PAYMENT_METHODS.map((method) => (
+        <View
+          key={method}
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: theme.spacing.md,
+            borderRadius: theme.radius.md,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            opacity: 0.5,
+          }}
+        >
+          <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.fontSize.sm }}>{method}</Text>
+          <Badge label="Requires configuration" tone="neutral" />
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export function CheckoutScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
   const { marketplace, orders, wallet } = useRepositories();
@@ -102,7 +157,7 @@ export function CheckoutScreen({ navigation, route }: Props) {
 
       {placeOrder.error ? <ErrorState description={placeOrder.error} /> : null}
 
-      <Row label="Payment Method" value="RAPEX Wallet (only option in Alpha)" />
+      <PaymentMethodSelector />
       <Badge label="Place Order calls the real Xano backend — response shape unverified live" tone="info" />
       {!address ? <ErrorState description="Set a delivery address before placing your order." /> : null}
       <Button
