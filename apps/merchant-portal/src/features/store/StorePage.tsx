@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Loading, ErrorState, EmptyState, useTheme } from "@rapex/ui-web";
+import { Badge, Loading, ErrorState, EmptyState, useTheme } from "@rapex/ui-web";
 import { useMyMerchantAccount, useMyStores, useMerchantStoreProducts, useToggleStoreStatusAction } from "@rapex/api-client";
 import { OnboardingWizard } from "../onboarding/OnboardingWizard";
 import { HqTopHeader } from "./HqTopHeader";
@@ -40,6 +40,9 @@ export function StorePage() {
 
   return (
     <div style={{ backgroundColor: theme.colors.background, minHeight: "calc(100vh - 65px)" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", padding: `${theme.spacing.xs}px ${theme.spacing.lg}px 0` }}>
+        <Badge label="Store/product creation is live (Xano) — listings, insights & expansion are mock, backend endpoint required" tone="warning" />
+      </div>
       <HqTopHeader
         account={account}
         storeMode={selectedStore?.status === "online"}
