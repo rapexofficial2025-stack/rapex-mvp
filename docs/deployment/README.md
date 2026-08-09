@@ -26,8 +26,6 @@ Nothing below can be done from an automated sandbox -- each needs a human with t
 
 ## Web portals (admin-portal, merchant-portal, provider-portal)
 
-## Web portals (admin-portal, merchant-portal, provider-portal)
-
 **Status: UNVERIFIED — REQUIRES LIVE TESTING.** Nothing is hosted anywhere yet.
 
 A staging deploy workflow exists: `.github/workflows/deploy-pages-staging.yml`, manual-trigger only (`workflow_dispatch`). It builds all three portals (each with its own `/admin/`, `/merchant/`, `/provider/` subpath via the new `VITE_BASE_PATH` env var read in each `vite.config.ts`) and deploys them as one combined GitHub Pages site. Verified locally: default build (no `VITE_BASE_PATH`) is byte-identical to before this change; subpath builds correctly rewrite JS/CSS/favicon references under `/admin/` etc. **Not yet verified as an actual live deployment** — it will fail until a repo admin does this one-time manual step:
@@ -44,17 +42,35 @@ Each portal's `.env.example` documents what it needs (Xano API base URLs, Google
 
 ## Mobile apps (customer-app, rider-app)
 
-**Status: UNVERIFIED — REQUIRES LIVE TESTING.** No EAS project exists for either app yet.
+**Status: UNVERIFIED — REQUIRES LIVE TESTING.** No EAS project exists for either app yet, and no EAS build has ever been attempted against the real CLI/account.
 
-`eas.json` now exists for both (`development`/`preview`/`production` build profiles, standard Expo/EAS structure) so builds are one command away once a project is linked. Validated as well-formed JSON only — **not validated against the real `eas` CLI**, since that requires an Expo account login this environment doesn't have.
+`eas.json` exists for both (`development`/`preview`/`production` build profiles, standard Expo/EAS structure). `app.json` was converted to `app.config.js` for both (dynamic config, needed so the Google Maps API key env var actually resolves into the native manifests -- see the Maps section below) and now sets a proposed `ios.bundleIdentifier`/`android.package` (`ph.rapex.customer`, `ph.rapex.rider`) -- **neither app had one before, which would have failed a real EAS build immediately.** These are a reasonable default, not yet confirmed as final -- change them before a real release if the org wants something else.
+
+Verified (not just written): `npx expo config --type public` successfully parses both apps' config, resolves the react-native-maps plugin, and correctly substitutes `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` when set (tested with a dummy value). All referenced icon/adaptive-icon/favicon assets confirmed present on disk. `pnpm typecheck` clean. **Still not verified**: an actual `eas build` has never been run, since that needs a real Expo account login this environment doesn't have.
 
 Manual steps needed (from a machine with an Expo account):
 1. `npx eas login`
-2. `npx eas init` (from each app's directory) — links a real EAS project, writes `extra.eas.projectId` into `app.json`. Do not invent a project ID by hand.
-3. `npx eas build --profile development` (or `preview`) to produce the first real build.
-4. For app store submission later: `npx eas submit`.
+2. `npx eas init` (from each app's directory) — links a real EAS project, writes `extra.eas.projectId` into `app.config.js`'s output. Do not invent a project ID by hand.
+3. Confirm or change the proposed `ph.rapex.customer` / `ph.rapex.rider` bundle identifiers before the first real build.
+4. Set `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` as an EAS secret (`eas secret:create`) once a real key exists (see Maps section).
+5. `npx eas build --profile development` (or `preview`) to produce the first real build.
+6. For app store submission later: `npx eas submit`.
 
 `customer-app/eas.json`'s `development`/`preview` profiles pre-fill the confirmed live Xano base URLs (the same defaults already hardcoded as fallbacks in `services/apiConfig.ts` — not secrets, just base URLs) so a dev/preview build talks to the real Alpha backend out of the box. `production` intentionally leaves these unset rather than assume the Alpha URLs are still correct at actual launch. `rider-app/eas.json` has no such env block — rider-app has no API wiring yet (see the auth blocker below).
+
+## Google Maps
+
+**Status: UNVERIFIED — REQUIRES LIVE TESTING.** No map has ever actually rendered; this is dependency + architecture prep only, per instruction not to claim it works until one does.
+
+Added, all deliberately **not wired into any existing screen** (the existing map screens -- admin Operations Command Center, merchant Coverage Map -- render mock x/y percentage positions, not real lat/lng; wiring them would mean redesigning their data model, out of scope here):
+- Web: `@react-google-maps/api` added to `@rapex/ui-web`; new `GoogleMapView` component, markers colored by role via `@rapex/constants`'s `MAP_MARKER_COLORS` (customer green / merchant purple / rider orange). Verified zero bundle-size impact on all 3 portal builds (unused, tree-shaken).
+- Native: `react-native-maps` added to `customer-app`/`rider-app` directly (native modules need to live in the consuming app for Expo autolinking, not a shared package) and as a peer dep of `@rapex/ui-native`; new `RapexMapView` component, same role-color scheme. `app.config.js` for both apps registers the `react-native-maps` config plugin with `androidGoogleMapsApiKey`/`iosGoogleMapsApiKey` read from `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` -- verified this resolves correctly via `npx expo config`.
+
+What's still needed before a map can actually render, none of which can happen from this sandbox:
+1. A real Google Cloud project with Maps JavaScript API (web), Maps SDK for Android, and Maps SDK for iOS enabled, billing turned on, and an API key generated.
+2. That key set as each app's `.env.local` (`VITE_GOOGLE_MAPS_API_KEY` / `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY`) for local dev, and as an EAS secret / GitHub Actions secret for real builds.
+3. For native: a real EAS build (`expo prebuild` alone won't prove it works in Expo Go, since react-native-maps requires a native dev client or standalone build).
+4. A screen that actually has real lat/lng data to plot -- today only mock x/y percentages exist on the admin/merchant map screens, and no confirmed Xano endpoint returns real coordinates yet.
 
 ## Known blockers affecting deployment readiness
 
@@ -64,7 +80,9 @@ Manual steps needed (from a machine with an Expo account):
 
 ## Before the Aug 27 QA freeze, still needed
 
-1. Actually run the CI workflow and the staging deploy workflow for real (both are written and locally verified, but never executed as GitHub Actions).
+1. ~~Actually run the CI workflow~~ — done, verified green (see above). The staging Pages deploy still needs a real run once Pages is enabled.
 2. Resolve the Xano 22P02 blocker and get live credentials flowing so every "UNVERIFIED" item above can be tested for real.
 3. Decide production hosting for the 3 web portals and an EAS/App Store Connect + Play Console plan for the 2 mobile apps.
 4. Confirm the rider `X-RAPEX-App` header value so rider-app auth can be wired and deployed meaningfully.
+5. A real Google Cloud Maps API key + billing, so the now-installed map dependencies can actually be exercised.
+6. A real EAS build, so "prepared for EAS" can become "confirmed working."
