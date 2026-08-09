@@ -81,6 +81,7 @@ export function CheckoutScreen({ navigation, route }: Props) {
 
       {placeOrder.error ? <ErrorState description={placeOrder.error} /> : null}
 
+      <Row label="Payment Method" value="RAPEX Wallet (only option in Alpha)" />
       <Badge label="Place Order calls the real Xano backend — response shape unverified live" tone="info" />
       <Button
         label="Place Order"
