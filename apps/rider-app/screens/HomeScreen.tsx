@@ -76,6 +76,9 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <ScreenContainer title={`Hi, ${profile.fullName.split(" ")[0]}`} subtitle="Ready to deliver today?">
+      <View style={{ alignItems: "flex-start", marginBottom: theme.spacing.sm }}>
+        <Badge label="Mock data — backend endpoint required" tone="warning" />
+      </View>
       <GlassCard>
         <View style={styles.row}>
           <View>
