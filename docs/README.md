@@ -21,7 +21,7 @@ How the AI tools (ChatGPT, Claude, Base44, Xano, Firebase) work together, and th
 UI guidelines for converting Base44 output into the app folders.
 
 ## api/
-Xano REST API reference — empty until the backend design conversation happens.
+Xano REST API reference — the frozen Alpha contract (confirmed endpoints/groups, header conventions, known gaps like the rider auth blocker).
 
 ## database/
 Xano database schema/ERD reference — empty until the backend design conversation happens.
@@ -33,7 +33,7 @@ Build order, MVP target date, and what's explicitly out of scope for this repo.
 Testing strategy — empty until there's code to test.
 
 ## deployment/
-Build/release process — empty until there's a first app ready to ship.
+Real, current build/CI/staging-deploy status and the exact manual actions still needed — start here for "what actually works right now."
 
 ## prompt-library/
 Reusable prompts by tool (`chatgpt/`, `claude/`, `base44/`, `gemini/`, `image-prompts/`, `rex-prompt-book/`) — becomes company IP over time.
