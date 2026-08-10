@@ -83,11 +83,13 @@ Earnings) — but also separately notes Loyalty Level Up tracking is "✅ ACTIVE
 points, only the UI is meant to stay hidden until Alpha's core order flow is
 proven.
 
-**This conflicts with what's already shipped**: the Customer App's bottom
+**This conflicted with what's already shipped**: the Customer App's bottom
 navigation was explicitly specified this session as `HOME | MARKETPLACE |
-WISHLIST | ORDERS | EARN` (a direct, explicit instruction), and `EarnScreen`
-is live and reachable today. **Flagging rather than silently resolving**:
-Irvin, do you want the Earn tab to stay visible for Alpha (it's harmless
-today — it only ever shows 0 points, no live backend), or hidden/removed
-until Rewards is actually turned on? Either is a one-line nav change once
-decided.
+WISHLIST | ORDERS | EARN`, and `EarnScreen` is live and reachable today.
+
+**Founder decision (2026-08-10): resolved.** The staged "Alpha" concept from
+the ChatGPT planning export — holding back Rewards/Loyalty/Referral/Auction
+until a restricted mock-user phase proves the core flow — is **cancelled**.
+RAPEX deploys the full feature set together; there is no separate gated
+rollout. The Earn tab stays exactly as built. Once real earn-rate/Xano
+endpoints exist, wire them in directly — no feature-flagging needed first.
