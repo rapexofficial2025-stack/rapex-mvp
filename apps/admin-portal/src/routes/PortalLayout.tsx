@@ -21,7 +21,7 @@ export function PortalLayout() {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar
-        title={<img src="/brand/wordmark-logo-v3.png" alt="RAPEX" style={{ width: "100%", maxWidth: 160, height: "auto", display: "block" }} />}
+        title={<img src={`${import.meta.env.BASE_URL}brand/wordmark-logo-v3.png`} alt="RAPEX" style={{ width: "100%", maxWidth: 160, height: "auto", display: "block" }} />}
         items={NAV_ITEMS.map((item) => ({
           key: item.key,
           label: item.label,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DataTable, ErrorState, Loading, useTheme, type DataTableColumn } from "@rapex/ui-web";
+import { Badge, DataTable, ErrorState, Loading, useTheme, type DataTableColumn } from "@rapex/ui-web";
 import { useMerchantOrderFinancials, useMyStores, type MerchantOrderFinancials } from "@rapex/api-client";
 import { formatPeso } from "@rapex/utils";
 
@@ -26,11 +26,14 @@ export function OrdersPage() {
 
   return (
     <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: theme.spacing.md }}>
-      <div>
-        <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Orders</h2>
-        <p style={{ margin: 0, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
-          Delivery Fee Engine settlements for this store -- Distance, Delivery Fee, Customer Payment, Merchant Receives.
-        </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Orders</h2>
+          <p style={{ margin: 0, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
+            Delivery Fee Engine settlements for this store -- Distance, Delivery Fee, Customer Payment, Merchant Receives.
+          </p>
+        </div>
+        <Badge label="Mock data — backend endpoint required" tone="warning" />
       </div>
 
       {stores && stores.length > 1 ? (

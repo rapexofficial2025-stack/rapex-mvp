@@ -13,3 +13,4 @@ export * from "./ErrorState";
 export * from "./Toast";
 export * from "./SearchBar";
 export * from "./NotificationBell";
+export * from "./RapexMapView";

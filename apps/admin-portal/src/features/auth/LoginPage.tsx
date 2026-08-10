@@ -38,7 +38,7 @@ export function LoginPage() {
       >
         <div style={{ textAlign: "center", marginBottom: theme.spacing.sm }}>
           <img
-            src="/brand/wordmark-logo-v3.png"
+            src={`${import.meta.env.BASE_URL}brand/wordmark-logo-v3.png`}
             alt="RAPEX"
             style={{ width: "100%", maxWidth: 260, height: "auto", margin: "0 auto" }}
           />

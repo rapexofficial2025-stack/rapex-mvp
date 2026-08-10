@@ -10,6 +10,7 @@ import { MainTabNavigator } from "./MainTabNavigator";
 import { StoreScreen } from "../screens/StoreScreen";
 import { ProductScreen } from "../screens/ProductScreen";
 import { CheckoutScreen } from "../screens/CheckoutScreen";
+import { AddressScreen } from "../screens/AddressScreen";
 import { WalletScreen } from "../screens/WalletScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { RexScreen } from "../screens/RexScreen";
@@ -32,6 +33,7 @@ export function RootNavigator() {
       <Stack.Screen name="Store" component={StoreScreen} options={{ headerShown: true, title: "Store" }} />
       <Stack.Screen name="Product" component={ProductScreen} options={{ headerShown: true, title: "Product" }} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ headerShown: true, title: "Checkout" }} />
+      <Stack.Screen name="Address" component={AddressScreen} options={{ headerShown: true, title: "Delivery Address" }} />
       <Stack.Screen name="Wallet" component={WalletScreen} options={{ headerShown: true, title: "Wallet" }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: "Profile" }} />
       <Stack.Screen name="Rex" component={RexScreen} options={{ headerShown: true, title: "R.E.X." }} />

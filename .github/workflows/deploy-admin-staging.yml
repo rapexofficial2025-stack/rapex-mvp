@@ -1,0 +1,86 @@
+name: Deploy Admin staging (GitHub Pages)
+
+# Manual only, on purpose: this will fail until GitHub Pages is enabled for
+# this repo (Settings -> Pages -> Source: GitHub Actions), which only a repo
+# admin can do. See docs/deployment/README.md.
+#
+# Admin-only, separate from deploy-pages-staging.yml (which builds all three
+# portals under /admin/, /merchant/, /provider/ subfolders of a shared site).
+# This workflow deploys ONLY the Admin Portal, at the site root, so its
+# staging URL doesn't depend on Merchant/Provider being ready. Running this
+# and then later running deploy-pages-staging.yml will both target the same
+# "github-pages" Pages environment -- whichever runs last wins and becomes
+# the live site content. That's an accepted tradeoff for now; revisit when
+# Merchant/Provider staging is prioritized.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck admin-portal
+        run: pnpm --filter admin-portal typecheck
+
+      - name: Lint admin-portal
+        run: pnpm --filter admin-portal lint
+
+      # Base = repo name only (no "/admin" segment) because the app's own
+      # routes already assume an "/admin/..." prefix (App.tsx) -- that
+      # prefix reflects the real production URL shape (admin lives under the
+      # main domain's /admin path), not something the deploy step should add
+      # again. Building at the repo-name root here means the deployed URL
+      # ends up at /<repo>/admin/... with no double "/admin/admin/".
+      - name: Build admin-portal
+        run: pnpm --filter admin-portal build
+        env:
+          VITE_BASE_PATH: /rapex-mvp/
+
+      # SPA fallback: GitHub Pages has no server-side rewrites, so a direct
+      # load of a deep link (e.g. /rapex-mvp/admin/dashboard) would 404 on a
+      # static file lookup. GitHub Pages serves 404.html (at the site root)
+      # for any unmatched path, so a copy of index.html there lets the app's
+      # own JS boot and React Router take over from location.pathname. This
+      # only works site-wide from the root, so it's specific to Admin owning
+      # the whole site for now -- revisit once other portals share it.
+      - name: Add SPA fallback (404.html)
+        run: cp apps/admin-portal/dist/index.html apps/admin-portal/dist/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/admin-portal/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

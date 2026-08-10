@@ -1,5 +1,5 @@
 import { FlatList, Text, View } from "react-native";
-import { Loading, ErrorState } from "@rapex/ui-native";
+import { Badge, Loading, ErrorState } from "@rapex/ui-native";
 import { formatPeso, formatDateTime } from "@rapex/utils";
 import { useWalletSummary } from "@rapex/api-client";
 import { useAppTheme } from "../hooks/useAppTheme";
@@ -15,9 +15,15 @@ export function WalletScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <View style={{ padding: theme.spacing.lg, gap: theme.spacing.xs }}>
-        <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>Wallet Balance</Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>Wallet Balance</Text>
+          <Badge label="Live balance — unverified" tone="info" />
+        </View>
         <Text style={{ fontSize: theme.typography.fontSize["3xl"], fontWeight: "700", color: theme.colors.brandPrimary }}>
           {formatPeso(wallet.balance)}
+        </Text>
+        <Text style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.textSecondary }}>
+          Transaction history has no confirmed Xano endpoint yet — always empty until one exists.
         </Text>
       </View>
       <FlatList

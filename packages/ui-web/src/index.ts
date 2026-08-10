@@ -14,3 +14,4 @@ export * from "./Sidebar";
 export * from "./Topbar";
 export * from "./DataTable";
 export * from "./Modal";
+export * from "./GoogleMapView";

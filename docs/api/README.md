@@ -13,6 +13,20 @@ Source of truth for endpoints the frontend integrates against. Auth headers and 
 
 Implemented in [`packages/api-client/src/core/createRapexHttpClient.ts`](../../packages/api-client/src/core/createRapexHttpClient.ts).
 
+> **BLOCKER -- Rider App has no confirmed `X-RAPEX-App` value.** The frozen
+> contract above only defines `buyer` / `merchant` / `admin`. Rider App
+> (`apps/rider-app`) is not listed in the Base URLs table below either.
+> Rider auth cannot be wired to real Xano until whoever owns the Xano
+> backend confirms:
+> 1. What `X-RAPEX-App` value riders should send (`rider`? reuse `buyer`?
+>    something else?), and
+> 2. Which Xano API group rider login actually lives in (`rapex-auth`
+>    like customer/merchant, or something rider-specific).
+> Until then, do not guess -- `apps/rider-app` stays on Mock. See
+> `apps/rider-app/providers/AppProviders.tsx` and
+> `apps/rider-app/services/{secureTokenStorage,userCache}.ts` (infra
+> ready, unused) for exactly where this plugs in once confirmed.
+
 ## Base URLs (configured per environment, never hardcoded)
 
 | App | Env var | Production value |

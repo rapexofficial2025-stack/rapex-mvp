@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_AUTH_API_BASE_URL": "https://x8ki-letl-twmt.n7.xano.io/api:rapex-auth",
+        "EXPO_PUBLIC_ORDERS_API_BASE_URL": "https://x8ki-letl-twmt.n7.xano.io/api:rapex-orders",
+        "EXPO_PUBLIC_FINANCE_API_BASE_URL": "https://x8ki-letl-twmt.n7.xano.io/api:rapex-finance"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_AUTH_API_BASE_URL": "https://x8ki-letl-twmt.n7.xano.io/api:rapex-auth",
+        "EXPO_PUBLIC_ORDERS_API_BASE_URL": "https://x8ki-letl-twmt.n7.xano.io/api:rapex-orders",
+        "EXPO_PUBLIC_FINANCE_API_BASE_URL": "https://x8ki-letl-twmt.n7.xano.io/api:rapex-finance"
+      }
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

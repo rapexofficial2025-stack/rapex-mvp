@@ -10,9 +10,18 @@ import { RequireAdminAuth } from "./features/auth/RequireAdminAuth";
 import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { IntegrationsPage } from "./features/integrations/IntegrationsPage";
 
+// GitHub Pages staging serves this app from a repo-name subpath (e.g.
+// /rapex-mvp/) via VITE_BASE_PATH -- see vite.config.ts. The app's own
+// routes already assume an "/admin/..." prefix (that's the real production
+// URL shape, admin living under the main domain's /admin path), so the
+// router basename only needs to strip the repo-name segment Pages adds on
+// top, not "/admin" itself. Defaults to "/" (no-op) for normal local/prod
+// builds where BASE_URL is unset.
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename}>
       <Routes>
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/login" element={<LoginPage />} />
