@@ -24,6 +24,14 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",
+    // Verified against @expo/cli's actual getBaseUrlFromExpoConfig() (reads
+    // exp.experiments.baseUrl) -- only set for the GitHub Pages staging web
+    // export, which serves this app from a /customer/ subpath alongside the
+    // other portals. Empty/unset for local dev and native (EAS) builds, so
+    // this never touches mobile builds.
+    experiments: {
+      baseUrl: process.env.EXPO_WEB_BASE_PATH || "",
+    },
     ios: {
       supportsTablet: true,
       bundleIdentifier: "ph.rapex.customer",

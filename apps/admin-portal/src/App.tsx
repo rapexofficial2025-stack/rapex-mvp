@@ -10,14 +10,18 @@ import { RequireAdminAuth } from "./features/auth/RequireAdminAuth";
 import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { IntegrationsPage } from "./features/integrations/IntegrationsPage";
 
-// GitHub Pages staging serves this app from a repo-name subpath (e.g.
-// /rapex-mvp/) via VITE_BASE_PATH -- see vite.config.ts. The app's own
-// routes already assume an "/admin/..." prefix (that's the real production
-// URL shape, admin living under the main domain's /admin path), so the
-// router basename only needs to strip the repo-name segment Pages adds on
-// top, not "/admin" itself. Defaults to "/" (no-op) for normal local/prod
-// builds where BASE_URL is unset.
-const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+// GitHub Pages staging can serve this app two ways: (a) owning the whole
+// site root under a repo-name prefix (VITE_BASE_PATH=/rapex-mvp/, the
+// admin-only deploy), or (b) as a subfolder alongside other portals
+// (VITE_BASE_PATH=/rapex-mvp/admin/, the combined multi-app deploy). The
+// app's own routes already assume an "/admin/..." prefix (the real
+// production URL shape, admin living under the main domain's /admin path),
+// so a trailing "/admin" segment in BASE_URL would double up with the
+// routes' own prefix -- strip it if present so both deploy shapes resolve
+// to the same effective basename. Defaults to "/" (no-op) for normal
+// local/prod builds where BASE_URL is unset.
+const strippedBaseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+const routerBasename = (strippedBaseUrl.endsWith("/admin") ? strippedBaseUrl.slice(0, -"/admin".length) : strippedBaseUrl) || "/";
 
 function App() {
   return (
