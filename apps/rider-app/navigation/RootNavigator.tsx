@@ -21,7 +21,9 @@ export function RootNavigator() {
     <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
+      {/* Login1 (Welcome, above) -> Login2 (below): explicit slide transition for the
+          two-stage login flow, distinct from the default push animation used elsewhere. */}
+      <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="Otp" component={OtpScreen} />

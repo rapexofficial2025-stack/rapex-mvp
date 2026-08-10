@@ -17,10 +17,18 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import { useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
+/**
+ * LOGIN2 / Screen 2 of the two-stage login flow (see WelcomeScreen.tsx for Screen 1).
+ * Reference artwork is `login-dark-2` -- not yet uploaded, so this reuses the existing
+ * real `login-dark.png` as an isolated TEMP placeholder background. All controls below
+ * stay real, visible, functional inputs for now; candidates to convert to `Hotspot`
+ * (@rapex/ui-native) once the real artwork lands.
+ */
 const BACKGROUND = require("../../../assets/brand/Background/login-dark.png");
 const LOGO = require("../../../assets/brand/Branding Logo (Available)/Wordmark-logo-v3.png");
 const GOOGLE_ICON = require("../../../assets/icons/Home Icon/google.png");
@@ -28,6 +36,7 @@ const FACEBOOK_ICON = require("../../../assets/icons/Home Icon/facebook.png");
 
 export function LoginScreen({ navigation }: Props) {
   const { auth } = useRepositories();
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
@@ -119,11 +128,17 @@ export function LoginScreen({ navigation }: Props) {
                   </View>
 
                   <View style={styles.socialRow}>
-                    <Pressable style={styles.socialButton}>
+                    <Pressable
+                      style={[styles.socialButton, styles.socialButtonDisabled]}
+                      onPress={() => showToast("Google sign-in requires Firebase configuration -- not connected yet", "neutral")}
+                    >
                       <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
                       <Text style={styles.socialText}>Google</Text>
                     </Pressable>
-                    <Pressable style={styles.socialButton}>
+                    <Pressable
+                      style={[styles.socialButton, styles.socialButtonDisabled]}
+                      onPress={() => showToast("Facebook sign-in requires Firebase configuration -- not connected yet", "neutral")}
+                    >
                       <Image source={FACEBOOK_ICON} style={styles.socialIcon} resizeMode="contain" />
                       <Text style={styles.socialText}>Facebook</Text>
                     </Pressable>
@@ -232,6 +247,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
   },
+  socialButtonDisabled: { opacity: 0.55 },
   socialIcon: { width: 15, height: 15 },
   socialText: { fontSize: 12, fontWeight: "600", color: "#FFFFFF" },
   footerRow: { alignItems: "center", marginTop: 4 },

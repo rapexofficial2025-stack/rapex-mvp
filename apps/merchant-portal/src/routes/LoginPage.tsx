@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
+import { RapexGlassCard, Button as RapexButton } from "@rapex/ui-web";
 import { toErrorMessage } from "@rapex/api-client";
 import { rapexHttpClient } from "../services/apiConfig";
 import { webTokenStorage } from "../services/webTokenStorage";
@@ -10,6 +11,14 @@ const GOOGLE_ICON = new URL("../../../../assets/icons/Home Icon/google.png", imp
 const FACEBOOK_ICON = new URL("../../../../assets/icons/Home Icon/facebook.png", import.meta.url).href;
 
 /**
+ * Two-stage login flow, web-appropriate equivalent of the RN apps'
+ * WelcomeScreen -> LoginScreen navigation: one route (`/login`), two panels
+ * inside it, slid via CSS transform instead of a second route -- a login
+ * screen has nothing meaningful to deep-link to mid-flow. Reference artwork
+ * is `login-dark-1`/`login-dark-2` (not yet uploaded); both stages reuse the
+ * existing real `login-dark.png` as an isolated TEMP placeholder background,
+ * same as customer-app/rider-app's Welcome/Login screens.
+ *
  * Log In and Register go straight to the real Xano `super_app` group
  * (confirmed POST /login, /auth/signup fields -- not guessed). Google and
  * Facebook are left as honest dead-ends with an inline explanation instead
@@ -20,6 +29,7 @@ const FACEBOOK_ICON = new URL("../../../../assets/icons/Home Icon/facebook.png",
  */
 export function LoginPage() {
   const navigate = useNavigate();
+  const [stage, setStage] = useState<"intro" | "form">("intro");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,77 +58,107 @@ export function LoginPage() {
   return (
     <div style={styles.page}>
       <div style={styles.overlay} />
-      <div style={styles.center}>
-        <img src={LOGO} alt="RAPEX" style={styles.logo} />
-
-        <div style={styles.card}>
-          <h1 style={styles.title}>Welcome Back, Partner!</h1>
-          <p style={styles.subtitle}>Log in to manage your RAPEX store</p>
-
-          <form style={styles.form} onSubmit={handleLogin}>
-            <div style={styles.field}>
-              <label style={styles.fieldLabel}>Email</label>
-              <input
-                style={styles.input}
-                type="email"
-                autoCapitalize="none"
-                placeholder="you@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div style={styles.field}>
-              <label style={styles.fieldLabel}>Password</label>
-              <input
-                style={styles.input}
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            {error ? <span style={styles.errorText}>{error}</span> : null}
-
-            <button type="submit" disabled={loading} style={styles.primaryButton}>
-              {loading ? "Logging in..." : "Log In"}
-            </button>
-          </form>
-
-          <div style={styles.dividerRow}>
-            <div style={styles.dividerLine} />
-            <span style={styles.dividerText}>or continue with</span>
-            <div style={styles.dividerLine} />
+      <div style={trackStyle(stage)}>
+        {/* Stage 1 / Login1: single "Let's Get Started" CTA, rendered visible (not an
+            invisible Hotspot) since there's no login-dark-1 button artwork under it yet. */}
+        <div style={styles.panel}>
+          <div style={styles.center}>
+            <img src={LOGO} alt="RAPEX" style={styles.logo} />
+            <RapexGlassCard style={{ width: "100%" }}>
+              <p style={styles.introText}>
+                Manage your store, orders, and payouts -- all in one portal.
+              </p>
+              <RapexButton label="Let's Get Started" onClick={() => setStage("form")} />
+            </RapexGlassCard>
           </div>
+        </div>
 
-          <div style={styles.socialRow}>
-            <button
-              type="button"
-              style={styles.socialButton}
-              onClick={() => setSocialNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
-            >
-              <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
-              Google
-            </button>
-            <button
-              type="button"
-              style={styles.socialButton}
-              onClick={() => setSocialNotice("Facebook sign-in has no Xano endpoint yet -- checked every API group.")}
-            >
-              <img src={FACEBOOK_ICON} alt="Facebook" style={styles.socialIcon} />
-              Facebook
-            </button>
+        {/* Stage 2 / Login2: the real login form. */}
+        <div style={styles.panel}>
+          <div style={styles.center}>
+            <img src={LOGO} alt="RAPEX" style={styles.logo} />
+
+            <div style={styles.card}>
+              <h1 style={styles.title}>Welcome Back, Partner!</h1>
+              <p style={styles.subtitle}>Log in to manage your RAPEX store</p>
+
+              <form style={styles.form} onSubmit={handleLogin}>
+                <div style={styles.field}>
+                  <label style={styles.fieldLabel}>Email</label>
+                  <input
+                    style={styles.input}
+                    type="email"
+                    autoCapitalize="none"
+                    placeholder="you@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                <div style={styles.field}>
+                  <label style={styles.fieldLabel}>Password</label>
+                  <input
+                    style={styles.input}
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+
+                {error ? <span style={styles.errorText}>{error}</span> : null}
+
+                <button type="submit" disabled={loading} style={styles.primaryButton}>
+                  {loading ? "Logging in..." : "Log In"}
+                </button>
+              </form>
+
+              <div style={styles.dividerRow}>
+                <div style={styles.dividerLine} />
+                <span style={styles.dividerText}>or continue with</span>
+                <div style={styles.dividerLine} />
+              </div>
+
+              <div style={styles.socialRow}>
+                <button
+                  type="button"
+                  style={styles.socialButton}
+                  onClick={() => setSocialNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
+                >
+                  <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
+                  Google
+                </button>
+                <button
+                  type="button"
+                  style={styles.socialButton}
+                  onClick={() => setSocialNotice("Facebook sign-in has no Xano endpoint yet -- checked every API group.")}
+                >
+                  <img src={FACEBOOK_ICON} alt="Facebook" style={styles.socialIcon} />
+                  Facebook
+                </button>
+              </div>
+              {socialNotice ? <p style={styles.socialNotice}>{socialNotice}</p> : null}
+
+              <button type="button" style={styles.registerLink} onClick={() => navigate("/xano-test")}>
+                Don't have an account? <span style={styles.registerLinkAccent}>Register</span>
+              </button>
+            </div>
           </div>
-          {socialNotice ? <p style={styles.socialNotice}>{socialNotice}</p> : null}
-
-          <button type="button" style={styles.registerLink} onClick={() => navigate("/xano-test")}>
-            Don't have an account? <span style={styles.registerLinkAccent}>Register</span>
-          </button>
         </div>
       </div>
     </div>
   );
+}
+
+function trackStyle(stage: "intro" | "form"): CSSProperties {
+  return {
+    position: "relative",
+    display: "flex",
+    width: "200%",
+    minHeight: "100vh",
+    transform: stage === "intro" ? "translateX(0%)" : "translateX(-50%)",
+    transition: "transform 420ms cubic-bezier(0.22, 1, 0.36, 1)",
+  };
 }
 
 const styles: Record<string, CSSProperties> = {
@@ -128,9 +168,7 @@ const styles: Record<string, CSSProperties> = {
     backgroundImage: `url(${BACKGROUND})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    overflow: "hidden",
     fontFamily: "inherit",
   },
   overlay: {
@@ -138,11 +176,18 @@ const styles: Record<string, CSSProperties> = {
     inset: 0,
     background: "linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.35))",
   },
+  panel: {
+    width: "50%",
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "24px",
+  },
   center: {
     position: "relative",
     width: "100%",
     maxWidth: 420,
-    padding: "24px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -152,6 +197,13 @@ const styles: Record<string, CSSProperties> = {
     width: "80%",
     height: "auto",
     display: "block",
+  },
+  introText: {
+    margin: "0 0 16px",
+    fontSize: 14,
+    lineHeight: 1.5,
+    color: "rgba(255,255,255,0.85)",
+    textAlign: "center",
   },
   card: {
     width: "100%",
