@@ -5,13 +5,10 @@ import { useAsyncAction, useRepositories } from "@rapex/api-client";
 
 /**
  * Reference is the "Welcome to the Admin Portal" glassmorphism generated
- * image -- not yet uploaded as a real file (checked assets/brand/Background/,
- * nothing named Admin-login.* exists). This builds the real described
- * structure (copy, one glass card, vertical divider, functional form) now
- * and reuses the existing real `login-dark.png` as an isolated TEMP
- * background, same pattern as customer-app/rider-app/merchant-portal's
- * login screens. Swap only the `BACKGROUND` constant below once the real
- * Admin-login.png lands -- nothing else here depends on its exact pixels.
+ * image. Background is the real uploaded asset
+ * (assets/brand/Background/admin-login.png) -- used as a background-image
+ * layer only; the glass card, left panel copy, and right panel login form
+ * below are all real React/CSS, not flattened into the image.
  *
  * Admin is the internal command center: no Sign Up / Google / Facebook /
  * public registration on the right. The real Xano email/password auth call
@@ -24,7 +21,7 @@ import { useAsyncAction, useRepositories } from "@rapex/api-client";
  * (a short staggered fade/slide-in) instead of using the single flattened
  * ICON image.
  */
-const BACKGROUND = new URL("../../../../../assets/brand/Background/login-dark.png", import.meta.url).href;
+const BACKGROUND = new URL("../../../../../assets/brand/Background/admin-login.png", import.meta.url).href;
 const LOGO = new URL("../../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
 const NAME = new URL("../../../../../assets/brand/Branding Logo (Available)/Name.png", import.meta.url).href;
 
