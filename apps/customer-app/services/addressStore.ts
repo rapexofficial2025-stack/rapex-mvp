@@ -13,10 +13,24 @@ import { useSyncExternalStore } from "react";
  */
 export type DeliveryAddress = {
   label: string;
+  /** Human-readable composed summary (kept for backward compatibility with existing display code). */
   line: string;
   municipality: string;
   latitude: number;
   longitude: number;
+  /** Structured breakdown, added for the registration flow's Step 7 -- optional so pre-existing callers/screens are unaffected. */
+  region?: string;
+  province?: string;
+  barangay?: string;
+  postalCode?: string;
+  subdivision?: string;
+  street?: string;
+  block?: string;
+  lot?: string;
+  phase?: string;
+  building?: string;
+  floor?: string;
+  roomUnit?: string;
 };
 
 const DEFAULT_ADDRESS: DeliveryAddress | null = null;

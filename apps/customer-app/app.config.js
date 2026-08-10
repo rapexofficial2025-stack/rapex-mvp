@@ -50,6 +50,22 @@ module.exports = {
           iosGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
         },
       ],
+      // Registration Step 4 (Identity/KYC) is camera-only capture -- no
+      // photo library permission requested since the app never offers a
+      // gallery picker for ID/selfie captures.
+      [
+        "expo-image-picker",
+        {
+          cameraPermission: "RAPEX uses your camera to capture your government ID and a selfie for account verification.",
+        },
+      ],
+      // Registration Step 6 (Location) and delivery-address GPS capture.
+      [
+        "expo-location",
+        {
+          locationAlwaysAndWhenInUsePermission: "RAPEX uses your location to set your delivery address and find nearby stores.",
+        },
+      ],
     ],
   },
 };
