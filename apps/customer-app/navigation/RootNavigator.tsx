@@ -30,7 +30,9 @@ export function RootNavigator() {
     <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
+      {/* Login1 (Welcome, above) -> Login2 (below): explicit slide transition for the
+          two-stage login flow, distinct from the default push animation used elsewhere. */}
+      <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
 
       {/* Registration wizard, steps 1-7 (see each screen's doc comment for the exact Xano-contract boundary at each step). */}
       <Stack.Screen name="RegisterLanguage" component={RegisterLanguageScreen} options={{ headerShown: true, title: "Language" }} />

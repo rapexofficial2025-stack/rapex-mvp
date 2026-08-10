@@ -23,6 +23,15 @@ import type { RootStackParamList } from "../types/navigation";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
+/**
+ * LOGIN2 / Screen 2 of the two-stage login flow (see WelcomeScreen.tsx for Screen 1).
+ * Reference artwork is `login-dark-2` -- not yet uploaded, so this reuses the existing
+ * real `login-dark.png` as an isolated TEMP placeholder background (same constant name
+ * as Screen 1's, both point at one real file, both get swapped together). All controls
+ * below stay real, visible, functional inputs for now; once login-dark-2.png lands,
+ * fields/buttons that duplicate its drawn artwork are candidates to convert to
+ * `Hotspot` (@rapex/ui-native) positioned over that artwork instead.
+ */
 const BACKGROUND = require("../../../assets/brand/Background/login-dark.png");
 const LOGO = require("../../../assets/brand/Branding Logo (Available)/Wordmark-logo-v3.png");
 const GOOGLE_ICON = require("../../../assets/icons/Home Icon/google.png");

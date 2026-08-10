@@ -1,26 +1,58 @@
+import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Badge, Button } from "@rapex/ui-native";
+import { RapexGlassCard, Button } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
-import { ScreenContainer } from "../components/ScreenContainer";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Welcome">;
 
 /**
- * Auth entry screen. Google/Facebook are shown per instruction but disabled
- * -- Firebase (mentioned as "connect Firebase, SDK to follow later") isn't
- * wired yet, so these can't do anything real today. Same honest
- * "disabled + labeled" pattern as CheckoutScreen's non-wallet payment
- * methods, rather than a fake OAuth flow.
+ * LOGIN1 / Screen 1 of the two-stage login flow (see LoginScreen.tsx for Screen 2).
+ * Reference artwork is `login-dark-1` (RAPEX intro/branding, single "Let's Get
+ * Started" hit area) -- not yet uploaded, so this reuses the existing real
+ * `login-dark.png` as an isolated TEMP placeholder background. Swap only the
+ * `BACKGROUND` constant below once the real asset lands; nothing else here
+ * depends on its exact pixels.
+ *
+ * The CTA is rendered as a normal visible button rather than an invisible
+ * `Hotspot` (see @rapex/ui-native) because there is no "Let's Get Started"
+ * artwork under it yet -- an invisible tap zone over a generic background
+ * would look broken. Once login-dark-1.png is in, replace this Button with a
+ * `Hotspot` positioned/sized (in %) to match the artwork's own button.
  */
+const BACKGROUND = require("../../../assets/brand/Background/login-dark.png");
+const LOGO = require("../../../assets/brand/Branding Logo (Available)/Wordmark-logo-v3.png");
+
 export function WelcomeScreen({ navigation }: Props) {
   return (
-    <ScreenContainer title="Welcome to RAPEX" subtitle="Your hyperlocal marketplace and delivery app">
-      <Button label="Sign In" onPress={() => navigation.navigate("Login")} />
-      <Button label="Create RAPEX Account" variant="secondary" onPress={() => navigation.navigate("RegisterLanguage")} />
+    <View style={styles.flex}>
+      <StatusBar style="light" />
+      <ImageBackground source={BACKGROUND} style={styles.flex} resizeMode="cover">
+        <SafeAreaView style={styles.flex} edges={["top", "bottom"]}>
+          <View style={styles.hero}>
+            <Image source={LOGO} style={styles.logo} resizeMode="contain" />
+            <Text style={styles.tagline}>Gawang Lokal, Para sa Masa</Text>
+          </View>
 
-      <Button label="Continue with Google" variant="outline" disabled />
-      <Button label="Continue with Facebook" variant="outline" disabled />
-      <Badge label="Google/Facebook sign-in requires Firebase configuration -- not connected yet" tone="warning" />
-    </ScreenContainer>
+          <View style={styles.ctaWrap}>
+            <RapexGlassCard style={styles.ctaCard}>
+              <Text style={styles.ctaTitle}>Marketplace, food, services, and auctions -- all in one app.</Text>
+              <Button label="Let's Get Started" onPress={() => navigation.navigate("Login")} />
+            </RapexGlassCard>
+          </View>
+        </SafeAreaView>
+      </ImageBackground>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  hero: { flex: 2, alignItems: "center", justifyContent: "center", gap: 8 },
+  logo: { width: "70%", aspectRatio: 2.3 },
+  tagline: { color: "rgba(255,255,255,0.75)", fontSize: 13, fontWeight: "600", letterSpacing: 0.4 },
+  ctaWrap: { paddingHorizontal: 20, paddingBottom: 24 },
+  ctaCard: { padding: 20, gap: 14 },
+  ctaTitle: { color: "#FFFFFF", fontSize: 14, textAlign: "center", lineHeight: 20 },
+});
