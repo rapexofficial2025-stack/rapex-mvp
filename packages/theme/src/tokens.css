@@ -1,0 +1,76 @@
+/**
+ * Tailwind v4 CSS-first token bridge. Tailwind v4 configures itself via
+ * `@theme` in CSS, not a JS config object -- so these values are hand-kept
+ * in sync with the TypeScript source of truth (colors.ts/spacing.ts/
+ * typography.ts/shadows.ts/glass.ts) rather than generated from it. If this
+ * drifts in practice, worth revisiting with a small codegen step; not
+ * justified yet for a foundation-only pass.
+ *
+ * Usage in an app: `@import "tailwindcss"; @import "@rapex/theme/tokens.css";`
+ * then use classes like `bg-brand-purple`, `text-brand-orange`,
+ * `rounded-radius-lg`, `p-space-lg`, `shadow-level-md`.
+ */
+@theme {
+  /* Brand + semantic colors (light mode values -- dark mode handled by
+     each app's own ThemeProvider/data-theme switching, not Tailwind's
+     built-in dark: variant, to stay consistent with the existing
+     runtime theme system). */
+  --color-brand-purple: #8b5cf6;
+  --color-brand-purple-hover: #6d28d9;
+  --color-brand-teal: #14b8a6;
+  --color-brand-orange: #f97316;
+  --color-brand-orange-hover: #c2410c;
+
+  /* Extended accent palette -- placeholder pending official brand
+     guidelines, see packages/theme/src/colors.ts's `extended` export. */
+  --color-brand-lavender: #b39ddb;
+  --color-brand-peach: #ffa873;
+  --color-brand-pink: #ec4899;
+
+  --color-surface: #ffffff;
+  --color-surface-alt: #f3f4f6;
+  --color-border: #e5e7eb;
+  --color-background: #f9fafb;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-inverse: #ffffff;
+  --color-text-disabled: #9ca3af;
+
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Spacing -- 4px base grid, matches packages/theme/src/spacing.ts */
+  --spacing-space-none: 0px;
+  --spacing-space-xxs: 2px;
+  --spacing-space-xs: 4px;
+  --spacing-space-sm: 8px;
+  --spacing-space-md: 12px;
+  --spacing-space-lg: 16px;
+  --spacing-space-xl: 20px;
+  --spacing-space-2xl: 24px;
+  --spacing-space-3xl: 32px;
+  --spacing-space-4xl: 40px;
+  --spacing-space-5xl: 48px;
+  --spacing-space-6xl: 64px;
+
+  /* Radius */
+  --radius-radius-sm: 4px;
+  --radius-radius-md: 8px;
+  --radius-radius-lg: 12px;
+  --radius-radius-xl: 16px;
+  --radius-radius-2xl: 24px;
+  --radius-radius-full: 9999px;
+
+  /* Shadows -- matches packages/theme/src/shadows.ts's .css strings */
+  --shadow-level-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-level-md: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --shadow-level-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-level-xl: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* Glass surface tokens -- matches packages/theme/src/glass.ts (light mode) */
+  --color-glass-bg: rgba(255, 255, 255, 0.6);
+  --color-glass-border: rgba(255, 255, 255, 0.3);
+}

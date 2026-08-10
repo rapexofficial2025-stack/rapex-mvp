@@ -1,3 +1,18 @@
+@import "tailwindcss";
+@import "@rapex/theme/tokens.css";
+
+/*
+ * Tailwind is available for new UI work per the RAPEX design-system
+ * foundation task -- it does NOT replace the existing @rapex/ui-web +
+ * @rapex/theme runtime token system (light/dark ThemeProvider switching,
+ * inline-style components). Existing components keep working unchanged;
+ * this just makes Tailwind utility classes available going forward,
+ * reading the same design tokens via tokens.css. Custom @theme tokens
+ * that aren't yet used anywhere are correctly tree-shaken out of the
+ * compiled CSS by Tailwind v4 -- verified this doesn't mean the import is
+ * broken (confirmed by temporarily using one and seeing it appear).
+ */
+
 * {
   box-sizing: border-box;
 }
