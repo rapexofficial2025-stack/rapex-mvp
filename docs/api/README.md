@@ -80,6 +80,13 @@ Each app has an `.env.example` documenting this; copy to `.env.local` and fill i
 ### 6–8. Merchant / Admin / Super Admin
 Prepare UI using this documented structure; keep Mock repositories where the specific endpoint isn't listed above yet.
 
+### 9. Rider delivery tracking (150m Security Rule) — reported, not independently verified
+| Method | Path |
+|---|---|
+| GET | `/super_app/orders_delivery_details` |
+
+Received via a 2026-08-04 business-rules planning export (not confirmed live from this environment — no network access to Xano here). Returns `pickup_unlocked` (boolean) and either a redacted or full `customer` object depending on real-time rider-to-merchant distance (unlocks at ≤150m, server-side — the API omits customer fields entirely when locked, not just a frontend hide). Full mechanics, example responses, and the gating rule for UI code: see `docs/business/Delivery.md`'s "150m Security Rule" section.
+
 ## Hard rules (from the contract)
 
 - Do not rename request or response fields.
