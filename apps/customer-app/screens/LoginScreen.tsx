@@ -18,6 +18,7 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import { useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
@@ -62,6 +63,7 @@ const FEATURE_ICONS: { key: FeatureKey; emoji: string; label: string; color: str
 
 export function LoginScreen({ navigation }: Props) {
   const { auth } = useRepositories();
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [activeFeature, setActiveFeature] = useState<FeatureKey | null>(null);
@@ -180,11 +182,17 @@ export function LoginScreen({ navigation }: Props) {
                   </View>
 
                   <View style={styles.socialRow}>
-                    <Pressable style={styles.socialButton}>
+                    <Pressable
+                      style={[styles.socialButton, styles.socialButtonDisabled]}
+                      onPress={() => showToast("Google sign-in requires Firebase configuration -- not connected yet", "neutral")}
+                    >
                       <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
                       <Text style={styles.socialText}>Google</Text>
                     </Pressable>
-                    <Pressable style={styles.socialButton}>
+                    <Pressable
+                      style={[styles.socialButton, styles.socialButtonDisabled]}
+                      onPress={() => showToast("Facebook sign-in requires Firebase configuration -- not connected yet", "neutral")}
+                    >
                       <Image source={FACEBOOK_ICON} style={styles.socialIcon} resizeMode="contain" />
                       <Text style={styles.socialText}>Facebook</Text>
                     </Pressable>
@@ -342,6 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
   },
+  socialButtonDisabled: { opacity: 0.55 },
   socialIcon: { width: 15, height: 15 },
   socialText: { fontSize: 12, fontWeight: "600", color: "#FFFFFF" },
   footerRow: { alignItems: "center", marginTop: 4 },

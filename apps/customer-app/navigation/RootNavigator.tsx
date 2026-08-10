@@ -3,9 +3,14 @@ import type { RootStackParamList } from "../types/navigation";
 import { SplashScreen } from "../screens/SplashScreen";
 import { WelcomeScreen } from "../screens/WelcomeScreen";
 import { LoginScreen } from "../screens/LoginScreen";
-import { RegisterScreen } from "../screens/RegisterScreen";
+import { RegisterLanguageScreen } from "../screens/register/RegisterLanguageScreen";
+import { RegisterBirthdayScreen } from "../screens/register/RegisterBirthdayScreen";
+import { RegisterAccountScreen } from "../screens/register/RegisterAccountScreen";
+import { RegisterIdentityScreen } from "../screens/register/RegisterIdentityScreen";
+import { RegisterContactScreen } from "../screens/register/RegisterContactScreen";
+import { RegisterLocationScreen } from "../screens/register/RegisterLocationScreen";
 import { OtpScreen } from "../screens/OtpScreen";
-import { VerificationScreen } from "../screens/VerificationScreen";
+import { WelcomeVideoScreen } from "../screens/WelcomeVideoScreen";
 import { MainTabNavigator } from "./MainTabNavigator";
 import { StoreScreen } from "../screens/StoreScreen";
 import { ProductScreen } from "../screens/ProductScreen";
@@ -26,9 +31,17 @@ export function RootNavigator() {
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="Otp" component={OtpScreen} />
-      <Stack.Screen name="Verification" component={VerificationScreen} />
+
+      {/* Registration wizard, steps 1-7 (see each screen's doc comment for the exact Xano-contract boundary at each step). */}
+      <Stack.Screen name="RegisterLanguage" component={RegisterLanguageScreen} options={{ headerShown: true, title: "Language" }} />
+      <Stack.Screen name="RegisterBirthday" component={RegisterBirthdayScreen} options={{ headerShown: true, title: "Date of Birth" }} />
+      <Stack.Screen name="Register" component={RegisterAccountScreen} options={{ headerShown: true, title: "Create Account" }} />
+      <Stack.Screen name="RegisterIdentity" component={RegisterIdentityScreen} options={{ headerShown: true, title: "Identity" }} />
+      <Stack.Screen name="RegisterContact" component={RegisterContactScreen} options={{ headerShown: true, title: "Verify Contact" }} />
+      <Stack.Screen name="Otp" component={OtpScreen} options={{ headerShown: true, title: "Verify" }} />
+      <Stack.Screen name="RegisterLocation" component={RegisterLocationScreen} options={{ headerShown: true, title: "Location" }} />
+      <Stack.Screen name="WelcomeVideo" component={WelcomeVideoScreen} />
+
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="Store" component={StoreScreen} options={{ headerShown: true, title: "Store" }} />
       <Stack.Screen name="Product" component={ProductScreen} options={{ headerShown: true, title: "Product" }} />

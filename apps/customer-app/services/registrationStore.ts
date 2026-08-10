@@ -1,0 +1,141 @@
+import { useSyncExternalStore } from "react";
+import type { PilotArea } from "@rapex/constants";
+
+/**
+ * Session-only registration wizard draft -- same in-memory +
+ * useSyncExternalStore pattern as cartStore.ts/addressStore.ts. Holds every
+ * field the registration flow collects across its steps.
+ *
+ * IMPORTANT: most of these fields have NO confirmed Xano field to submit
+ * to. The confirmed `/auth/signup` contract (see XanoAuthRepository) only
+ * accepts { name, email, password } -- not phone, DOB, gender, KYC images,
+ * GPS, or address. This store exists so the frontend can collect and
+ * present that data (per instruction: "the frontend controls UI,
+ * navigation, camera access, GPS permission, forms, and presentation") --
+ * it does NOT mean any of it is actually persisted server-side yet. Each
+ * screen that reads from here for a step Xano doesn't support shows that
+ * honestly rather than pretending the data went anywhere; see
+ * ProfileScreen's Registration Progress section and
+ * docs/business/Registration.md for the full list of gaps.
+ */
+
+export type IdDocumentType = "National ID" | "Driver's License" | "Passport" | "UMID" | "PhilHealth ID" | "Voter's ID";
+
+export type RegistrationDraft = {
+  language: "en" | "tl" | null;
+  dateOfBirth: string | null; // ISO date (YYYY-MM-DD)
+  age: number | null; // derived from dateOfBirth, never entered directly
+
+  firstName: string;
+  surname: string;
+  email: string;
+  password: string;
+  mobile: string;
+  gender: "Male" | "Female" | "Prefer not to say" | null;
+
+  idType: IdDocumentType | null;
+  idFrontUri: string | null;
+  idBackUri: string | null;
+  selfieUri: string | null;
+
+  mobileVerified: boolean;
+  emailVerified: boolean;
+  authProvider: "password" | "google" | "facebook" | null;
+
+  gpsLatitude: number | null;
+  gpsLongitude: number | null;
+  useGpsAsHomeAddress: boolean | null;
+
+  region: string | null;
+  province: string | null;
+  municipality: PilotArea | null;
+  barangay: string | null;
+  postalCode: string | null;
+  subdivision: string;
+  street: string;
+  block: string;
+  lot: string;
+  phase: string;
+  building: string;
+  floor: string;
+  roomUnit: string;
+};
+
+function emptyDraft(): RegistrationDraft {
+  return {
+    language: null,
+    dateOfBirth: null,
+    age: null,
+    firstName: "",
+    surname: "",
+    email: "",
+    password: "",
+    mobile: "",
+    gender: null,
+    idType: null,
+    idFrontUri: null,
+    idBackUri: null,
+    selfieUri: null,
+    mobileVerified: false,
+    emailVerified: false,
+    authProvider: null,
+    gpsLatitude: null,
+    gpsLongitude: null,
+    useGpsAsHomeAddress: null,
+    region: null,
+    province: null,
+    municipality: null,
+    barangay: null,
+    postalCode: null,
+    subdivision: "",
+    street: "",
+    block: "",
+    lot: "",
+    phase: "",
+    building: "",
+    floor: "",
+    roomUnit: "",
+  };
+}
+
+let draft: RegistrationDraft = emptyDraft();
+const listeners = new Set<() => void>();
+
+function notify() {
+  listeners.forEach((listener) => listener());
+}
+
+export function updateRegistrationDraft(patch: Partial<RegistrationDraft>): void {
+  draft = { ...draft, ...patch };
+  notify();
+}
+
+export function getRegistrationDraft(): RegistrationDraft {
+  return draft;
+}
+
+export function resetRegistrationDraft(): void {
+  draft = emptyDraft();
+  notify();
+}
+
+export function useRegistrationDraft(): RegistrationDraft {
+  return useSyncExternalStore(
+    (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    () => draft,
+  );
+}
+
+/** DOB -> age, computed once and re-derived whenever DOB changes -- never accepted as direct user input. */
+export function calculateAge(isoDateOfBirth: string): number {
+  const dob = new Date(isoDateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const hasHadBirthdayThisYear =
+    today.getMonth() > dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() >= dob.getDate());
+  if (!hasHadBirthdayThisYear) age -= 1;
+  return age;
+}
