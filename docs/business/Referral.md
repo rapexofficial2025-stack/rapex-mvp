@@ -95,17 +95,18 @@ credited to the Partner's wallet immediately on order completion.
 Elite Partner → Diamond Partner → Founder's Circle — higher levels unlock
 higher commission %, badges, early feature access, priority support.
 
-**Alpha status — same conflict as `Rewards.md`:** this source lists
-"Referral Earnings" among features explicitly **disabled** for Alpha, and
-separately says Partnership Commissions specifically are "⏸️ Bypassed —
-focus on basic order flow first." That's a much larger, structurally
-different feature (a 3-year recurring commission program with its own
-Partner role and levels) than what `EarnScreen`'s simple one-time
-customer-referral-code UI currently implies. **Flagging for a decision,
-not resolving silently**: is the shipped `EarnScreen` referral code meant to
-eventually plug into this Partnership program, or is Partnership a separate,
-later, bigger initiative with its own onboarding flow? They're not
-obviously the same feature at two different sizes.
+**Alpha-gating status: resolved.** This source listed "Referral Earnings"
+among features disabled for a staged Alpha rollout — **Founder decision
+(2026-08-10): the staged Alpha concept is cancelled**, RAPEX deploys the
+full feature set together. See `Rewards.md`'s matching update.
+
+**Still open (a different question, not resolved by the above):** is the
+shipped `EarnScreen` referral code meant to eventually plug into this bigger
+Partnership program (3-year recurring commission, its own Partner role and
+level ladder), or is Partnership a separate, later initiative with its own
+onboarding flow? They're not obviously the same feature at two different
+sizes — worth a decision whenever Partnership gets prioritized, not urgent
+now.
 
 **Structural note (not yet decided, per the source):** there's a proposal to
 merge all of this into a single universal "Earn" tab per role rather than a

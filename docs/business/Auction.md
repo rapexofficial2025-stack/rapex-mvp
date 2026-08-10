@@ -3,13 +3,15 @@
 ## Status
 **Received, not independently verified.** From a 2026-08-04 ChatGPT
 business-rules planning session (exported and handed to Claude 2026-08-10),
-described there as the canonical auction spec. **Explicitly disabled for the
-Alpha/Sept 1 MVP** — the same source lists Auction among features "DISABLED
-during Alpha" until the core order flow (Order → Deliver) is proven stable.
-This doc exists so the spec is ready when Auction gets turned on, not as
-current build scope. The Customer App already has navigable Auction screens
-(`AuctionHomeScreen`, `AuctionDetailsScreen`, `AuctionProfileScreen`) —
-they're UI shells only, not wired to any of the mechanics below.
+described there as the canonical auction spec. That source listed Auction
+among features held back for a staged Alpha rollout — **Founder decision
+(2026-08-10): the staged Alpha concept is cancelled**, RAPEX deploys the
+full feature set together (see `Rewards.md`'s matching update), so Auction
+is in scope, not deferred. The Customer App already has navigable Auction
+screens (`AuctionHomeScreen`, `AuctionDetailsScreen`, `AuctionProfileScreen`)
+— they're currently UI shells only, not wired to any of the mechanics below;
+wiring them up is real work still to be scheduled, not a launch blocker by
+itself.
 
 ## Creating an auction
 Seller provides: Title, Description, Photos, Category, Starting Price,
