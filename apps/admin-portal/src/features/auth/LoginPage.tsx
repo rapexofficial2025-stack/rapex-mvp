@@ -13,11 +13,20 @@ import { useAsyncAction, useRepositories } from "@rapex/api-client";
  * login screens. Swap only the `BACKGROUND` constant below once the real
  * Admin-login.png lands -- nothing else here depends on its exact pixels.
  *
- * Admin is the internal command center: no logo on the left panel, no
- * Sign Up / Google / Facebook / public registration on the right. The real
- * Xano email/password auth call (auth.login) below is untouched.
+ * Admin is the internal command center: no Sign Up / Google / Facebook /
+ * public registration on the right. The real Xano email/password auth call
+ * (auth.login) below is untouched.
+ *
+ * The login badge (top of the left panel) uses the real uploaded brand
+ * assets from assets/brand/Branding Logo (Available)/ -- LOGO (eagle glyph)
+ * and NAME (RAPEX wordmark + tagline) are the same two layers composited
+ * together in ICON, kept separate here so they can animate independently
+ * (a short staggered fade/slide-in) instead of using the single flattened
+ * ICON image.
  */
 const BACKGROUND = new URL("../../../../../assets/brand/Background/login-dark.png", import.meta.url).href;
+const LOGO = new URL("../../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
+const NAME = new URL("../../../../../assets/brand/Branding Logo (Available)/Name.png", import.meta.url).href;
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -51,12 +60,31 @@ export function LoginPage() {
       <div className="relative w-full max-w-4xl">
         <RapexGlassCard style={{ padding: 0, overflow: "hidden" }}>
           <div className="flex flex-col md:flex-row">
-            {/* Left panel: intro copy only -- no logo, no marketing links. */}
+            {/* Left panel: login badge (top, center) + intro copy -- no marketing links. */}
             <div
-              className="flex flex-col justify-center gap-4 p-8 md:w-1/2 md:p-12"
+              className="flex flex-col items-center gap-4 p-8 md:w-1/2 md:p-12"
               style={{ borderBottom: "1px solid rgba(255,255,255,0.10)" }}
             >
-              <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.25 }}>
+              <div className="flex flex-col items-center" style={{ marginBottom: 4 }}>
+                <img
+                  src={LOGO}
+                  alt=""
+                  style={{ width: 56, height: "auto", animation: "rapex-fade-slide-in 500ms ease-out both" }}
+                />
+                <img
+                  src={NAME}
+                  alt="RAPEX -- Delivering the Future, Today."
+                  style={{
+                    width: 160,
+                    height: "auto",
+                    marginTop: 6,
+                    animation: "rapex-fade-slide-in 500ms ease-out both",
+                    animationDelay: "150ms",
+                  }}
+                />
+              </div>
+
+              <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.25, textAlign: "center" }}>
                 Welcome to the{" "}
                 <span
                   style={{
@@ -69,7 +97,7 @@ export function LoginPage() {
                   Admin Portal
                 </span>
               </h1>
-              <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: 340 }}>
+              <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: 340, textAlign: "center" }}>
                 Manage your platform with powerful tools and comprehensive analytics.
               </p>
             </div>
