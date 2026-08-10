@@ -57,8 +57,7 @@ points ledger this would write into. This mirrors the source repo's design
 needing two parallel point systems.
 
 ## Open questions for the Xano design conversation
-1. What actually triggers `QUALIFIED` (first order? minimum order value?
-   account verification?).
+1. ~~What actually triggers `QUALIFIED`~~ — **Partially answered below**, per role.
 2. Referral reward amount per qualified referral, and whether rider referrals
    pay the same rate as customer referrals.
 3. Monthly cap value, and whether `CAP_REACHED` referrals ever get paid out
@@ -66,3 +65,50 @@ needing two parallel point systems.
 4. Whether referral is in scope for the Sept 1 Alpha launch at all, or a
    fast-follow — `EarnScreen` works either way since it degrades gracefully to
    "0 points" with no backend.
+
+## Update (2026-08-10) — a Partnership/referral program exists, with real numbers, plus a flagged conflict
+
+A 2026-08-04 ChatGPT business-rules planning session (exported and handed to
+Claude 2026-08-10) describes a considerably larger **Partnership/Referral
+program** than the model drafted above — worth reconciling before either is
+built. **Received, not independently verified against live Xano.**
+
+**Qualification trigger per referral type** (answers open question 1, more
+precisely than "first order" alone): Customer = after first completed
+purchase; Merchant = after verification + first successful order; Rider =
+after first delivery; Service Provider = after first paid service; Company =
+after verified + first client booking.
+
+**36-Month Lock (a much bigger number than a typical referral bonus):** once
+a Partner refers a Merchant, the Partner earns residual commission
+(~1%-2%) on every order that merchant completes, for exactly **3 years**, not
+a one-time payout. Reported backend function name: `partnerships/track_referral`.
+
+**Annual Renewal (Quota):** Partner must refer ≥1 new merchant per year to
+keep commission active; failing that, status moves to `grace_period` then
+`inactive`, pausing (not forfeiting) earnings.
+
+**Settlement:** commissions calculated during `accounting/distribute_funds`,
+credited to the Partner's wallet immediately on order completion.
+
+**Partner Levels (progression ladder):** Explorer → Ambassador → Partner →
+Elite Partner → Diamond Partner → Founder's Circle — higher levels unlock
+higher commission %, badges, early feature access, priority support.
+
+**Alpha status — same conflict as `Rewards.md`:** this source lists
+"Referral Earnings" among features explicitly **disabled** for Alpha, and
+separately says Partnership Commissions specifically are "⏸️ Bypassed —
+focus on basic order flow first." That's a much larger, structurally
+different feature (a 3-year recurring commission program with its own
+Partner role and levels) than what `EarnScreen`'s simple one-time
+customer-referral-code UI currently implies. **Flagging for a decision,
+not resolving silently**: is the shipped `EarnScreen` referral code meant to
+eventually plug into this Partnership program, or is Partnership a separate,
+later, bigger initiative with its own onboarding flow? They're not
+obviously the same feature at two different sizes.
+
+**Structural note (not yet decided, per the source):** there's a proposal to
+merge all of this into a single universal "Earn" tab per role rather than a
+separate Partner app — which, if adopted, would actually validate keeping
+`EarnScreen` as the long-term home for this, just with more depth added
+later rather than being the wrong abstraction.

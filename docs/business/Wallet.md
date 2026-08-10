@@ -68,8 +68,7 @@ one row per `(rider, period_start, period_end)` with `amount_owed`,
 the Engine Center's rider-remittance view would need if/when it's built.
 
 ## Open questions for the Xano design conversation
-1. Does RAPEX need a merchant wallet, or does merchant settlement stay outside
-   the wallet ledger entirely?
+1. ~~Does RAPEX need a merchant wallet~~ — **Resolved, see update below**: yes.
 2. Is rider COD remittance in scope for launch, or wallet-only (no cash
    handling) for Alpha?
 3. Minimum top-up amount, top-up payment rails (GCash/Maya/QRPH are already
@@ -78,3 +77,40 @@ the Engine Center's rider-remittance view would need if/when it's built.
 4. Withdrawal rules for riders/merchants (the Engine Center `wallet` engine
    slot already anticipates "withdrawal limits" — no rule exists yet for what
    those limits are).
+
+## Update (2026-08-10) — reconciled against a more authoritative source
+
+A 2026-08-04 ChatGPT business-rules planning session (exported and handed to
+Claude 2026-08-10) gives a more specific wallet structure than the draft
+above, tied directly to the Alpha order/escrow flow. **Received, not
+independently verified against live Xano** — but more authoritative than the
+draft above since it's tied to the confirmed "Xano is the only backend" Alpha
+rule set, not sourced from the abandoned developer's codebase. Treat this
+section as superseding the draft above wherever they conflict.
+
+**Wallet structure per role** (answers open question 1 — merchants do get a
+wallet):
+- **Customer Wallet:** `Balance`, `Reserved`, `Spendable`.
+- **Merchant Wallet:** `Available`, `Pending`, `Total Earnings`.
+- **Rider Wallet:** `Available`, `Total Earnings`.
+
+**Escrow flow** (see `docs/business/Delivery.md` for the full order-status
+tie-in): Customer checks out → **Wallet Reserved** → Merchant prepares →
+Rider delivers → Completed → **Escrow Released** → Merchant Paid → Rider Paid
+→ Platform Ledger Updated. This is the same "reserve on checkout, release on
+completion" pattern `RiderRemittanceRecord`'s ledger-based design above
+already anticipated, now confirmed as the actual Alpha mechanism.
+
+**Payment rules (Alpha vs. Beta):** Alpha = RAPEX Wallet only (matches what's
+already built in `CheckoutScreen`). Beta = PayMongo QR, QRPH, GCash, Maya,
+Bank.
+
+**Alpha status — Escrow Hold is described as ✅ ACTIVE** ("ensures customer
+has funds before merchant starts preparing"), separately from other
+wallet-adjacent features (Loyalty, Partnership Commissions) which are
+explicitly bypassed/disabled for Alpha — see `docs/business/Rewards.md` and
+`docs/business/Referral.md` for that distinction, and the flagged conflict
+noted there against what's already shipped in the Customer App's Earn tab.
+
+**Audit rule:** every wallet-adjacent action is logged — Login, Wallet,
+Orders, Price Changes, Delivery, Admin Changes.
