@@ -34,23 +34,48 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Each portal is built with its own subpath base so one Pages site can
-      # serve all three. This is a temporary Alpha staging URL, not the
-      # production domain -- see each app's services/apiConfig.ts comments.
+      # Base includes the /rapex-mvp/ repo-name prefix GitHub Pages project
+      # sites always add (https://<org>.github.io/rapex-mvp/...) -- omitting
+      # it is a real bug that was caught and fixed this session (see
+      # apps/admin-portal/src/App.tsx's basename comment for the related
+      # router fix). Each web portal is verified to typecheck/build clean
+      # under both this shape and site-root-only before being wired in here.
+      - name: Typecheck all apps
+        run: pnpm -r --if-present typecheck
+
       - name: Build admin-portal (/admin/)
         run: pnpm --filter admin-portal build
         env:
-          VITE_BASE_PATH: /admin/
+          VITE_BASE_PATH: /rapex-mvp/admin/
 
       - name: Build merchant-portal (/merchant/)
         run: pnpm --filter merchant-portal build
         env:
-          VITE_BASE_PATH: /merchant/
+          VITE_BASE_PATH: /rapex-mvp/merchant/
 
       - name: Build provider-portal (/provider/)
         run: pnpm --filter provider-portal build
         env:
-          VITE_BASE_PATH: /provider/
+          VITE_BASE_PATH: /rapex-mvp/provider/
+
+      # customer-app and rider-app are Expo/React Native apps -- exported
+      # for web via `expo export -p web` (uses react-native-web, already a
+      # dependency of both). experiments.baseUrl in each app.config.js reads
+      # EXPO_WEB_BASE_PATH -- verified this session (both apps' typecheck +
+      # web export succeed, and the base-path prefix resolves correctly in
+      # the exported index.html's favicon/script src) before being wired in
+      # here. Rider App's own auth still can't reach real Xano (see
+      # docs/api/README.md's rider blocker) -- this deploys it as a
+      # navigable scaffold on Mock data, not a functional rider flow.
+      - name: Build customer-app (/customer/)
+        run: cd apps/customer-app && npx expo export -p web
+        env:
+          EXPO_WEB_BASE_PATH: /rapex-mvp/customer
+
+      - name: Build rider-app (/rider/)
+        run: cd apps/rider-app && npx expo export -p web
+        env:
+          EXPO_WEB_BASE_PATH: /rapex-mvp/rider
 
       - name: Assemble combined Pages site
         run: |
@@ -58,19 +83,34 @@ jobs:
           cp -r apps/admin-portal/dist site/admin
           cp -r apps/merchant-portal/dist site/merchant
           cp -r apps/provider-portal/dist site/provider
+          cp -r apps/customer-app/dist site/customer
+          cp -r apps/rider-app/dist site/rider
           cat > site/index.html <<'HTML'
           <!doctype html>
           <html><head><meta charset="utf-8"><title>RAPEX Staging</title></head>
           <body style="font-family: sans-serif; padding: 2rem;">
-            <h1>RAPEX Alpha Staging</h1>
+            <h1>RAPEX Staging</h1>
             <p>Temporary GitHub Pages deployment -- not the production domain.</p>
             <ul>
               <li><a href="/admin/">Admin Portal</a></li>
               <li><a href="/merchant/">Merchant Portal</a></li>
               <li><a href="/provider/">Provider Portal</a></li>
+              <li><a href="/customer/">Customer App (web)</a></li>
+              <li><a href="/rider/">Rider App (web scaffold -- auth blocked, see docs/api/README.md)</a></li>
             </ul>
           </body></html>
           HTML
+
+      # KNOWN LIMITATION, documented rather than half-fixed: GitHub Pages
+      # only ever consults ONE site-root 404.html for the whole site, never
+      # a per-subfolder one -- so a direct load/refresh on a deep link (e.g.
+      # /admin/dashboard) will hit GitHub's generic 404, not this app. This
+      # doesn't affect normal use: navigating there via in-app links from
+      # each app's own /<name>/ root works fine (client-side routing, no
+      # full page load). A real fix (a root 404.html that redirects based on
+      # path prefix, the "spa-github-pages" pattern) is out of scope for
+      # this pass -- flag if deep-link refresh support becomes a real
+      # blocker for manual testing.
 
       - uses: actions/configure-pages@v5
 

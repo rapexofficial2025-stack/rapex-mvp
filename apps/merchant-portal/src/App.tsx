@@ -6,9 +6,16 @@ import { LoginPage } from "./routes/LoginPage";
 import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { StorePage } from "./features/store/StorePage";
 
+// GitHub Pages staging serves this app from a /<repo>/ or /<repo>/merchant/
+// subpath via VITE_BASE_PATH -- see vite.config.ts. Unlike admin-portal,
+// this app's own routes use a "/portal/..." prefix that doesn't collide
+// with the "merchant" deploy-folder name, so no special stripping is
+// needed here. Defaults to "/" (no-op) for normal local/prod builds.
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
+
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename}>
       <Routes>
         <Route path="/" element={<Navigate to="/portal/store" replace />} />
         <Route path="/login" element={<LoginPage />} />
