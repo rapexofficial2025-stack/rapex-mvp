@@ -41,6 +41,25 @@ export const primitive = {
   orange300: "#FDBA74",
   orange500: "#F97316",
   orange700: "#C2410C",
+
+  // Requested for the RAPEX design system but never previously defined
+  // anywhere in code or docs/brand-guidelines (which is itself still an
+  // empty placeholder) -- same "placeholder pending official brand
+  // guidelines" status as the rest of this file, chosen as reasonable
+  // complements to the existing purple/orange pair rather than invented
+  // from nothing. Swap when real brand hex values exist.
+  lavender100: "#EDE7FB",
+  lavender300: "#D6C9F5",
+  lavender500: "#B39DDB",
+  lavender700: "#8A6FC2",
+
+  peach100: "#FFE9DC",
+  peach300: "#FFCBAB",
+  peach500: "#FFA873",
+
+  pink300: "#F9A8D4",
+  pink500: "#EC4899",
+  pink700: "#BE185D",
 } as const;
 
 export const semanticLight = {
@@ -106,4 +125,20 @@ export type SemanticColors = { [K in keyof typeof semanticLight]: string };
 export const colors: { light: SemanticColors; dark: SemanticColors } = {
   light: semanticLight,
   dark: semanticDark,
+};
+
+/**
+ * Extended accent palette (lavender/peach/pink) -- not mapped to a semantic
+ * role like the tokens above, since no screen has assigned them a purpose
+ * yet. Available for decorative use (gradients, ambient glow, illustration
+ * accents) without inventing what role they "should" play. Same
+ * light/dark shape as `colors` for consistency, though light and dark
+ * currently share the same values -- split if a real need for
+ * mode-specific variants comes up.
+ */
+export type ExtendedColors = { lavender: string; peach: string; pink: string };
+
+export const extended: { light: ExtendedColors; dark: ExtendedColors } = {
+  light: { lavender: primitive.lavender500, peach: primitive.peach500, pink: primitive.pink500 },
+  dark: { lavender: primitive.lavender300, peach: primitive.peach300, pink: primitive.pink300 },
 };

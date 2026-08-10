@@ -5,6 +5,7 @@ export * from "./Button";
 export * from "./Input";
 export * from "./Badge";
 export * from "./GlassCard";
+export * from "./RapexGlassCard";
 export * from "./Loading";
 export * from "./Skeleton";
 export * from "./EmptyState";
