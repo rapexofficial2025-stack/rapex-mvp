@@ -37,8 +37,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
  * Email/password goes through the real, unchanged AuthRepository.
  */
 const BACKGROUND = require("../../../assets/brand/Background/login-dark-2.png");
-const GOOGLE_ICON = require("../../../assets/icons/Home Icon/google.png");
-const FACEBOOK_ICON = require("../../../assets/icons/Home Icon/facebook.png");
+const GOOGLE_ICON = require("../../../assets/brand/icons/google-logo-icon.png");
+const FACEBOOK_ICON = require("../../../assets/brand/icons/facebook-logo-icon.png");
 
 export function LoginScreen({ navigation }: Props) {
   const { auth } = useRepositories();

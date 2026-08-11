@@ -1,29 +1,30 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, ErrorState, Input, RapexGlassCard } from "@rapex/ui-web";
+import { Button, ErrorState, Input } from "@rapex/ui-web";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
 
 /**
- * Reference is the "Welcome to the Admin Portal" glassmorphism generated
- * image. Background is the real uploaded asset
- * (assets/brand/Background/admin-login.png) -- used as a background-image
- * layer only; the glass card, left panel copy, and right panel login form
- * below are all real React/CSS, not flattened into the image.
+ * IMPORTANT: admin-login.png is a full mockup screenshot, not plain scenery --
+ * the glass card (rounded border, blur tint), the vertical divider, AND the
+ * entire left column's "Welcome to the Admin Portal" heading + supporting
+ * text are already painted into the image itself (confirmed by viewing the
+ * file directly). Only the right column is actually blank in the real asset.
+ *
+ * An earlier version of this file rendered its own RapexGlassCard + duplicate
+ * "Welcome to the Admin Portal" text on top of this same background, which
+ * produced a visibly nested/duplicated glass card on a real device (reported
+ * from an actual Windows 7 test) -- same class of bug as the one caught and
+ * fixed in merchant-portal's LoginPage.tsx via a from-scratch isolated test.
+ * Fixed the same way: render ONLY the right column's real, functional login
+ * form, positioned (in %, estimated from the image -- not pixel-measured)
+ * inside the background's real right-panel region. No second card, no
+ * duplicate heading -- the baked-in artwork provides both.
  *
  * Admin is the internal command center: no Sign Up / Google / Facebook /
- * public registration on the right. The real Xano email/password auth call
- * (auth.login) below is untouched.
- *
- * The login badge (top of the left panel) uses the real uploaded brand
- * assets from assets/brand/Branding Logo (Available)/ -- LOGO (eagle glyph)
- * and NAME (RAPEX wordmark + tagline) are the same two layers composited
- * together in ICON, kept separate here so they can animate independently
- * (a short staggered fade/slide-in) instead of using the single flattened
- * ICON image.
+ * Forgot Password here. The real Xano email/password auth call (auth.login)
+ * below is untouched.
  */
 const BACKGROUND = new URL("../../../../../assets/brand/Background/admin-login.png", import.meta.url).href;
-const LOGO = new URL("../../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
-const NAME = new URL("../../../../../assets/brand/Branding Logo (Available)/Name.png", import.meta.url).href;
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -33,116 +34,66 @@ export function LoginPage() {
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
 
   return (
-    <div
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-        backgroundImage: `url(${BACKGROUND})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(180deg, rgba(6,4,12,0.55), rgba(6,4,12,0.75))",
-        }}
-      />
+    <div style={styles.page}>
+      <div style={styles.rightPanel}>
+        <div>
+          <div style={styles.brand}>RAPEX</div>
+          <div style={styles.subtitle}>Sign In to Command Center</div>
+        </div>
 
-      <div className="relative w-full max-w-4xl">
-        <RapexGlassCard style={{ padding: 0, overflow: "hidden" }}>
-          <div className="flex flex-col md:flex-row">
-            {/* Left panel: login badge (top, center) + intro copy -- no marketing links. */}
-            <div
-              className="flex flex-col items-center gap-4 p-8 md:w-1/2 md:p-12"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.10)" }}
-            >
-              <div className="flex flex-col items-center" style={{ marginBottom: 4 }}>
-                <img
-                  src={LOGO}
-                  alt=""
-                  style={{ width: 56, height: "auto", animation: "rapex-fade-slide-in 500ms ease-out both" }}
-                />
-                <img
-                  src={NAME}
-                  alt="RAPEX -- Delivering the Future, Today."
-                  style={{
-                    width: 160,
-                    height: "auto",
-                    marginTop: 6,
-                    animation: "rapex-fade-slide-in 500ms ease-out both",
-                    animationDelay: "150ms",
-                  }}
-                />
-              </div>
+        <Input
+          label="Email"
+          type="email"
+          autoComplete="username"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Input
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-              <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.25, textAlign: "center" }}>
-                Welcome to the{" "}
-                <span
-                  style={{
-                    background: "linear-gradient(90deg, #F97316, #8B5CF6)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  Admin Portal
-                </span>
-              </h1>
-              <p style={{ margin: 0, fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: 340, textAlign: "center" }}>
-                Manage your platform with powerful tools and comprehensive analytics.
-              </p>
-            </div>
+        {login.error ? <ErrorState description={login.error} /> : null}
 
-            {/* Vertical divider -- horizontal on the stacked (mobile) layout instead. */}
-            <div
-              className="hidden md:block"
-              style={{ width: 1, alignSelf: "stretch", background: "rgba(255,255,255,0.14)" }}
-            />
-
-            {/* Right panel: the real, functional login form. Unchanged auth logic. */}
-            <div className="flex flex-col justify-center gap-4 p-8 md:w-1/2 md:p-12">
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#FFFFFF" }}>RAPEX</div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 2 }}>
-                  Sign In to Command Center
-                </div>
-              </div>
-
-              <Input
-                label="Email"
-                type="email"
-                autoComplete="username"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Input
-                label="Password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-
-              {login.error ? <ErrorState description={login.error} /> : null}
-
-              <Button
-                label="Sign In"
-                loading={login.loading}
-                onClick={async () => {
-                  await login.execute({ email, password });
-                  navigate("/admin/dashboard", { replace: true });
-                }}
-              />
-            </div>
-          </div>
-        </RapexGlassCard>
+        <Button
+          label="Sign In"
+          loading={login.loading}
+          onClick={async () => {
+            await login.execute({ email, password });
+            navigate("/admin/dashboard", { replace: true });
+          }}
+        />
       </div>
     </div>
   );
 }
+
+const styles: Record<string, CSSProperties> = {
+  page: {
+    position: "relative",
+    minHeight: "100vh",
+    backgroundImage: `url(${BACKGROUND})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    fontFamily: "inherit",
+  },
+  // Estimated (not measured) percentage bounds of the card's real right
+  // column within the background image -- nudge these if it doesn't line up
+  // on a real render.
+  rightPanel: {
+    position: "absolute",
+    top: "11%",
+    left: "53%",
+    width: "33%",
+    height: "78%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    gap: 14,
+  },
+  brand: { fontSize: 18, fontWeight: 700, color: "#FFFFFF" },
+  subtitle: { fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 2 },
+};

@@ -5,7 +5,7 @@ import { rapexHttpClient } from "../services/apiConfig";
 import { webTokenStorage } from "../services/webTokenStorage";
 
 const BACKGROUND = new URL("../../../../assets/brand/Background/merchant-login.png", import.meta.url).href;
-const GOOGLE_ICON = new URL("../../../../assets/icons/Home Icon/google.png", import.meta.url).href;
+const GOOGLE_ICON = new URL("../../../../assets/brand/icons/google-logo-icon.png", import.meta.url).href;
 
 /**
  * IMPORTANT: merchant-login.png / merchant-login-reference.png are full mockup
