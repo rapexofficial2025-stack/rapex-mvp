@@ -1,150 +1,132 @@
 import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { toErrorMessage } from "@rapex/api-client";
-import { rapexHttpClient } from "../services/apiConfig";
-import { webTokenStorage } from "../services/webTokenStorage";
+import { useAsyncAction, useRepositories } from "@rapex/api-client";
 
 const BACKGROUND = new URL("../../../../assets/brand/Background/merchant-login.png", import.meta.url).href;
 const GOOGLE_ICON = new URL("../../../../assets/brand/icons/google-logo-icon.png", import.meta.url).href;
+const LOGO = new URL("../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
 
 /**
- * IMPORTANT: merchant-login.png / merchant-login-reference.png are full mockup
- * screenshots, not plain scenery -- the glass card (rounded border, blur tint),
- * the vertical divider, and the entire right-panel marketing copy ("Grow Your
- * Business With RAPEX" + the 4 feature boxes) are already painted into the
- * image itself, identically in both references. Only the LEFT panel differs
- * between the two references (blank in merchant-login.png, the real form in
- * merchant-login-reference.png) -- confirmed by viewing both directly.
+ * IMPORTANT: merchant-login.png is a full mockup screenshot, not plain
+ * scenery -- the glass card (rounded border, blur tint), the vertical
+ * divider, and the entire right-panel marketing copy ("Grow Your Business
+ * With RAPEX" + the 4 feature boxes) are already painted into the image
+ * itself. The right panel's hexagon icon is drawn empty (no logo inside) --
+ * that's the one real gap, filled below with the real Logo.png.
  *
- * An earlier version of this file rebuilt the glass card AND the right panel
- * as real components on top of this same background, which produced a visibly
- * duplicated "ghost" of that content (verified via a from-scratch isolated
- * HTML test with no React/JS at all -- the duplication reproduced from the
- * background image alone, proving it wasn't a CSS/backdrop-filter rendering
- * bug). Fixed by rendering ONLY the left panel's dynamic content here, sized
- * and positioned (in %, estimated from the two reference images -- not a
- * pixel measurement) to sit inside the card's real, already-drawn left region,
- * letting the baked-in card/divider/right-panel show through untouched.
+ * `backgroundSize: "contain"` (not "cover") keeps the whole image, and
+ * therefore the card's real proportions, visible and undistorted regardless
+ * of viewport aspect ratio -- "cover" was letting the card blow up past the
+ * viewport edges on some window sizes (real Windows 10 test finding).
  *
- * Log In and Register go straight to the real Xano `super_app` group. Google
- * is an honest dead-end (no OAuth Client ID configured yet); no Xano endpoint
- * exists for Facebook at all, so it's not shown (the reference itself only
- * has a Google button on this screen).
+ * Shows the real form directly -- no separate "tap to sign in" intro stage
+ * (real testing feedback: unnecessary extra step).
+ *
+ * Log In uses the real, already-wired AuthRepository (auth.login()) instead
+ * of a raw, unconfigured HTTP client -- the previous version called
+ * `rapexHttpClient` directly, which has no configured base URL and threw
+ * "Failed to construct 'URL': Invalid base URL" on every submit (real
+ * Windows 10 test finding). `auth` (XanoAuthRepository, wired in
+ * AppProviders.tsx) uses the correctly-configured rapexAuthHttpClient.
+ * Google is an honest dead-end (no OAuth Client ID configured yet); no Xano
+ * endpoint exists for Facebook at all, so it's not shown (the reference
+ * itself only shows a Google button on this screen).
  */
 export function LoginPage() {
   const navigate = useNavigate();
-  const [stage, setStage] = useState<"intro" | "form">("intro");
+  const { auth } = useRepositories();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [socialNotice, setSocialNotice] = useState<string | null>(null);
+  const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await rapexHttpClient.request<{ authToken?: string }>({
-        path: "/login",
-        method: "POST",
-        body: { email, password },
-      });
-      if (result?.authToken) await webTokenStorage.setToken(result.authToken);
-      navigate("/portal/store");
-    } catch (err) {
-      setError(toErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+    await login.execute({ email, password });
+    navigate("/portal/store");
   }
 
   return (
     <div style={styles.page}>
+      <img src={LOGO} alt="" style={styles.rightLogo} />
+
       <div style={styles.leftPanel}>
-        {stage === "intro" ? (
-          <button type="button" style={styles.introTrigger} onClick={() => setStage("form")}>
-            <span style={styles.introTriggerLabel}>MERCHANT LOGIN</span>
-            <span style={styles.introTriggerHint}>Tap to sign in {"›"}</span>
-          </button>
-        ) : (
-          <div style={styles.formWrap}>
-            <h1 style={styles.formTitle}>Merchant Login</h1>
-            <p style={styles.formSubtitle}>Access your merchant dashboard</p>
+        <div style={styles.formWrap}>
+          <h1 style={styles.formTitle}>Merchant Login</h1>
+          <p style={styles.formSubtitle}>Access your merchant dashboard</p>
 
-            <form style={styles.form} onSubmit={handleLogin}>
-              <div style={styles.field}>
-                <label style={styles.fieldLabel}>Username or Email</label>
-                <div style={styles.inputWrap}>
-                  <span style={styles.inputIcon}>{"\u{1F464}"}</span>
-                  <input
-                    style={styles.input}
-                    type="email"
-                    autoCapitalize="none"
-                    placeholder="Enter your username or email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
+          <form style={styles.form} onSubmit={handleLogin}>
+            <div style={styles.field}>
+              <label style={styles.fieldLabel}>Username or Email</label>
+              <div style={styles.inputWrap}>
+                <span style={styles.inputIcon}>{"\u{1F464}"}</span>
+                <input
+                  style={styles.input}
+                  type="email"
+                  autoCapitalize="none"
+                  placeholder="Enter your username or email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
-
-              <div style={styles.field}>
-                <label style={styles.fieldLabel}>Password</label>
-                <div style={styles.inputWrap}>
-                  <span style={styles.inputIcon}>{"\u{1F512}"}</span>
-                  <input
-                    style={styles.input}
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div style={styles.rememberRow}>
-                <label style={styles.rememberLabel}>
-                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-                  Remember me
-                </label>
-                <button
-                  type="button"
-                  style={styles.forgotLink}
-                  onClick={() => setSocialNotice("Forgot password isn't set up yet -- contact support for now.")}
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              {error ? <span style={styles.errorText}>{error}</span> : null}
-
-              <button type="submit" disabled={loading} style={styles.primaryButton}>
-                {loading ? "Signing in..." : `→ Sign In`}
-              </button>
-            </form>
-
-            <div style={styles.dividerRow}>
-              <div style={styles.dividerLine} />
-              <span style={styles.dividerText}>Or continue with</span>
-              <div style={styles.dividerLine} />
             </div>
 
-            <button
-              type="button"
-              style={styles.socialButton}
-              onClick={() => setSocialNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
-            >
-              <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
-              Google
-            </button>
-            {socialNotice ? <p style={styles.socialNotice}>{socialNotice}</p> : null}
+            <div style={styles.field}>
+              <label style={styles.fieldLabel}>Password</label>
+              <div style={styles.inputWrap}>
+                <span style={styles.inputIcon}>{"\u{1F512}"}</span>
+                <input
+                  style={styles.input}
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
 
-            <button type="button" style={styles.registerLink} onClick={() => navigate("/xano-test")}>
-              Don't have an account? <span style={styles.registerLinkAccent}>Sign up here</span>
+            <div style={styles.rememberRow}>
+              <label style={styles.rememberLabel}>
+                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                Remember me
+              </label>
+              <button
+                type="button"
+                style={styles.forgotLink}
+                onClick={() => setSocialNotice("Forgot password isn't set up yet -- contact support for now.")}
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            {login.error ? <span style={styles.errorText}>{login.error}</span> : null}
+
+            <button type="submit" disabled={login.loading} style={styles.primaryButton}>
+              {login.loading ? "Signing in..." : `→ Sign In`}
             </button>
+          </form>
+
+          <div style={styles.dividerRow}>
+            <div style={styles.dividerLine} />
+            <span style={styles.dividerText}>Or continue with</span>
+            <div style={styles.dividerLine} />
           </div>
-        )}
+
+          <button
+            type="button"
+            style={styles.socialButton}
+            onClick={() => setSocialNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
+          >
+            <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
+            Google
+          </button>
+          {socialNotice ? <p style={styles.socialNotice}>{socialNotice}</p> : null}
+
+          <button type="button" style={styles.registerLink} onClick={() => navigate("/xano-test")}>
+            Don't have an account? <span style={styles.registerLinkAccent}>Sign up here</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -155,13 +137,14 @@ const styles: Record<string, CSSProperties> = {
     position: "relative",
     minHeight: "100vh",
     backgroundImage: `url(${BACKGROUND})`,
-    backgroundSize: "cover",
+    backgroundSize: "contain",
+    backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
+    backgroundColor: "#0B0713",
     fontFamily: "inherit",
   },
-  // Estimated (not measured) percentage bounds of the card's real left panel
-  // within the background image -- nudge these if it doesn't line up on a
-  // real render.
+  // Estimated (not measured) percentage bounds within the background image --
+  // nudge these if they don't line up on a real render.
   leftPanel: {
     position: "absolute",
     top: "8%",
@@ -170,19 +153,13 @@ const styles: Record<string, CSSProperties> = {
     height: "82%",
     display: "flex",
   },
-  introTrigger: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    background: "none",
-    border: "none",
-    cursor: "pointer",
+  rightLogo: {
+    position: "absolute",
+    top: "9.5%",
+    left: "63.5%",
+    width: "6%",
+    height: "auto",
   },
-  introTriggerLabel: { color: "rgba(255,255,255,0.55)", fontSize: 13, fontWeight: 700, letterSpacing: 2 },
-  introTriggerHint: { color: "rgba(255,255,255,0.35)", fontSize: 12 },
   formWrap: { flex: 1, display: "flex", flexDirection: "column", gap: 10, justifyContent: "center", overflow: "auto" },
   formTitle: { margin: 0, fontSize: 22, fontWeight: 700, color: "#FFFFFF" },
   formSubtitle: { margin: "0 0 6px", fontSize: 12, color: "rgba(255,255,255,0.6)" },
