@@ -6,6 +6,7 @@ import { OrderFinancialsPage } from "./features/order-financials/OrderFinancials
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { VerificationQueuePage } from "./features/verification/VerificationQueuePage";
 import { LoginPage } from "./features/auth/LoginPage";
+import { RegisterPage } from "./features/auth/RegisterPage";
 import { RequireAdminAuth } from "./features/auth/RequireAdminAuth";
 import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { IntegrationsPage } from "./features/integrations/IntegrationsPage";
@@ -29,6 +30,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/login" element={<LoginPage />} />
+        <Route path="/admin/register" element={<RegisterPage />} />
         <Route path="/xano-test" element={<XanoLiveTestPage />} />
         <Route
           path="/admin"

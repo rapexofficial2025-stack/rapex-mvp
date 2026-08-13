@@ -9,7 +9,14 @@ import { useAppTheme } from "../hooks/useAppTheme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ForgotPassword">;
 
-/** Real endpoint accepts email, mobile, or full name and emails a reset link -- no in-app "enter new password" step is confirmed. */
+/**
+ * Real Xano endpoint (GET /reset/request-reset-link?identifier=...) --
+ * accepts email, mobile, or full name and emails a reset link to the
+ * matched account. There's no confirmed in-app "enter new password" step
+ * (Xano's spec only covers sending the link), so this screen's job ends at
+ * "check your email" -- completing the reset happens via whatever the
+ * emailed link opens, not in this app.
+ */
 export function ForgotPasswordScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const { auth } = useRepositories();

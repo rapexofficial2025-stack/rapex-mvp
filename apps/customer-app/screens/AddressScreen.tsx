@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
-import { Badge, Button, GlassCard, Input, RapexMapView } from "@rapex/ui-native";
+import { Badge, Button, ErrorState, GlassCard, Input, RapexMapView } from "@rapex/ui-native";
+import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { PILOT_AREAS, PH_REGION, PH_PROVINCE, PILOT_MUNICIPALITY_GEOGRAPHY, type PilotArea } from "@rapex/constants";
 import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
@@ -23,9 +24,22 @@ type Props = NativeStackScreenProps<RootStackParamList, "Address">;
 
 export function AddressScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
+  const { auth } = useRepositories();
   const fromRegistration = route.params?.fromRegistration ?? false;
   const registrationDraft = useRegistrationDraft();
   const existing = getDeliveryAddress();
+  const register = useAsyncAction((addressLine1: string) =>
+    auth.register({
+      email: registrationDraft.email,
+      password: registrationDraft.password,
+      role: "customer",
+      firstName: registrationDraft.firstName,
+      lastName: registrationDraft.surname,
+      mobile: registrationDraft.mobile,
+      dateOfBirth: registrationDraft.dateOfBirth ?? undefined,
+      addressLine1,
+    }),
+  );
 
   const [label, setLabel] = useState<AddressLabel>(isAddressLabel(existing?.label) ? existing.label : "House");
   const [municipality, setMunicipality] = useState<PilotArea>((existing?.municipality as PilotArea) ?? PILOT_AREAS[0]);
@@ -174,10 +188,13 @@ export function AddressScreen({ navigation, route }: Props) {
         </Text>
       </GlassCard>
 
+      {fromRegistration && register.error ? <ErrorState description={register.error} /> : null}
+
       <Button
         label={fromRegistration ? "Continue" : "Save Address"}
+        loading={fromRegistration && register.loading}
         disabled={!canSave}
-        onPress={() => {
+        onPress={async () => {
           const latitude = gpsLatitude ?? DEFAULT_LATITUDE;
           const longitude = gpsLongitude ?? DEFAULT_LONGITUDE;
           const address = {
@@ -216,7 +233,8 @@ export function AddressScreen({ navigation, route }: Props) {
               floor: floor.trim(),
               roomUnit: roomUnit.trim(),
             });
-            navigation.navigate("WelcomeVideo");
+            await register.execute(line);
+            navigation.navigate("RegisterSuccess");
           } else {
             navigation.goBack();
           }

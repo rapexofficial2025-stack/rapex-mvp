@@ -3,7 +3,6 @@ import {
   Image,
   ImageBackground,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -13,74 +12,50 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
-import { useToast } from "@rapex/ui-native";
+import { Hotspot, useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
 import { signInWithGoogle } from "../services/socialAuth";
+import { CATEGORY_HOTSPOTS, TOP_ICON_HOTSPOTS, FloatingReferenceModal, type FloatingKey } from "../components/LoginReferenceOverlays";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 /**
  * LOGIN2 / Screen 2 of the two-stage login flow (see WelcomeScreen.tsx for Screen 1).
- * Reference artwork is `login-dark-2` -- not yet uploaded, so this reuses the existing
- * real `login-dark.png` as an isolated TEMP placeholder background (same constant name
- * as Screen 1's, both point at one real file, both get swapped together). All controls
- * below stay real, visible, functional inputs for now; once login-dark-2.png lands,
- * fields/buttons that duplicate its drawn artwork are candidates to convert to
- * `Hotspot` (@rapex/ui-native) positioned over that artwork instead.
+ * Background is the real uploaded reference asset (login-dark-2.png) -- the top
+ * icon row, 5 category hexagons, glass card outline, and an "OR" divider are
+ * already drawn into that artwork (see LoginReferenceOverlays.tsx for the icon/
+ * hexagon Hotspot rects). The form content below (title, fields, buttons) is
+ * NOT baked into the background -- that area is empty in the real asset -- so
+ * it's built here as real, functional components matching
+ * login-dark-2-reference.png's styling, not flattened into an image.
+ *
+ * Google calls the real signInWithGoogle() (Firebase popup, see
+ * services/socialAuth.ts) -- real on web once a Firebase project's config
+ * exists (docs/deployment/Firebase.md), throws its real "not configured"
+ * error until then. Native still needs an OAuth client ID that doesn't
+ * exist yet (same doc). No confirmed Xano contract exists to turn a
+ * successful Firebase sign-in into a RAPEX session, so success just
+ * confirms who signed in rather than fake-navigating anywhere. Facebook is
+ * intentionally not offered here (Google-only per spec). Email/password
+ * goes through the real, unchanged AuthRepository. Create an Account
+ * routes through the Privacy & Terms consent gate before the registration
+ * wizard.
  */
-const BACKGROUND = require("../../../assets/brand/Background/login-dark.png");
-const LOGO = require("../../../assets/brand/Branding Logo (Available)/Wordmark-logo-v3.png");
-const GOOGLE_ICON = require("../../../assets/icons/Home Icon/google.png");
-const FACEBOOK_ICON = require("../../../assets/icons/Home Icon/facebook.png");
-
-type FeatureKey = "marketplace" | "food" | "services" | "auction";
-
-const FEATURE_ICONS: { key: FeatureKey; emoji: string; label: string; color: string; image: number }[] = [
-  {
-    key: "marketplace",
-    emoji: "🛍️",
-    label: "MARKETPLACE",
-    color: "#7C3AED",
-    image: require("../../../assets/images/reference/Login-marketplace.png"),
-  },
-  {
-    key: "food",
-    emoji: "🍽️",
-    label: "FOOD",
-    color: "#F97316",
-    image: require("../../../assets/images/reference/login-info-food.png"),
-  },
-  {
-    key: "services",
-    emoji: "🛠️",
-    label: "SERVICES",
-    color: "#7C3AED",
-    image: require("../../../assets/images/reference/login-services-info.png"),
-  },
-  {
-    key: "auction",
-    emoji: "🔨",
-    label: "AUCTION",
-    color: "#F97316",
-    image: require("../../../assets/images/reference/login-auction.png"),
-  },
-];
+const BACKGROUND = require("../../../assets/brand/Background/login-dark-2.png");
+const GOOGLE_ICON = require("../../../assets/brand/icons/google-logo-icon.png");
 
 export function LoginScreen({ navigation }: Props) {
   const { auth } = useRepositories();
   const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [activeFeature, setActiveFeature] = useState<FeatureKey | null>(null);
+  const [activeFloating, setActiveFloating] = useState<FloatingKey | null>(null);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
   const googleSignIn = useAsyncAction(signInWithGoogle);
-
-  const activeFeatureData = FEATURE_ICONS.find((f) => f.key === activeFeature);
 
   return (
     <View style={styles.flex}>
@@ -88,296 +63,182 @@ export function LoginScreen({ navigation }: Props) {
       <ImageBackground source={BACKGROUND} style={styles.flex} resizeMode="cover">
         <SafeAreaView style={styles.flex} edges={["top"]}>
           <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-            <View style={styles.hero}>
-              <View style={styles.iconRow}>
-                {FEATURE_ICONS.map((feature) => (
-                  <Pressable
-                    key={feature.key}
-                    style={styles.iconButton}
-                    onPress={() => setActiveFeature(feature.key)}
-                  >
-                    <View style={[styles.iconBadge, { backgroundColor: feature.color }]}>
-                      <Text style={styles.iconEmoji}>{feature.emoji}</Text>
-                    </View>
-                    <Text style={styles.iconLabel}>{feature.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
+            {TOP_ICON_HOTSPOTS.login2.map((h) => (
+              <Hotspot key={h.key} {...h.rect} label={h.label} onPress={() => setActiveFloating(h.key)} />
+            ))}
+            {CATEGORY_HOTSPOTS.login2.map((h) => (
+              <Hotspot key={h.key} {...h.rect} label={h.label} onPress={() => setActiveFloating(h.key)} />
+            ))}
 
-              <View style={styles.logoWrap}>
-                <Image source={LOGO} style={styles.logo} resizeMode="contain" />
-              </View>
-            </View>
-
-            <Modal visible={activeFeatureData != null} transparent animationType="fade" onRequestClose={() => setActiveFeature(null)}>
-              <View style={styles.modalBackdrop}>
-                <View style={styles.modalPanel}>
-                  <Pressable style={styles.modalClose} onPress={() => setActiveFeature(null)}>
-                    <Text style={styles.modalCloseText}>✕</Text>
-                  </Pressable>
-                  {activeFeatureData ? (
-                    <Image source={activeFeatureData.image} style={styles.modalImage} resizeMode="contain" />
-                  ) : null}
-                </View>
-              </View>
-            </Modal>
-
-            <View style={styles.sheetWrap}>
-              <LinearGradient
-                colors={["rgba(6,4,12,0.92)", "rgba(22,10,38,0.88)"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.sheet}
+            <View style={styles.cardContent}>
+              <ScrollView
+                contentContainerStyle={styles.cardScrollContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
               >
-                <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
-                <View style={styles.sheetHighlight} pointerEvents="none" />
+                <Text style={styles.title}>Welcome Back!</Text>
+                <Text style={styles.subtitle}>Sign in to continue</Text>
 
-                <ScrollView
-                  contentContainerStyle={styles.sheetContent}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}
+                <View style={styles.field}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Email or Mobile Number"
+                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                </View>
+
+                <View style={styles.field}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    placeholderTextColor="rgba(255,255,255,0.45)"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                </View>
+
+                <Pressable onPress={() => navigation.navigate("ForgotPassword")} style={styles.forgotRow}>
+                  <Text style={styles.forgotText}>Forgot Password?</Text>
+                </Pressable>
+
+                {login.error ? <Text style={styles.errorText}>{login.error}</Text> : null}
+
+                <Pressable
+                  onPress={async () => {
+                    const result = await login.execute({ email, password });
+                    if (result.status === "otp_required") navigation.navigate("Otp");
+                  }}
+                  disabled={login.loading}
+                  style={({ pressed }) => [styles.primaryButtonWrap, { opacity: pressed ? 0.9 : 1 }]}
                 >
-                  <View style={styles.sheetHandle} />
-                  <Text style={styles.title}>Welcome Back, Tropa!</Text>
-                  <Text style={styles.subtitle}>Log in to keep ordering with RAPEX</Text>
-
-                  <View style={styles.field}>
-                    <Text style={styles.fieldLabel}>Email</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="you@email.com"
-                      placeholderTextColor="rgba(255,255,255,0.4)"
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                      value={email}
-                      onChangeText={setEmail}
-                    />
-                  </View>
-
-                  <View style={styles.field}>
-                    <Text style={styles.fieldLabel}>Password</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="••••••••"
-                      placeholderTextColor="rgba(255,255,255,0.4)"
-                      secureTextEntry
-                      value={password}
-                      onChangeText={setPassword}
-                    />
-                  </View>
-
-                  {login.error ? <Text style={styles.errorText}>{login.error}</Text> : null}
-
-                  <Pressable
-                    onPress={async () => {
-                      await login.execute({ email, password });
-                      navigation.navigate("Otp", { destination: "login" });
-                    }}
-                    disabled={login.loading}
-                    style={({ pressed }) => [styles.primaryButtonWrap, { opacity: pressed ? 0.9 : 1 }]}
+                  <LinearGradient
+                    colors={["#F97316", "#8B5CF6"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.primaryButton}
                   >
-                    <LinearGradient
-                      colors={["#8B5CF6", "#F97316"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.primaryButton}
-                    >
-                      <Text style={styles.primaryButtonText}>{login.loading ? "Logging in..." : "Log In"}</Text>
-                    </LinearGradient>
+                    <Text style={styles.primaryButtonText}>{login.loading ? "Logging in..." : "Log In"}</Text>
+                  </LinearGradient>
+                </Pressable>
+
+                <View style={styles.socialRow}>
+                  <Pressable
+                    style={[styles.socialButton, styles.googleButton, styles.googleButtonFull]}
+                    disabled={googleSignIn.loading}
+                    onPress={async () => {
+                      try {
+                        const credential = await googleSignIn.execute();
+                        const who = credential.user.email ?? credential.user.displayName ?? "your Google account";
+                        // No confirmed Xano contract to exchange a Firebase identity for a
+                        // RAPEX session yet (see docs/deployment/Firebase.md) -- this is a
+                        // real, successful Google sign-in, it just doesn't log you into
+                        // RAPEX itself until that bridge exists.
+                        showToast(`Signed in with Google as ${who}. RAPEX account linking isn't wired up yet, so you're not logged into RAPEX itself.`, "success");
+                      } catch (err) {
+                        showToast(err instanceof Error ? err.message : "Google sign-in failed.", "error");
+                      }
+                    }}
+                  >
+                    <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
+                    <Text style={styles.googleText}>{googleSignIn.loading ? "Signing in..." : "Continue with Google"}</Text>
                   </Pressable>
+                </View>
 
-                  <View style={styles.dividerRow}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>or continue with</Text>
-                    <View style={styles.dividerLine} />
-                  </View>
+                <View style={styles.dividerRow}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>OR</Text>
+                  <View style={styles.dividerLine} />
+                </View>
 
-                  <View style={styles.socialRow}>
-                    <Pressable
-                      style={styles.socialButton}
-                      disabled={googleSignIn.loading}
-                      onPress={async () => {
-                        try {
-                          const credential = await googleSignIn.execute();
-                          const who = credential.user.email ?? credential.user.displayName ?? "your Google account";
-                          // No confirmed Xano contract to exchange a Firebase identity for a
-                          // RAPEX session yet (see docs/deployment/Firebase.md) -- this is a
-                          // real, successful Google sign-in, it just doesn't log you into
-                          // RAPEX itself until that bridge exists.
-                          showToast(`Signed in with Google as ${who}. RAPEX account linking isn't wired up yet, so you're not logged into RAPEX itself.`, "success");
-                        } catch (err) {
-                          showToast(err instanceof Error ? err.message : "Google sign-in failed.", "error");
-                        }
-                      }}
-                    >
-                      <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
-                      <Text style={styles.socialText}>{googleSignIn.loading ? "Signing in..." : "Google"}</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.socialButton, styles.socialButtonDisabled]}
-                      onPress={() => showToast("Facebook sign-in requires Firebase configuration -- not connected yet", "neutral")}
-                    >
-                      <Image source={FACEBOOK_ICON} style={styles.socialIcon} resizeMode="contain" />
-                      <Text style={styles.socialText}>Facebook</Text>
-                    </Pressable>
-                  </View>
+                <Pressable
+                  onPress={() => navigation.navigate("PrivacyTerms")}
+                  style={({ pressed }) => [styles.primaryButtonWrap, { opacity: pressed ? 0.9 : 1 }]}
+                >
+                  <LinearGradient
+                    colors={["#F97316", "#8B5CF6"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.primaryButton}
+                  >
+                    <Text style={styles.primaryButtonText}>Create an Account</Text>
+                  </LinearGradient>
+                </Pressable>
 
-                  <Pressable style={styles.footerRow} onPress={() => navigation.navigate("Register")}>
-                    <Text style={styles.footerText}>
-                      Don't have an account? <Text style={styles.footerLink}>Register</Text>
-                    </Text>
-                  </Pressable>
-                </ScrollView>
-              </LinearGradient>
+                <Text style={styles.footerText}>SEC & BIR Registered. Official Launch: 2026. All Rights Reserved.</Text>
+              </ScrollView>
             </View>
           </KeyboardAvoidingView>
         </SafeAreaView>
       </ImageBackground>
+
+      <FloatingReferenceModal activeKey={activeFloating} onClose={() => setActiveFloating(null)} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  hero: {
-    flex: 3,
-    alignItems: "center",
-    paddingTop: 12,
-  },
-  iconRow: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    width: "100%",
-    paddingHorizontal: 12,
-  },
-  iconButton: { alignItems: "center", gap: 4 },
-  iconBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
-    shadowColor: "#000000",
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
-  },
-  iconEmoji: { fontSize: 22 },
-  iconLabel: { fontSize: 9, fontWeight: "700", color: "#FFFFFF", letterSpacing: 0.4 },
-  logoWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
-  logo: { width: "80%", aspectRatio: 2.3 },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-  },
-  modalPanel: {
+  cardContent: {
     position: "absolute",
-    top: 10,
-    bottom: 5,
-    left: 5,
-    right: 5,
-    borderRadius: 20,
-    overflow: "hidden",
-    backgroundColor: "#0B0713",
+    top: "49%",
+    bottom: 0,
+    left: "6%",
+    right: "6%",
   },
-  modalClose: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    zIndex: 1,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.55)",
+  cardScrollContent: {
+    paddingTop: 8,
+    paddingBottom: 24,
+    gap: 10,
   },
-  modalCloseText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
-  modalImage: { width: "100%", height: "100%" },
-  sheetWrap: {
-    flex: 2,
-    width: "100%",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.10)",
-    shadowColor: "#000000",
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: -8 },
-    elevation: 10,
-  },
-  sheet: { flex: 1 },
-  sheetHighlight: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.16)",
-  },
-  sheetContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 30,
-    gap: 8,
-  },
-  sheetHandle: {
-    alignSelf: "center",
-    width: 36,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    marginBottom: 6,
-  },
-  title: { fontSize: 18, fontWeight: "700", color: "#FFFFFF" },
-  subtitle: { fontSize: 12, color: "rgba(255,255,255,0.65)", marginTop: -2, marginBottom: 4 },
+  title: { fontSize: 22, fontWeight: "700", color: "#FFFFFF", textAlign: "center" },
+  subtitle: { fontSize: 13, color: "rgba(255,255,255,0.65)", textAlign: "center", marginBottom: 6 },
   field: { gap: 4 },
-  fieldLabel: { fontSize: 11, fontWeight: "600", color: "rgba(255,255,255,0.8)" },
   input: {
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(255,255,255,0.07)",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: "rgba(255,255,255,0.20)",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     fontSize: 14,
     color: "#FFFFFF",
   },
+  forgotRow: { alignItems: "flex-end", marginTop: -2 },
+  forgotText: { fontSize: 12, fontWeight: "600", color: "#C4B5FD" },
   errorText: { color: "#FCA5A5", fontSize: 11 },
   primaryButtonWrap: { marginTop: 2 },
   primaryButton: {
-    borderRadius: 12,
-    paddingVertical: 12,
+    borderRadius: 999,
+    paddingVertical: 13,
     alignItems: "center",
   },
   primaryButtonText: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
-  dividerRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.14)" },
-  dividerText: { fontSize: 11, color: "rgba(255,255,255,0.5)" },
-  socialRow: { flexDirection: "row", gap: 10 },
+  socialRow: { flexDirection: "row", gap: 10, marginTop: 4 },
   socialButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    backgroundColor: "rgba(255,255,255,0.06)",
     borderRadius: 10,
     paddingVertical: 10,
   },
-  socialButtonDisabled: { opacity: 0.55 },
+  googleButton: { backgroundColor: "#FFFFFF" },
+  googleButtonFull: { flex: 1 },
   socialIcon: { width: 15, height: 15 },
-  socialText: { fontSize: 12, fontWeight: "600", color: "#FFFFFF" },
-  footerRow: { alignItems: "center", marginTop: 4 },
-  footerText: { fontSize: 12, color: "rgba(255,255,255,0.65)" },
-  footerLink: { color: "#C4B5FD", fontWeight: "700" },
+  googleText: { fontSize: 12, fontWeight: "600", color: "#1F1F1F" },
+  dividerRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.14)" },
+  dividerText: { fontSize: 11, color: "rgba(255,255,255,0.5)" },
+  footerText: {
+    fontSize: 9,
+    color: "rgba(255,255,255,0.45)",
+    textAlign: "center",
+    marginTop: 10,
+  },
 });

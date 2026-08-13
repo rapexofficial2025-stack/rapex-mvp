@@ -22,6 +22,7 @@ import type { PilotArea } from "@rapex/constants";
 export type IdDocumentType = "National ID" | "Driver's License" | "Passport" | "UMID" | "PhilHealth ID" | "Voter's ID";
 
 export type RegistrationDraft = {
+  privacyAccepted: boolean;
   language: "en" | "tl" | null;
   dateOfBirth: string | null; // ISO date (YYYY-MM-DD)
   age: number | null; // derived from dateOfBirth, never entered directly
@@ -63,6 +64,7 @@ export type RegistrationDraft = {
 
 function emptyDraft(): RegistrationDraft {
   return {
+    privacyAccepted: false,
     language: null,
     dateOfBirth: null,
     age: null,
@@ -127,6 +129,21 @@ export function useRegistrationDraft(): RegistrationDraft {
     },
     () => draft,
   );
+}
+
+/** Single-line address string for the real `/auth/signup` call's `address_line_1` field, built from whatever manual-address fields are filled in. */
+export function buildAddressLine1(draft: RegistrationDraft): string {
+  return [
+    draft.roomUnit && `Rm/Unit ${draft.roomUnit}`,
+    draft.floor && `Floor ${draft.floor}`,
+    draft.building,
+    draft.block || draft.lot ? `Blk ${draft.block || "-"} Lot ${draft.lot || "-"}` : null,
+    draft.phase && `Phase ${draft.phase}`,
+    draft.subdivision,
+    draft.street,
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 /** DOB -> age, computed once and re-derived whenever DOB changes -- never accepted as direct user input. */

@@ -12,7 +12,7 @@ export * from "./createMockRepositories";
 
 // Repository interfaces + DTOs
 export * from "./repositories/types";
-export type { AuthRepository, RegisterInput, LoginInput } from "./repositories/auth/AuthRepository";
+export type { AuthRepository, RegisterInput, LoginInput, LoginResult, RegisterResult, NextStep } from "./repositories/auth/AuthRepository";
 export { XanoAuthRepository } from "./repositories/auth/XanoAuthRepository";
 export { XanoAdminAuthRepository } from "./repositories/auth/XanoAdminAuthRepository";
 export type { MarketplaceRepository } from "./repositories/marketplace/MarketplaceRepository";
