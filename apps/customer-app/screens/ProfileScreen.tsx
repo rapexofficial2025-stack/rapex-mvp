@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Image, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import { Avatar, Badge, Button, ErrorState, GlassCard, Loading } from "@rapex/ui-native";
@@ -20,6 +20,46 @@ function Row({ label, value }: { label: string; value: string }) {
       <Text style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>{label}</Text>
       <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.fontSize.sm, fontWeight: "600" }}>{value}</Text>
     </View>
+  );
+}
+
+/** Large, high-contrast, tappable checklist row -- 48px+ touch target per accessibility instruction. */
+function ChecklistRow({ label, done, statusText, onPress }: { label: string; done: boolean; statusText: string; onPress: () => void }) {
+  const theme = useAppTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        gap: theme.spacing.sm,
+        minHeight: 48,
+        paddingVertical: theme.spacing.xs,
+        opacity: pressed ? 0.8 : 1,
+      })}
+    >
+      <View
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 14,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: done ? theme.colors.success : "transparent",
+          borderWidth: done ? 0 : 2,
+          borderColor: theme.colors.textSecondary,
+        }}
+      >
+        {done ? <Text style={{ color: theme.colors.textInverse, fontWeight: "800" }}>{"✓"}</Text> : null}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.fontSize.base, fontWeight: "700" }}>{label}</Text>
+        <Text style={{ color: done ? theme.colors.success : theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm, fontWeight: "600" }}>
+          {statusText}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -59,6 +99,16 @@ export function ProfileScreen({ navigation }: Props) {
   if (user === null) return <ErrorState title="Not signed in" description="Log in to view your profile." />;
 
   const kycCaptured = draft.idFrontUri && draft.idBackUri && draft.selfieUri;
+
+  // PROFILE_SETUP checklist -- the 3 gates the ordering flow actually
+  // needs, computed from real local/registration state, not fabricated.
+  const contactVerifiedDone = draft.mobileVerified && draft.emailVerified;
+  const addressSetDone = address !== null;
+  const kycDone = !!kycCaptured;
+  const setupItems = [contactVerifiedDone, addressSetDone, kycDone];
+  const setupPercent = Math.round((setupItems.filter(Boolean).length / setupItems.length) * 100);
+  const setupComplete = setupPercent === 100;
+
   const registrationSteps: { label: string; done: boolean }[] = [
     { label: "Language", done: draft.language !== null },
     { label: "Date of Birth", done: draft.dateOfBirth !== null },
@@ -79,6 +129,54 @@ export function ProfileScreen({ navigation }: Props) {
         )}
         <Button label="Change Profile Photo" variant="outline" size="sm" onPress={pickPhoto} />
       </View>
+
+      {!setupComplete ? (
+        <GlassCard>
+          <Text
+            style={{
+              fontSize: theme.typography.fontSize.lg,
+              fontWeight: "800",
+              color: theme.colors.textPrimary,
+              marginBottom: theme.spacing.xs,
+            }}
+          >
+            Complete Your Profile to Begin Ordering
+          </Text>
+          <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: theme.colors.brandPrimary, marginBottom: theme.spacing.sm }}>
+            {setupPercent}% Completed
+          </Text>
+          <View
+            style={{
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: theme.colors.surfaceAlt,
+              overflow: "hidden",
+              marginBottom: theme.spacing.sm,
+            }}
+          >
+            <View style={{ height: "100%", width: `${setupPercent}%`, borderRadius: 4, backgroundColor: theme.colors.brandPrimary }} />
+          </View>
+
+          <ChecklistRow
+            label="Mobile & Email"
+            done={contactVerifiedDone}
+            statusText={contactVerifiedDone ? "Verified" : "Not verified yet"}
+            onPress={() => navigation.navigate("RegisterContact")}
+          />
+          <ChecklistRow
+            label="Delivery Address"
+            done={addressSetDone}
+            statusText={address ? `Set to ${[address.municipality, address.barangay].filter(Boolean).join("/")}` : "Not set"}
+            onPress={() => navigation.navigate("Address")}
+          />
+          <ChecklistRow
+            label="Government ID / KYC"
+            done={kycDone}
+            statusText={kycDone ? "Uploaded" : "Pending Upload"}
+            onPress={() => navigation.navigate("RegisterIdentity")}
+          />
+        </GlassCard>
+      ) : null}
 
       <GlassCard>
         <Text style={{ fontSize: theme.typography.fontSize.base, fontWeight: "700", color: theme.colors.textPrimary, marginBottom: theme.spacing.sm }}>
