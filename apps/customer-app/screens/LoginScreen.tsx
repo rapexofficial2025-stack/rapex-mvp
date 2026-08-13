@@ -102,8 +102,16 @@ export function LoginScreen({ navigation }: Props) {
 
                 <Pressable
                   onPress={async () => {
-                    const result = await login.execute({ email, password });
-                    if (result.status === "otp_required") navigation.navigate("Otp");
+                    try {
+                      const result = await login.execute({ email, password });
+                      if (result.status === "otp_required") navigation.navigate("Otp");
+                    } catch (err) {
+                      // Real backend rejects a still-pending account with an
+                      // approval message -- route to the dedicated notice
+                      // instead of just showing inline error text for it.
+                      const message = err instanceof Error ? err.message : "";
+                      if (/pending|approval/i.test(message)) navigation.navigate("PendingApproval");
+                    }
                   }}
                   disabled={login.loading}
                   style={({ pressed }) => [styles.primaryButtonWrap, { opacity: pressed ? 0.9 : 1 }]}

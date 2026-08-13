@@ -21,9 +21,18 @@ import type { PilotArea } from "@rapex/constants";
 
 export type IdDocumentType = "National ID" | "Driver's License" | "Passport" | "UMID" | "PhilHealth ID" | "Voter's ID";
 
+export type RapexLanguage = "tagalog" | "english" | "bisaya" | "taglish";
+
+export const LANGUAGE_OPTIONS: { id: RapexLanguage; name: string; flag: string }[] = [
+  { id: "tagalog", name: "Tagalog", flag: "\u{1F1F5}\u{1F1ED}" },
+  { id: "english", name: "English", flag: "\u{1F1EC}\u{1F1E7}" },
+  { id: "bisaya", name: "Bisaya", flag: "\u{1F1F5}\u{1F1ED}" },
+  { id: "taglish", name: "Taglish", flag: "\u{1F1F5}\u{1F1ED}" },
+];
+
 export type RegistrationDraft = {
   privacyAccepted: boolean;
-  language: "en" | "tl" | null;
+  language: RapexLanguage | null;
   dateOfBirth: string | null; // ISO date (YYYY-MM-DD)
   age: number | null; // derived from dateOfBirth, never entered directly
 

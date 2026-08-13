@@ -11,11 +11,12 @@ export type MainTabParamList = {
 export type RootStackParamList = {
   Splash: undefined;
   Welcome: undefined;
+  AgeGate: undefined;
+  IpLockout: undefined;
   Login: undefined;
+  PendingApproval: undefined;
   ForgotPassword: undefined;
   PrivacyTerms: undefined;
-  RegisterLanguage: undefined;
-  RegisterBirthday: undefined;
   Register: undefined;
   RegisterSuccess: undefined;
   RegisterIdentity: undefined;

@@ -2,11 +2,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../types/navigation";
 import { SplashScreen } from "../screens/SplashScreen";
 import { WelcomeScreen } from "../screens/WelcomeScreen";
+import { AgeGateScreen } from "../screens/AgeGateScreen";
+import { IpLockoutScreen } from "../screens/IpLockoutScreen";
 import { LoginScreen } from "../screens/LoginScreen";
+import { PendingApprovalScreen } from "../screens/PendingApprovalScreen";
 import { ForgotPasswordScreen } from "../screens/ForgotPasswordScreen";
 import { PrivacyTermsScreen } from "../screens/register/PrivacyTermsScreen";
-import { RegisterLanguageScreen } from "../screens/register/RegisterLanguageScreen";
-import { RegisterBirthdayScreen } from "../screens/register/RegisterBirthdayScreen";
 import { RegisterAccountScreen } from "../screens/register/RegisterAccountScreen";
 import { RegisterSuccessScreen } from "../screens/register/RegisterSuccessScreen";
 import { RegisterIdentityScreen } from "../screens/register/RegisterIdentityScreen";
@@ -28,27 +29,46 @@ import { AuctionProfileScreen } from "../screens/AuctionProfileScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+/**
+ * Auth flow order (matches the founder-provided reference design, ported
+ * from a web mockup to real React Native screens here -- see each screen's
+ * own doc comment for what changed structurally):
+ *
+ *   Splash -> Welcome (Landing, "Let's get Started")
+ *     -> AgeGate (real backend 18+ + 48h device lockout check)
+ *       -> IpLockout (only if blocked)
+ *     -> Login -> Otp (2FA) -> MainTabs
+ *       -> PendingApproval (if the account isn't Admin-approved yet)
+ *       -> ForgotPassword
+ *       -> PrivacyTerms -> Register (single combined form, real signup)
+ *         -> RegisterSuccess -> WelcomeVideo (REX) -> Profile or Login
+ *
+ * RegisterIdentity/RegisterContact/RegisterLocation are no longer part of
+ * the mandatory chain (the real account already exists after Register) --
+ * they're optional, reachable later from Profile's setup checklist.
+ */
 export function RootNavigator() {
   return (
     <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Splash" component={SplashScreen} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
-      {/* Login1 (Welcome, above) -> Login2 (below): explicit slide transition for the
-          two-stage login flow, distinct from the default push animation used elsewhere. */}
-      <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: true, title: "Forgot Password" }} />
+      <Stack.Screen name="AgeGate" component={AgeGateScreen} options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="IpLockout" component={IpLockoutScreen} />
 
-      {/* Registration wizard: consent gate, then steps 1-7 (see each screen's doc comment for the exact Xano-contract boundary at each step). */}
+      <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="PendingApproval" component={PendingApprovalScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: true, title: "Forgot Password" }} />
+      <Stack.Screen name="Otp" component={OtpScreen} options={{ headerShown: true, title: "Verify" }} />
+
       <Stack.Screen name="PrivacyTerms" component={PrivacyTermsScreen} options={{ headerShown: true, title: "Privacy & Terms" }} />
-      <Stack.Screen name="RegisterLanguage" component={RegisterLanguageScreen} options={{ headerShown: true, title: "Language" }} />
-      <Stack.Screen name="RegisterBirthday" component={RegisterBirthdayScreen} options={{ headerShown: true, title: "Date of Birth" }} />
-      <Stack.Screen name="Register" component={RegisterAccountScreen} options={{ headerShown: true, title: "Create Account" }} />
+      <Stack.Screen name="Register" component={RegisterAccountScreen} />
       <Stack.Screen name="RegisterSuccess" component={RegisterSuccessScreen} />
+      <Stack.Screen name="WelcomeVideo" component={WelcomeVideoScreen} />
+
+      {/* Optional, post-registration -- reachable from Profile's setup checklist. */}
       <Stack.Screen name="RegisterIdentity" component={RegisterIdentityScreen} options={{ headerShown: true, title: "Identity" }} />
       <Stack.Screen name="RegisterContact" component={RegisterContactScreen} options={{ headerShown: true, title: "Verify Contact" }} />
-      <Stack.Screen name="Otp" component={OtpScreen} options={{ headerShown: true, title: "Verify" }} />
       <Stack.Screen name="RegisterLocation" component={RegisterLocationScreen} options={{ headerShown: true, title: "Location" }} />
-      <Stack.Screen name="WelcomeVideo" component={WelcomeVideoScreen} />
 
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="Store" component={StoreScreen} options={{ headerShown: true, title: "Store" }} />

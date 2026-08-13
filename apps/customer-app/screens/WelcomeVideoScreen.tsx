@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useVideoPlayer, VideoView, type VideoSource } from "expo-video";
+import { Sparkles } from "lucide-react-native";
 import { useRepositories } from "@rapex/api-client";
 import type { RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
@@ -87,10 +88,17 @@ export function WelcomeVideoScreen({ navigation }: Props) {
       <Text style={[styles.tagline, { color: theme.colors.textSecondary }]}>{TAGLINE}</Text>
 
       <View style={styles.canvas}>
+        <View style={styles.countdownBadge}>
+          <Text style={styles.countdownBadgeText}>{secondsLeft}s</Text>
+        </View>
         {hasVideo ? (
           <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />
         ) : (
           <View style={styles.revealWrap}>
+            <View style={[styles.mascotBadge, { backgroundColor: theme.colors.brandPrimary }]}>
+              <Sparkles color="#FDE68A" size={22} />
+            </View>
+            <Text style={[styles.mascotLabel, { color: theme.colors.textPrimary }]}>R.E.X AI Mascot Active</Text>
             {revealStep === 0 ? (
               <Text style={[styles.revealText, { color: theme.colors.brandPrimary }]}>RAPEX</Text>
             ) : revealStep === 1 ? (
@@ -126,8 +134,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.04)",
   },
-  revealWrap: { alignItems: "center", justifyContent: "center" },
+  revealWrap: { alignItems: "center", justifyContent: "center", gap: 6 },
   revealText: { fontSize: 48, fontWeight: "800", letterSpacing: 2 },
+  mascotBadge: { width: 48, height: 48, borderRadius: 16, alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  mascotLabel: { fontSize: 11, fontWeight: "700" },
+  countdownBadge: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderWidth: 1,
+    borderColor: "rgba(251,191,36,0.4)",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    zIndex: 1,
+  },
+  countdownBadgeText: { color: "#FBBF24", fontWeight: "800", fontSize: 11 },
   progressTrack: {
     width: "100%",
     height: 6,

@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { Avatar, Badge, Button, ErrorState, GlassCard, Loading } from "@rapex/ui-native";
 import { useRepositories, type AuthUser } from "@rapex/api-client";
 import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
 import { useAppTheme } from "../hooks/useAppTheme";
-import { useRegistrationDraft } from "../services/registrationStore";
+import { LANGUAGE_OPTIONS, updateRegistrationDraft, useRegistrationDraft, type RapexLanguage } from "../services/registrationStore";
 import { useDeliveryAddress } from "../services/addressStore";
 import { useProfilePhotoUri, setProfilePhotoUri } from "../services/profilePhotoStore";
 
@@ -95,6 +96,13 @@ export function ProfileScreen({ navigation }: Props) {
     setProfilePhotoUri(result.assets[0].uri);
   }
 
+  async function enableGps() {
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (!permission.granted) return;
+    const position = await Location.getCurrentPositionAsync({});
+    updateRegistrationDraft({ gpsLatitude: position.coords.latitude, gpsLongitude: position.coords.longitude, useGpsAsHomeAddress: true });
+  }
+
   if (user === undefined) return <Loading label="Loading profile…" />;
   if (user === null) return <ErrorState title="Not signed in" description="Log in to view your profile." />;
 
@@ -177,6 +185,40 @@ export function ProfileScreen({ navigation }: Props) {
           />
         </GlassCard>
       ) : null}
+
+      <GlassCard>
+        <Text style={{ fontSize: theme.typography.fontSize.base, fontWeight: "700", color: theme.colors.textPrimary, marginBottom: theme.spacing.sm }}>
+          App Language
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.xs }}>
+          {LANGUAGE_OPTIONS.map((lang) => (
+            <Pressable
+              key={lang.id}
+              onPress={() => updateRegistrationDraft({ language: lang.id as RapexLanguage })}
+              style={{
+                paddingVertical: theme.spacing.xs,
+                paddingHorizontal: theme.spacing.sm,
+                borderRadius: theme.radius.md,
+                backgroundColor: draft.language === lang.id ? theme.colors.brandPrimary : theme.colors.surfaceAlt,
+              }}
+            >
+              <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: draft.language === lang.id ? theme.colors.textInverse : theme.colors.textPrimary }}>
+                {lang.flag} {lang.name}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: theme.spacing.md }}>
+          <View>
+            <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: theme.colors.textPrimary }}>GPS Protection</Text>
+            <Text style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.textSecondary }}>
+              {draft.gpsLatitude !== null ? "Active -- helps prevent delivery scams" : "Off"}
+            </Text>
+          </View>
+          <Button label={draft.gpsLatitude !== null ? "Active" : "Turn On"} size="sm" variant={draft.gpsLatitude !== null ? "secondary" : "primary"} onPress={enableGps} />
+        </View>
+      </GlassCard>
 
       <GlassCard>
         <Text style={{ fontSize: theme.typography.fontSize.base, fontWeight: "700", color: theme.colors.textPrimary, marginBottom: theme.spacing.sm }}>
