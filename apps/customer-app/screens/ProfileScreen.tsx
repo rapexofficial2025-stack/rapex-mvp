@@ -145,7 +145,7 @@ export function ProfileScreen({ navigation }: Props) {
         variant="secondary"
         onPress={async () => {
           await auth.logout();
-          navigation.replace("Welcome");
+          navigation.replace("Login");
         }}
       />
     </ScreenContainer>
