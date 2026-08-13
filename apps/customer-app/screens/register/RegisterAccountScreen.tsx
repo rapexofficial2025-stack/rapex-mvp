@@ -77,7 +77,7 @@ export function RegisterAccountScreen({ navigation }: Props) {
           const name = `${draft.firstName.trim()} ${draft.surname.trim()}`.trim();
           await register.execute({ name, email: draft.email, phone: draft.mobile, password: draft.password });
           updateRegistrationDraft({ authProvider: "password" });
-          navigation.navigate("RegisterIdentity");
+          navigation.navigate("RegisterSuccess");
         }}
       />
       <Button label="Already have an account? Log In" variant="secondary" onPress={() => navigation.navigate("Login")} />

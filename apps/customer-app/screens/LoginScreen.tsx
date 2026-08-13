@@ -32,13 +32,14 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
  * it's built here as real, functional components matching
  * login-dark-2-reference.png's styling, not flattened into an image.
  *
- * Google/Facebook stay disabled-with-toast (no fake auth): Google needs an
- * OAuth client ID that doesn't exist yet, Facebook has no Xano endpoint.
- * Email/password goes through the real, unchanged AuthRepository.
+ * Google stays disabled-with-toast (no fake auth): it needs an OAuth client
+ * ID that doesn't exist yet. Facebook is intentionally not offered here
+ * (Google-only per spec). Email/password goes through the real, unchanged
+ * AuthRepository. Create an Account routes through the Privacy & Terms
+ * consent gate before the registration wizard.
  */
 const BACKGROUND = require("../../../assets/brand/Background/login-dark-2.png");
 const GOOGLE_ICON = require("../../../assets/brand/icons/google-logo-icon.png");
-const FACEBOOK_ICON = require("../../../assets/brand/icons/facebook-logo-icon.png");
 
 export function LoginScreen({ navigation }: Props) {
   const { auth } = useRepositories();
@@ -122,18 +123,11 @@ export function LoginScreen({ navigation }: Props) {
 
                 <View style={styles.socialRow}>
                   <Pressable
-                    style={[styles.socialButton, styles.googleButton]}
+                    style={[styles.socialButton, styles.googleButton, styles.googleButtonFull]}
                     onPress={() => showToast("Google sign-in requires Firebase configuration -- not connected yet", "neutral")}
                   >
                     <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
-                    <Text style={styles.googleText}>Google</Text>
-                  </Pressable>
-                  <Pressable
-                    style={[styles.socialButton, styles.facebookButton]}
-                    onPress={() => showToast("Facebook sign-in has no Xano endpoint yet", "neutral")}
-                  >
-                    <Image source={FACEBOOK_ICON} style={styles.socialIcon} resizeMode="contain" />
-                    <Text style={styles.facebookText}>Facebook</Text>
+                    <Text style={styles.googleText}>Continue with Google</Text>
                   </Pressable>
                 </View>
 
@@ -144,7 +138,7 @@ export function LoginScreen({ navigation }: Props) {
                 </View>
 
                 <Pressable
-                  onPress={() => navigation.navigate("Register")}
+                  onPress={() => navigation.navigate("PrivacyTerms")}
                   style={({ pressed }) => [styles.primaryButtonWrap, { opacity: pressed ? 0.9 : 1 }]}
                 >
                   <LinearGradient
@@ -156,6 +150,8 @@ export function LoginScreen({ navigation }: Props) {
                     <Text style={styles.primaryButtonText}>Create an Account</Text>
                   </LinearGradient>
                 </Pressable>
+
+                <Text style={styles.footerText}>SEC & BIR Registered. Official Launch: 2026. All Rights Reserved.</Text>
               </ScrollView>
             </View>
           </KeyboardAvoidingView>
@@ -215,11 +211,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   googleButton: { backgroundColor: "#FFFFFF" },
-  facebookButton: { backgroundColor: "#1877F2" },
+  googleButtonFull: { flex: 1 },
   socialIcon: { width: 15, height: 15 },
   googleText: { fontSize: 12, fontWeight: "600", color: "#1F1F1F" },
-  facebookText: { fontSize: 12, fontWeight: "600", color: "#FFFFFF" },
   dividerRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 },
   dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.14)" },
   dividerText: { fontSize: 11, color: "rgba(255,255,255,0.5)" },
+  footerText: {
+    fontSize: 9,
+    color: "rgba(255,255,255,0.45)",
+    textAlign: "center",
+    marginTop: 10,
+  },
 });

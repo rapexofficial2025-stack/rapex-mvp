@@ -22,6 +22,7 @@ import type { PilotArea } from "@rapex/constants";
 export type IdDocumentType = "National ID" | "Driver's License" | "Passport" | "UMID" | "PhilHealth ID" | "Voter's ID";
 
 export type RegistrationDraft = {
+  privacyAccepted: boolean;
   language: "en" | "tl" | null;
   dateOfBirth: string | null; // ISO date (YYYY-MM-DD)
   age: number | null; // derived from dateOfBirth, never entered directly
@@ -63,6 +64,7 @@ export type RegistrationDraft = {
 
 function emptyDraft(): RegistrationDraft {
   return {
+    privacyAccepted: false,
     language: null,
     dateOfBirth: null,
     age: null,
