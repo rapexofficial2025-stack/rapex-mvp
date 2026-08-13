@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Input, Button, ErrorState } from "@rapex/ui-native";
-import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import { Input, Button } from "@rapex/ui-native";
 import type { RootStackParamList } from "../../types/navigation";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { PickerField } from "../../components/PickerField";
@@ -14,23 +13,17 @@ type Props = NativeStackScreenProps<RootStackParamList, "Register">;
 const GENDERS = ["Male", "Female", "Prefer not to say"] as const;
 
 /**
- * Registration Step 3 of 7 -- Account. This is the step that actually
- * creates the Xano account: the confirmed `/auth/signup` contract (see
- * XanoAuthRepository) only accepts { name, email, password }, so `name` is
- * assembled from First Name + Surname and Mobile Number/Gender are kept
- * locally in registrationStore for the Profile screen and later steps --
- * they are not silently dropped, but they are also not actually submitted
- * to Xano yet since there's no field for them on this endpoint.
+ * Registration Step 3 of 7 -- Account. Local field collection only -- the
+ * real `/auth/signup` call (Master Authentication Suite, see
+ * XanoAuthRepository) needs the full address gathered in the later
+ * Location/Address steps too, so it fires once at the end of the wizard
+ * (AddressScreen/RegisterLocationScreen), not here.
  */
 export function RegisterAccountScreen({ navigation }: Props) {
   const theme = useAppTheme();
-  const { auth } = useRepositories();
   const draft = useRegistrationDraft();
   const [confirmPassword, setConfirmPassword] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const register = useAsyncAction((input: { name: string; email: string; phone: string; password: string }) =>
-    auth.register(input),
-  );
 
   const canSubmit =
     draft.firstName.trim().length > 0 &&
@@ -62,22 +55,18 @@ export function RegisterAccountScreen({ navigation }: Props) {
       <Input label="Confirm Password" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
 
       {validationError ? <Text style={{ color: theme.colors.error, fontSize: theme.typography.fontSize.sm }}>{validationError}</Text> : null}
-      {register.error ? <ErrorState description={register.error} onRetry={() => setValidationError(null)} /> : null}
 
       <Button
         label="Continue"
-        loading={register.loading}
         disabled={!canSubmit}
-        onPress={async () => {
+        onPress={() => {
           setValidationError(null);
           if (draft.password !== confirmPassword) {
             setValidationError("Passwords do not match.");
             return;
           }
-          const name = `${draft.firstName.trim()} ${draft.surname.trim()}`.trim();
-          await register.execute({ name, email: draft.email, phone: draft.mobile, password: draft.password });
           updateRegistrationDraft({ authProvider: "password" });
-          navigation.navigate("RegisterSuccess");
+          navigation.navigate("RegisterIdentity");
         }}
       />
       <Button label="Already have an account? Log In" variant="secondary" onPress={() => navigation.navigate("Login")} />

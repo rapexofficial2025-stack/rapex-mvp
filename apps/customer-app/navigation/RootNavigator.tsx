@@ -3,6 +3,7 @@ import type { RootStackParamList } from "../types/navigation";
 import { SplashScreen } from "../screens/SplashScreen";
 import { WelcomeScreen } from "../screens/WelcomeScreen";
 import { LoginScreen } from "../screens/LoginScreen";
+import { ForgotPasswordScreen } from "../screens/ForgotPasswordScreen";
 import { PrivacyTermsScreen } from "../screens/register/PrivacyTermsScreen";
 import { RegisterLanguageScreen } from "../screens/register/RegisterLanguageScreen";
 import { RegisterBirthdayScreen } from "../screens/register/RegisterBirthdayScreen";
@@ -35,6 +36,7 @@ export function RootNavigator() {
       {/* Login1 (Welcome, above) -> Login2 (below): explicit slide transition for the
           two-stage login flow, distinct from the default push animation used elsewhere. */}
       <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: true, title: "Forgot Password" }} />
 
       {/* Registration wizard: consent gate, then steps 1-7 (see each screen's doc comment for the exact Xano-contract boundary at each step). */}
       <Stack.Screen name="PrivacyTerms" component={PrivacyTermsScreen} options={{ headerShown: true, title: "Privacy & Terms" }} />

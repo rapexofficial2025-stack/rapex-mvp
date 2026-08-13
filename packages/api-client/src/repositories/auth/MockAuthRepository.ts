@@ -1,4 +1,4 @@
-import type { AuthRepository, LoginInput, RegisterInput } from "./AuthRepository";
+import type { AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 const MOCK_DELAY_MS = 400;
@@ -16,37 +16,47 @@ const MOCK_USER: AuthUser = {
 };
 
 let currentUser: AuthUser | null = null;
+let pendingLoginEmail: string | null = null;
 
-/** Stands in for the real Xano-backed AuthRepository until the Auth contract is provided. */
+/** Stands in for the real Xano-backed AuthRepository until a role's real API contract is confirmed. Mirrors the real two-phase login shape (any code verifies successfully) so screens built against it behave like the real thing. */
 export class MockAuthRepository implements AuthRepository {
-  async register(input: RegisterInput): Promise<AuthSession> {
-    const user: AuthUser = { ...MOCK_USER, name: input.name, email: input.email, phone: input.phone };
-    currentUser = user;
-    return delay({ user, token: "mock-token" });
-  }
-
-  async login(input: LoginInput): Promise<AuthSession> {
-    const user: AuthUser = { ...MOCK_USER, email: input.email };
-    currentUser = user;
-    return delay({ user, token: "mock-token" });
-  }
-
-  async requestOtp(_destination: string): Promise<void> {
+  async checkAge(_birthYear: number): Promise<void> {
     return delay(undefined);
   }
 
-  async verifyOtp(_destination: string, _code: string): Promise<AuthSession> {
-    const user = currentUser ?? MOCK_USER;
+  async register(_input: RegisterInput): Promise<RegisterResult> {
+    await delay(undefined);
+    return { userId: "mock-user-1", accountStatus: "pending_verification" };
+  }
+
+  async login(input: LoginInput): Promise<LoginResult> {
+    await delay(undefined);
+    pendingLoginEmail = input.email;
+    return { status: "otp_required" };
+  }
+
+  async verifyOtp(_code: string): Promise<AuthSession> {
+    const user: AuthUser = pendingLoginEmail ? { ...MOCK_USER, email: pendingLoginEmail } : MOCK_USER;
     currentUser = user;
+    pendingLoginEmail = null;
     return delay({ user, token: "mock-token" });
+  }
+
+  async requestPasswordReset(_identifier: string): Promise<void> {
+    return delay(undefined);
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
     return delay(currentUser);
   }
 
+  async getNextStep(): Promise<NextStep | null> {
+    return delay(currentUser ? "HOME" : null);
+  }
+
   async logout(): Promise<void> {
     currentUser = null;
+    pendingLoginEmail = null;
     return delay(undefined);
   }
 }

@@ -94,8 +94,12 @@ export function LoginScreen({ navigation }: Props) {
 
                 <Pressable
                   onPress={async () => {
-                    await login.execute({ email, password });
-                    navigation.navigate("MainTabs");
+                    const result = await login.execute({ email, password });
+                    if (result.status === "otp_required") {
+                      navigation.navigate("Otp");
+                    } else {
+                      navigation.navigate("MainTabs");
+                    }
                   }}
                   disabled={login.loading}
                   style={({ pressed }) => [styles.primaryButtonWrap, { opacity: pressed ? 0.9 : 1 }]}

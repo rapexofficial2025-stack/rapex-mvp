@@ -3,7 +3,6 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useRepositories } from "@rapex/api-client";
 import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
-import { getWelcomeSeen } from "../services/welcomeSeenStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Splash">;
 
@@ -14,15 +13,12 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Every app launch: 3s branded splash, then a real session check.
- * Not authenticated -> Welcome. Authenticated -> only route straight to
- * Home (MainTabs) once the first-time REX welcome has actually been shown
- * for that user (welcomeSeenStore, persisted per-user-id) -- an
- * authenticated session that never finished onboarding (e.g. the app was
- * killed mid-flow) lands on Profile instead, matching "returning user ->
- * normal app" vs. "incomplete profile -> Profile Setup". There's no
- * confirmed Xano field for profile-completion, so this only uses state
- * this app can actually verify.
+ * Every app launch: 3s branded splash, then a real session check. Not
+ * authenticated -> Welcome. Authenticated -> ask the real backend
+ * "navigation brain" (GET /auth/me's next_step, see XanoAuthRepository)
+ * where this session belongs, instead of a local heuristic -- this is the
+ * one screen every returning session passes through, so it's the natural
+ * place to honor next_step.
  */
 export function SplashScreen({ navigation }: Props) {
   const { auth } = useRepositories();
@@ -36,9 +32,24 @@ export function SplashScreen({ navigation }: Props) {
         navigation.replace("Welcome");
         return;
       }
-      const welcomeSeen = await getWelcomeSeen(user.id);
+      const nextStep = await auth.getNextStep();
       if (cancelled) return;
-      navigation.replace(welcomeSeen ? "MainTabs" : "Profile");
+      switch (nextStep) {
+        case "PRIVACY_TERMS":
+          navigation.replace("PrivacyTerms");
+          break;
+        case "REGISTRATION":
+          navigation.replace("RegisterLanguage");
+          break;
+        case "WELCOME_ANIMATION":
+          navigation.replace("WelcomeVideo");
+          break;
+        case "PROFILE_SETUP":
+          navigation.replace("Profile");
+          break;
+        default:
+          navigation.replace("MainTabs");
+      }
     });
 
     return () => {

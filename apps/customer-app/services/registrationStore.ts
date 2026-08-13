@@ -131,6 +131,21 @@ export function useRegistrationDraft(): RegistrationDraft {
   );
 }
 
+/** Single-line address string for the real `/auth/signup` call's `address_line_1` field, built from whatever manual-address fields are filled in. */
+export function buildAddressLine1(draft: RegistrationDraft): string {
+  return [
+    draft.roomUnit && `Rm/Unit ${draft.roomUnit}`,
+    draft.floor && `Floor ${draft.floor}`,
+    draft.building,
+    draft.block || draft.lot ? `Blk ${draft.block || "-"} Lot ${draft.lot || "-"}` : null,
+    draft.phase && `Phase ${draft.phase}`,
+    draft.subdivision,
+    draft.street,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
 /** DOB -> age, computed once and re-derived whenever DOB changes -- never accepted as direct user input. */
 export function calculateAge(isoDateOfBirth: string): number {
   const dob = new Date(isoDateOfBirth);

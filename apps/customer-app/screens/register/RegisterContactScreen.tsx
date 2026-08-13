@@ -1,7 +1,6 @@
 import { Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Button, Badge, ErrorState } from "@rapex/ui-native";
-import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import { Button, Badge } from "@rapex/ui-native";
 import type { RootStackParamList } from "../../types/navigation";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { useAppTheme } from "../../hooks/useAppTheme";
@@ -12,16 +11,13 @@ type Props = NativeStackScreenProps<RootStackParamList, "RegisterContact">;
 /**
  * Registration Step 5 of 7 -- Contact Verification.
  *
- * Mobile: wired to the real, confirmed Xano flow -- POST /verify/send-code
- * then POST /verify-otp (Bearer-authed with the token from Step 3's
- * register() call) via the existing auth.requestOtp/verifyOtp.
- *
- * Email: Xano's contract exposes no separate confirmed
- * email-verification-link endpoint (send-code/verify-otp is a single
- * generic pair, presumed to be for the mobile number based on its naming --
- * not confirmed which contact method it actually targets either). Shown
- * honestly as a manual "I've verified my email" acknowledgement rather than
- * inventing a fake email API call.
+ * The Master Authentication Suite (see XanoAuthRepository) has no
+ * registration-time mobile-OTP endpoint -- the old generic /verify/send-code
+ * pair this screen used was one of the duplicated auth endpoints that got
+ * removed. Both mobile and email are shown honestly as manual "I've
+ * verified..." acknowledgements rather than inventing a fake API call;
+ * real verification for the account as a whole happens via the Login OTP
+ * step and Admin approval.
  *
  * Google/Facebook: if the account was created via OAuth (Step 3's
  * authProvider), both contact methods are treated as already verified by
@@ -30,9 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "RegisterContact">;
  */
 export function RegisterContactScreen({ navigation }: Props) {
   const theme = useAppTheme();
-  const { auth } = useRepositories();
   const draft = useRegistrationDraft();
-  const requestOtp = useAsyncAction(() => auth.requestOtp("register-mobile"));
 
   const isOAuth = draft.authProvider === "google" || draft.authProvider === "facebook";
   const canContinue = isOAuth || (draft.mobileVerified && draft.emailVerified);
@@ -50,14 +44,11 @@ export function RegisterContactScreen({ navigation }: Props) {
               <Badge label="Verified" tone="success" />
             ) : (
               <>
-                {requestOtp.error ? <ErrorState description={requestOtp.error} onRetry={() => requestOtp.execute()} /> : null}
+                <Badge label="Registration-time mobile OTP not confirmed with backend -- manual acknowledgement" tone="warning" />
                 <Button
-                  label="Send OTP"
-                  loading={requestOtp.loading}
-                  onPress={async () => {
-                    await requestOtp.execute();
-                    navigation.navigate("Otp", { destination: "register-mobile" });
-                  }}
+                  label="I've Verified My Mobile Number"
+                  variant="outline"
+                  onPress={() => updateRegistrationDraft({ mobileVerified: true })}
                 />
               </>
             )}

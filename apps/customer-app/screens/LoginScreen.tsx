@@ -94,10 +94,7 @@ export function LoginScreen({ navigation }: Props) {
                   />
                 </View>
 
-                <Pressable
-                  onPress={() => showToast("Forgot password isn't set up yet -- contact support for now", "neutral")}
-                  style={styles.forgotRow}
-                >
+                <Pressable onPress={() => navigation.navigate("ForgotPassword")} style={styles.forgotRow}>
                   <Text style={styles.forgotText}>Forgot Password?</Text>
                 </Pressable>
 
@@ -105,8 +102,8 @@ export function LoginScreen({ navigation }: Props) {
 
                 <Pressable
                   onPress={async () => {
-                    await login.execute({ email, password });
-                    navigation.navigate("Otp", { destination: "login" });
+                    const result = await login.execute({ email, password });
+                    if (result.status === "otp_required") navigation.navigate("Otp");
                   }}
                   disabled={login.loading}
                   style={({ pressed }) => [styles.primaryButtonWrap, { opacity: pressed ? 0.9 : 1 }]}

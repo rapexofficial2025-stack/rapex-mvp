@@ -1,7 +1,7 @@
 import type { HttpClient } from "../../core/httpClient";
 import type { UserCache } from "../../core/userCache";
 import type { TokenStorage } from "../../core/tokenStorage";
-import type { AuthRepository, LoginInput, RegisterInput } from "./AuthRepository";
+import type { AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 /**
@@ -26,8 +26,14 @@ import type { AuthSession, AuthUser } from "../types";
  *
  * Admins are provisioned by other admins (see Engine Center's "Manage Admin
  * Access"), not self-registered through this portal -- there is no
- * signup/OTP screen in admin-portal, so register()/requestOtp()/verifyOtp()
- * intentionally throw rather than guess at an unconfirmed endpoint.
+ * signup/OTP screen in admin-portal, so register()/verifyOtp() intentionally
+ * throw rather than guess at an unconfirmed endpoint.
+ *
+ * Genuinely single-phase, unlike the `rapex-auth` group's Customer/Merchant
+ * login (see XanoAuthRepository): `super_app`'s `/login` returns a real
+ * session immediately, so login() here returns `{ status: "authenticated" }`
+ * right away instead of ever asking the caller for an OTP step it doesn't
+ * have.
  */
 export class XanoAdminAuthRepository implements AuthRepository {
   private readonly client: HttpClient;
@@ -42,7 +48,20 @@ export class XanoAdminAuthRepository implements AuthRepository {
     this.role = role;
   }
 
-  async login(input: LoginInput): Promise<AuthSession> {
+  async checkAge(_birthYear: number): Promise<void> {
+    // Admin login has no age gate.
+  }
+
+  async getNextStep(): Promise<NextStep | null> {
+    const token = await this.tokenStorage.getToken();
+    return token ? "HOME" : null;
+  }
+
+  async requestPasswordReset(_identifier: string): Promise<void> {
+    throw new Error("No password-reset flow exists for admin login -- there is no confirmed Xano endpoint for it.");
+  }
+
+  async login(input: LoginInput): Promise<LoginResult> {
     const result = await this.client.request<{ authToken?: string }>({
       path: "/login",
       method: "POST",
@@ -67,7 +86,7 @@ export class XanoAdminAuthRepository implements AuthRepository {
       role: this.role,
     };
     await this.userCache.setUser(user);
-    return { user, token: result.authToken };
+    return { status: "authenticated", session: { user, token: result.authToken } };
   }
 
   async getCurrentUser(): Promise<AuthUser | null> {
@@ -81,15 +100,11 @@ export class XanoAdminAuthRepository implements AuthRepository {
     await this.userCache.clearUser();
   }
 
-  async register(_input: RegisterInput): Promise<AuthSession> {
+  async register(_input: RegisterInput): Promise<RegisterResult> {
     throw new Error("Admin accounts are provisioned by other admins (Engine Center → Manage Admin Access), not self-registered.");
   }
 
-  async requestOtp(_destination: string): Promise<void> {
-    throw new Error("No OTP flow exists for admin login -- there is no confirmed Xano endpoint for it.");
-  }
-
-  async verifyOtp(_destination: string, _code: string): Promise<AuthSession> {
+  async verifyOtp(_code: string): Promise<AuthSession> {
     throw new Error("No OTP flow exists for admin login -- there is no confirmed Xano endpoint for it.");
   }
 }

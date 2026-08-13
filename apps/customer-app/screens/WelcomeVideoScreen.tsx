@@ -45,9 +45,19 @@ export function WelcomeVideoScreen({ navigation }: Props) {
     if (finishing) return;
     setFinishing(true);
     const user = await auth.getCurrentUser();
-    if (user) await setWelcomeSeen(user.id);
     resetRegistrationDraft();
-    navigation.replace("Profile");
+    if (user) {
+      // Has a real session (e.g. Google first-time sign-in, which the
+      // Master Authentication Suite logs in immediately) -- go to Profile
+      // to finish setup, per spec.
+      await setWelcomeSeen(user.id);
+      navigation.replace("Profile");
+    } else {
+      // Password registration: the account is `pending_verification` and
+      // has no session yet -- honest, since Admin approval is required
+      // before login works. Nothing to show on Profile without a session.
+      navigation.replace("Login");
+    }
   }
 
   // Video path: wait for playToEnd, then run the text reveal, then finish.

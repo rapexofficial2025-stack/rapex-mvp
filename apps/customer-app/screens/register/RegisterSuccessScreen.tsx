@@ -9,16 +9,21 @@ type Props = NativeStackScreenProps<RootStackParamList, "RegisterSuccess">;
 
 /**
  * Shown once, immediately after the real Xano account-creation call
- * succeeds (RegisterAccountScreen), before the remaining KYC/contact/
- * location steps. Tap-anywhere-to-continue per spec, not an auto-timed
- * screen -- this is a deliberate confirmation beat, not a loading screen.
+ * succeeds (fired at the end of the wizard -- see RegisterLocationScreen/
+ * AddressScreen -- since the Master Authentication Suite's /auth/signup
+ * needs the full address, not just the Account step's fields). Tap-
+ * anywhere-to-continue per spec, not an auto-timed screen -- this is a
+ * deliberate confirmation beat, not a loading screen. The account is
+ * `pending_verification` at this point (needs Admin approval before
+ * login works) -- the REX welcome animation next is purely a local
+ * onboarding beat, not a claim that the account is fully active yet.
  */
 export function RegisterSuccessScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const draft = useRegistrationDraft();
 
   return (
-    <Pressable style={{ flex: 1 }} onPress={() => navigation.replace("RegisterIdentity")} accessibilityRole="button">
+    <Pressable style={{ flex: 1 }} onPress={() => navigation.replace("WelcomeVideo")} accessibilityRole="button">
       <GradientScreenBackground />
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: theme.spacing.md, padding: theme.spacing.xl }}>
         <Text style={{ fontSize: 40 }}>{"✓"}</Text>

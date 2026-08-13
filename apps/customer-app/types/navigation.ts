@@ -12,6 +12,7 @@ export type RootStackParamList = {
   Splash: undefined;
   Welcome: undefined;
   Login: undefined;
+  ForgotPassword: undefined;
   PrivacyTerms: undefined;
   RegisterLanguage: undefined;
   RegisterBirthday: undefined;
@@ -19,7 +20,7 @@ export type RootStackParamList = {
   RegisterSuccess: undefined;
   RegisterIdentity: undefined;
   RegisterContact: undefined;
-  Otp: { destination: "login" | "register-mobile" };
+  Otp: undefined;
   RegisterLocation: undefined;
   WelcomeVideo: undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
