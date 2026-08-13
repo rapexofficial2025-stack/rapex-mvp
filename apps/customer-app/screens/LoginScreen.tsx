@@ -20,6 +20,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
+import { signInWithGoogle } from "../services/socialAuth";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -77,6 +78,7 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
   const [activeFeature, setActiveFeature] = useState<FeatureKey | null>(null);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
+  const googleSignIn = useAsyncAction(signInWithGoogle);
 
   const activeFeatureData = FEATURE_ICONS.find((f) => f.key === activeFeature);
 
@@ -192,11 +194,24 @@ export function LoginScreen({ navigation }: Props) {
 
                   <View style={styles.socialRow}>
                     <Pressable
-                      style={[styles.socialButton, styles.socialButtonDisabled]}
-                      onPress={() => showToast("Google sign-in requires Firebase configuration -- not connected yet", "neutral")}
+                      style={styles.socialButton}
+                      disabled={googleSignIn.loading}
+                      onPress={async () => {
+                        try {
+                          const credential = await googleSignIn.execute();
+                          const who = credential.user.email ?? credential.user.displayName ?? "your Google account";
+                          // No confirmed Xano contract to exchange a Firebase identity for a
+                          // RAPEX session yet (see docs/deployment/Firebase.md) -- this is a
+                          // real, successful Google sign-in, it just doesn't log you into
+                          // RAPEX itself until that bridge exists.
+                          showToast(`Signed in with Google as ${who}. RAPEX account linking isn't wired up yet, so you're not logged into RAPEX itself.`, "success");
+                        } catch (err) {
+                          showToast(err instanceof Error ? err.message : "Google sign-in failed.", "error");
+                        }
+                      }}
                     >
                       <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
-                      <Text style={styles.socialText}>Google</Text>
+                      <Text style={styles.socialText}>{googleSignIn.loading ? "Signing in..." : "Google"}</Text>
                     </Pressable>
                     <Pressable
                       style={[styles.socialButton, styles.socialButtonDisabled]}
