@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>%WEB_TITLE%</title>
+    <!--
+      Same as Expo's built-in web template (react-native-web's recommended
+      reset: https://necolas.github.io/react-native-web/docs/setup/#root-element),
+      plus explicit `width: 100%` on every level -- the built-in template only
+      sets `height: 100%`, which leaves width to resolve from content instead
+      of the viewport and is what pins the app to a fixed intrinsic width on
+      desktop browsers instead of filling it edge to edge.
+    -->
+    <style id="expo-reset">
+      /* These styles make the body full-bleed */
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView>, and stop the pinned-narrow layout from ever producing a horizontal scrollbar */
+      body {
+        overflow-x: hidden;
+        overflow-y: hidden;
+      }
+      /* These styles make the root element full-bleed */
+      #root {
+        display: flex;
+        height: 100%;
+        width: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  </body>
+</html>
