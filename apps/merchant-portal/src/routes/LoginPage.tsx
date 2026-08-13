@@ -31,19 +31,34 @@ const LOGO = new URL("../../../../assets/brand/Branding Logo (Available)/Logo.pn
  * Google is an honest dead-end (no OAuth Client ID configured yet); no Xano
  * endpoint exists for Facebook at all, so it's not shown (the reference
  * itself only shows a Google button on this screen).
+ *
+ * Login is two-phase under the Master Authentication Suite (see
+ * XanoAuthRepository): the password step only sends a 6-digit code to the
+ * account's email, it doesn't return a session -- `stage` switches this
+ * same screen to an inline code-entry step instead of adding a new route,
+ * since this is a single-page login (no auth stack like the mobile apps).
  */
 export function LoginPage() {
   const navigate = useNavigate();
   const { auth } = useRepositories();
+  const [stage, setStage] = useState<"credentials" | "otp">("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [socialNotice, setSocialNotice] = useState<string | null>(null);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
+  const verify = useAsyncAction((otpCode: string) => auth.verifyOtp(otpCode));
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    await login.execute({ email, password });
+    const result = await login.execute({ email, password });
+    if (result.status === "otp_required") setStage("otp");
+  }
+
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault();
+    await verify.execute(code);
     navigate("/portal/store");
   }
 
@@ -53,79 +68,121 @@ export function LoginPage() {
 
       <div style={styles.leftPanel}>
         <div style={styles.formWrap}>
-          <h1 style={styles.formTitle}>Merchant Login</h1>
-          <p style={styles.formSubtitle}>Access your merchant dashboard</p>
+          {stage === "credentials" ? (
+            <>
+              <h1 style={styles.formTitle}>Merchant Login</h1>
+              <p style={styles.formSubtitle}>Access your merchant dashboard</p>
 
-          <form style={styles.form} onSubmit={handleLogin}>
-            <div style={styles.field}>
-              <label style={styles.fieldLabel}>Username or Email</label>
-              <div style={styles.inputWrap}>
-                <span style={styles.inputIcon}>{"\u{1F464}"}</span>
-                <input
-                  style={styles.input}
-                  type="email"
-                  autoCapitalize="none"
-                  placeholder="Enter your username or email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+              <form style={styles.form} onSubmit={handleLogin}>
+                <div style={styles.field}>
+                  <label style={styles.fieldLabel}>Username or Email</label>
+                  <div style={styles.inputWrap}>
+                    <span style={styles.inputIcon}>{"\u{1F464}"}</span>
+                    <input
+                      style={styles.input}
+                      type="email"
+                      autoCapitalize="none"
+                      placeholder="Enter your username or email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div style={styles.field}>
+                  <label style={styles.fieldLabel}>Password</label>
+                  <div style={styles.inputWrap}>
+                    <span style={styles.inputIcon}>{"\u{1F512}"}</span>
+                    <input
+                      style={styles.input}
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div style={styles.rememberRow}>
+                  <label style={styles.rememberLabel}>
+                    <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                    Remember me
+                  </label>
+                  <button
+                    type="button"
+                    style={styles.forgotLink}
+                    onClick={async () => {
+                      if (!email) {
+                        setSocialNotice("Enter your email above first, then click Forgot password.");
+                        return;
+                      }
+                      await auth.requestPasswordReset(email);
+                      setSocialNotice("If that account exists, a password reset link has been sent to its email.");
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                {login.error ? <span style={styles.errorText}>{login.error}</span> : null}
+
+                <button type="submit" disabled={login.loading} style={styles.primaryButton}>
+                  {login.loading ? "Signing in..." : `→ Sign In`}
+                </button>
+              </form>
+
+              <div style={styles.dividerRow}>
+                <div style={styles.dividerLine} />
+                <span style={styles.dividerText}>Or continue with</span>
+                <div style={styles.dividerLine} />
               </div>
-            </div>
 
-            <div style={styles.field}>
-              <label style={styles.fieldLabel}>Password</label>
-              <div style={styles.inputWrap}>
-                <span style={styles.inputIcon}>{"\u{1F512}"}</span>
-                <input
-                  style={styles.input}
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div style={styles.rememberRow}>
-              <label style={styles.rememberLabel}>
-                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-                Remember me
-              </label>
               <button
                 type="button"
-                style={styles.forgotLink}
-                onClick={() => setSocialNotice("Forgot password isn't set up yet -- contact support for now.")}
+                style={styles.socialButton}
+                onClick={() => setSocialNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
               >
-                Forgot password?
+                <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
+                Google
               </button>
-            </div>
+              {socialNotice ? <p style={styles.socialNotice}>{socialNotice}</p> : null}
 
-            {login.error ? <span style={styles.errorText}>{login.error}</span> : null}
+              <button type="button" style={styles.registerLink} onClick={() => navigate("/xano-test")}>
+                Don't have an account? <span style={styles.registerLinkAccent}>Sign up here</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <h1 style={styles.formTitle}>Verify It's You</h1>
+              <p style={styles.formSubtitle}>Enter the 6-digit code sent to {email}</p>
 
-            <button type="submit" disabled={login.loading} style={styles.primaryButton}>
-              {login.loading ? "Signing in..." : `→ Sign In`}
-            </button>
-          </form>
+              <form style={styles.form} onSubmit={handleVerify}>
+                <div style={styles.field}>
+                  <label style={styles.fieldLabel}>6-digit code</label>
+                  <div style={styles.inputWrap}>
+                    <input
+                      style={styles.input}
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                    />
+                  </div>
+                </div>
 
-          <div style={styles.dividerRow}>
-            <div style={styles.dividerLine} />
-            <span style={styles.dividerText}>Or continue with</span>
-            <div style={styles.dividerLine} />
-          </div>
+                {verify.error ? <span style={styles.errorText}>{verify.error}</span> : null}
 
-          <button
-            type="button"
-            style={styles.socialButton}
-            onClick={() => setSocialNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
-          >
-            <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
-            Google
-          </button>
-          {socialNotice ? <p style={styles.socialNotice}>{socialNotice}</p> : null}
+                <button type="submit" disabled={verify.loading} style={styles.primaryButton}>
+                  {verify.loading ? "Verifying..." : "Verify"}
+                </button>
+              </form>
 
-          <button type="button" style={styles.registerLink} onClick={() => navigate("/xano-test")}>
-            Don't have an account? <span style={styles.registerLinkAccent}>Sign up here</span>
-          </button>
+              <button type="button" style={styles.registerLink} onClick={() => setStage("credentials")}>
+                Back
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

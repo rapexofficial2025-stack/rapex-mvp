@@ -23,9 +23,17 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const register = useAsyncAction((input: { name: string; email: string; phone: string; password: string }) =>
-    auth.register(input),
-  );
+  const register = useAsyncAction((input: { name: string; email: string; phone: string; password: string }) => {
+    const [firstName, ...rest] = input.name.trim().split(" ");
+    return auth.register({
+      email: input.email,
+      password: input.password,
+      role: "admin",
+      firstName: firstName ?? input.name,
+      lastName: rest.join(" "),
+      mobile: input.phone,
+    });
+  });
 
   return (
     <div style={styles.page}>

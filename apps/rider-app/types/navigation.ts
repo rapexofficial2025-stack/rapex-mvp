@@ -13,7 +13,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   ForgotPassword: undefined;
-  Otp: { destination: string; channel: "email" | "phone" };
+  Otp: undefined;
   Verification: undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Delivery: undefined;

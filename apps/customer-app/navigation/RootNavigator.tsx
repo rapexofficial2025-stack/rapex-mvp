@@ -3,9 +3,12 @@ import type { RootStackParamList } from "../types/navigation";
 import { SplashScreen } from "../screens/SplashScreen";
 import { WelcomeScreen } from "../screens/WelcomeScreen";
 import { LoginScreen } from "../screens/LoginScreen";
+import { ForgotPasswordScreen } from "../screens/ForgotPasswordScreen";
+import { PrivacyTermsScreen } from "../screens/register/PrivacyTermsScreen";
 import { RegisterLanguageScreen } from "../screens/register/RegisterLanguageScreen";
 import { RegisterBirthdayScreen } from "../screens/register/RegisterBirthdayScreen";
 import { RegisterAccountScreen } from "../screens/register/RegisterAccountScreen";
+import { RegisterSuccessScreen } from "../screens/register/RegisterSuccessScreen";
 import { RegisterIdentityScreen } from "../screens/register/RegisterIdentityScreen";
 import { RegisterContactScreen } from "../screens/register/RegisterContactScreen";
 import { RegisterLocationScreen } from "../screens/register/RegisterLocationScreen";
@@ -33,11 +36,14 @@ export function RootNavigator() {
       {/* Login1 (Welcome, above) -> Login2 (below): explicit slide transition for the
           two-stage login flow, distinct from the default push animation used elsewhere. */}
       <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: true, title: "Forgot Password" }} />
 
-      {/* Registration wizard, steps 1-7 (see each screen's doc comment for the exact Xano-contract boundary at each step). */}
+      {/* Registration wizard: consent gate, then steps 1-7 (see each screen's doc comment for the exact Xano-contract boundary at each step). */}
+      <Stack.Screen name="PrivacyTerms" component={PrivacyTermsScreen} options={{ headerShown: true, title: "Privacy & Terms" }} />
       <Stack.Screen name="RegisterLanguage" component={RegisterLanguageScreen} options={{ headerShown: true, title: "Language" }} />
       <Stack.Screen name="RegisterBirthday" component={RegisterBirthdayScreen} options={{ headerShown: true, title: "Date of Birth" }} />
       <Stack.Screen name="Register" component={RegisterAccountScreen} options={{ headerShown: true, title: "Create Account" }} />
+      <Stack.Screen name="RegisterSuccess" component={RegisterSuccessScreen} />
       <Stack.Screen name="RegisterIdentity" component={RegisterIdentityScreen} options={{ headerShown: true, title: "Identity" }} />
       <Stack.Screen name="RegisterContact" component={RegisterContactScreen} options={{ headerShown: true, title: "Verify Contact" }} />
       <Stack.Screen name="Otp" component={OtpScreen} options={{ headerShown: true, title: "Verify" }} />
