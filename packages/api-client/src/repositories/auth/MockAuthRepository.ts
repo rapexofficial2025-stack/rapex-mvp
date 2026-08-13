@@ -42,6 +42,11 @@ export class MockAuthRepository implements AuthRepository {
     return delay({ user, token: "mock-token" });
   }
 
+  async loginWithGoogle(_idToken: string): Promise<AuthSession> {
+    currentUser = MOCK_USER;
+    return delay({ user: MOCK_USER, token: "mock-google-token" });
+  }
+
   async requestPasswordReset(_identifier: string): Promise<void> {
     return delay(undefined);
   }

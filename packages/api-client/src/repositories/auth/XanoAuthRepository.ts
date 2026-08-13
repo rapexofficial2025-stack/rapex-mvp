@@ -124,6 +124,43 @@ export class XanoAuthRepository implements AuthRepository {
     return { user, token: finalToken };
   }
 
+  /**
+   * POST /auth/google { id_token } -- single-phase, real session
+   * immediately (Google already verified the email). Response shape
+   * assumed to mirror verify-otp's ({ authToken }, optionally { user }) --
+   * not explicitly confirmed by Xano; flag for confirmation once real
+   * Google credentials exist and this can be tested end-to-end.
+   */
+  async loginWithGoogle(idToken: string): Promise<AuthSession> {
+    const result = await this.client.request<{
+      authToken?: string;
+      user?: { id?: number | string; rapex_id?: string; first_name?: string; last_name?: string; email?: string; mobile?: string };
+    }>({
+      path: "/auth/google",
+      method: "POST",
+      body: { id_token: idToken },
+    });
+
+    if (!result?.authToken) {
+      throw new Error("Xano did not return an auth token for Google sign-in.");
+    }
+    await this.tokenStorage.setToken(result.authToken);
+
+    const remoteUser = result.user;
+    const previouslyCached = await this.userCache.getUser();
+    const email = remoteUser?.email ?? previouslyCached?.email ?? "";
+    const user: AuthUser = {
+      id: String(remoteUser?.id ?? previouslyCached?.id ?? ""),
+      rapexId: remoteUser?.rapex_id ?? previouslyCached?.rapexId,
+      name: remoteUser ? `${remoteUser.first_name ?? ""} ${remoteUser.last_name ?? ""}`.trim() : previouslyCached?.name ?? "",
+      email,
+      phone: remoteUser?.mobile ?? previouslyCached?.phone ?? "",
+      role: this.role,
+    };
+    await this.userCache.setUser(user);
+    return { user, token: result.authToken };
+  }
+
   async requestPasswordReset(identifier: string): Promise<void> {
     await this.client.request({ path: "/reset/request-reset-link", method: "GET", query: { identifier } });
   }

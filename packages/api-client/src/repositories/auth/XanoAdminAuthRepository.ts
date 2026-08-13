@@ -107,4 +107,8 @@ export class XanoAdminAuthRepository implements AuthRepository {
   async verifyOtp(_code: string): Promise<AuthSession> {
     throw new Error("No OTP flow exists for admin login -- there is no confirmed Xano endpoint for it.");
   }
+
+  async loginWithGoogle(_idToken: string): Promise<AuthSession> {
+    throw new Error("Google sign-in is not offered for Admin -- Admin is an internal Command Center account, not self-registered via Google.");
+  }
 }

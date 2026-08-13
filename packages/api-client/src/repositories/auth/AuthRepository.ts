@@ -53,6 +53,13 @@ export interface AuthRepository {
   login(input: LoginInput): Promise<LoginResult>;
   /** Completes a login that returned `otp_required`. */
   verifyOtp(code: string): Promise<AuthSession>;
+  /**
+   * Exchanges a real Google ID token for a RAPEX session -- single-phase,
+   * no OTP (Google already verified the email). New accounts are created
+   * automatically; call `getNextStep()` after this to find out whether
+   * profile setup is still required.
+   */
+  loginWithGoogle(idToken: string): Promise<AuthSession>;
   requestPasswordReset(identifier: string): Promise<void>;
   getCurrentUser(): Promise<AuthUser | null>;
   /** The onboarding "navigation brain". Null when there's no authenticated session to ask about. */
