@@ -1,4 +1,4 @@
-import type { AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
+import type { AuthMeResponse, AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 const MOCK_DELAY_MS = 400;
@@ -56,6 +56,21 @@ export class MockAuthRepository implements AuthRepository {
   }
 
   async getNextStep(): Promise<NextStep | null> {
+    return delay(currentUser ? "HOME" : null);
+  }
+
+  async getAuthMe(): Promise<AuthMeResponse | null> {
+    if (!currentUser) return delay(null);
+    return delay({
+      nextStep: "HOME",
+      welcomeSeen: true,
+      registrationProgress: undefined,
+      profileChecklist: undefined,
+      branding: undefined,
+    });
+  }
+
+  async acknowledgeWelcome(): Promise<NextStep | null> {
     return delay(currentUser ? "HOME" : null);
   }
 

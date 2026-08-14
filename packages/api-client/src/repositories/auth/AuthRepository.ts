@@ -46,6 +46,25 @@ export type LoginResult = { status: "otp_required" } | { status: "authenticated"
 
 export type NextStep = "PRIVACY_TERMS" | "REGISTRATION" | "WELCOME_ANIMATION" | "PROFILE_SETUP" | "HOME";
 
+/**
+ * The richer `GET /auth/me` payload Xano confirmed exists (2026-08-14
+ * handover) beyond the bare `next_step` `getNextStep()` already reads.
+ * `registrationProgress`/`profileChecklist`/`branding` are typed `unknown`
+ * on purpose -- Xano confirmed these fields exist and what they're for, but
+ * not their exact internal shape (is progress a percent? an object per
+ * step? etc.). Inventing a shape here would be exactly the kind of guessed
+ * contract this codebase avoids; a consumer narrows these once the real
+ * shape is confirmed. `nextStep`/`welcomeSeen` ARE explicitly confirmed
+ * fields, so those are typed for real.
+ */
+export type AuthMeResponse = {
+  nextStep: NextStep | null;
+  welcomeSeen: boolean;
+  registrationProgress: unknown;
+  profileChecklist: unknown;
+  branding: unknown;
+};
+
 export interface AuthRepository {
   /** Real backend age + 48h device/IP-block check. Throws (via the request's own error) if underage or currently blocked. Not every role's flow calls this. */
   checkAge(birthYear: number): Promise<void>;
@@ -62,7 +81,18 @@ export interface AuthRepository {
   loginWithGoogle(idToken: string): Promise<AuthSession>;
   requestPasswordReset(identifier: string): Promise<void>;
   getCurrentUser(): Promise<AuthUser | null>;
-  /** The onboarding "navigation brain". Null when there's no authenticated session to ask about. */
+  /** The onboarding "navigation brain". Null when there's no authenticated session to ask about. Untouched by the addition of getAuthMe()/acknowledgeWelcome() below -- same 3 existing callers, same behavior. */
   getNextStep(): Promise<NextStep | null>;
+  /** Richer `/auth/me` read -- see AuthMeResponse. Requires a session; null if there's none (mirrors getNextStep()'s own no-session behavior), never guesses. */
+  getAuthMe(): Promise<AuthMeResponse | null>;
+  /**
+   * `POST /acknowledge-welcome` -- requires a session (Xano-confirmed).
+   * Only call this from an authenticated Welcome experience; a newly
+   * registered `pending_verification` account has no token yet and must
+   * NOT call this (see WelcomeVideoScreen's two-path split). Returns the
+   * real `next_step` Xano hands back so the caller navigates off Xano's
+   * own answer instead of assuming Profile Setup.
+   */
+  acknowledgeWelcome(): Promise<NextStep | null>;
   logout(): Promise<void>;
 }

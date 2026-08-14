@@ -1,7 +1,7 @@
 import type { HttpClient } from "../../core/httpClient";
 import type { UserCache } from "../../core/userCache";
 import type { TokenStorage } from "../../core/tokenStorage";
-import type { AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
+import type { AuthMeResponse, AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 /**
@@ -176,6 +176,49 @@ export class XanoAuthRepository implements AuthRepository {
     const token = await this.tokenStorage.getToken();
     if (!token) return null;
     const result = await this.client.request<{ next_step?: NextStep }>({ path: "/auth/me", method: "GET" });
+    return result?.next_step ?? null;
+  }
+
+  /**
+   * Real `GET /auth/me` read -- requires a session (2026-08-14 Xano
+   * confirmation). See AuthMeResponse's doc comment for why
+   * registrationProgress/profileChecklist/branding are passed through
+   * `unknown` rather than a guessed shape.
+   */
+  async getAuthMe(): Promise<AuthMeResponse | null> {
+    const token = await this.tokenStorage.getToken();
+    if (!token) return null;
+    const result = await this.client.request<{
+      next_step?: NextStep;
+      welcome_seen?: boolean;
+      registration_progress?: unknown;
+      profile_checklist?: unknown;
+      branding?: unknown;
+    }>({ path: "/auth/me", method: "GET" });
+    return {
+      nextStep: result?.next_step ?? null,
+      welcomeSeen: result?.welcome_seen ?? false,
+      registrationProgress: result?.registration_progress,
+      profileChecklist: result?.profile_checklist,
+      branding: result?.branding,
+    };
+  }
+
+  /**
+   * Real `POST /acknowledge-welcome` -- requires a session (2026-08-14
+   * Xano confirmation: `welcome_seen = true`, `next_step = "PROFILE_SETUP"`).
+   * Returns null instead of calling the endpoint when there's no session,
+   * same guard `getNextStep()` already uses -- a `pending_verification`
+   * account (no token yet) must never reach this call in the first place
+   * (see WelcomeVideoScreen), but this stays defensive either way.
+   */
+  async acknowledgeWelcome(): Promise<NextStep | null> {
+    const token = await this.tokenStorage.getToken();
+    if (!token) return null;
+    const result = await this.client.request<{ next_step?: NextStep; welcome_seen?: boolean }>({
+      path: "/acknowledge-welcome",
+      method: "POST",
+    });
     return result?.next_step ?? null;
   }
 

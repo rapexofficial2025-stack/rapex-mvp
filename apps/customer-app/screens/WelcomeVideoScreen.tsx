@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useVideoPlayer, VideoView, type VideoSource } from "expo-video";
@@ -35,6 +35,16 @@ export function WelcomeVideoScreen({ navigation }: Props) {
   const draft = useRegistrationDraft();
   const [secondsLeft, setSecondsLeft] = useState(WELCOME_DURATION_S);
   const [finishing, setFinishing] = useState(false);
+  // Guards against navigating/setting state after this screen has already
+  // unmounted (e.g. the user backgrounds/leaves mid-countdown) -- same
+  // problem SplashScreen's own `cancelled` flag solves, needed here too now
+  // that finish() below makes a real network call.
+  const cancelledRef = useRef(false);
+  useEffect(() => {
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, []);
 
   // Always called unconditionally (Rules of Hooks) -- WELCOME_VIDEO_SOURCE
   // is a stable module-level constant, so `hasVideo` never changes across
@@ -45,22 +55,54 @@ export function WelcomeVideoScreen({ navigation }: Props) {
     if (hasVideo) p.play();
   });
 
+  /**
+   * Two distinct REX experiences land here, and Xano's confirmed contract
+   * (2026-08-14) means they must be handled differently -- both
+   * `GET /auth/me` and `POST /acknowledge-welcome` require authentication,
+   * and a freshly registered account has no token (signup returns no
+   * session, stays `pending_verification` until Admin approval):
+   *
+   * 1. POST-REGISTRATION (no session, arrived via RegisterSuccessScreen):
+   *    local UX only. Never calls acknowledgeWelcome() -- there is no token
+   *    to call it with, and this must not create or imply a session that
+   *    doesn't exist. Lands on Login; if the account is still pending,
+   *    LoginScreen's own catch block already routes to PendingApproval.
+   * 2. AUTHENTICATED (real session, e.g. Google first-time sign-in or an
+   *    OTP-verified account whose next_step said this beat was still due):
+   *    calls the real acknowledgeWelcome() and navigates off ITS returned
+   *    next_step, not an assumed destination.
+   */
   async function finish() {
     if (finishing) return;
     setFinishing(true);
     const user = await auth.getCurrentUser();
+    if (cancelledRef.current) return;
     resetRegistrationDraft();
-    if (user) {
-      // Has a real session (e.g. Google first-time sign-in, which the
-      // Master Authentication Suite logs in immediately) -- go to Profile
-      // Setup to finish, per spec.
-      await setWelcomeSeen(user.id);
-      navigation.replace("Profile");
-    } else {
-      // Password registration: the account is `pending_verification` and
-      // has no session yet -- honest, since Admin approval is required
-      // before login works. Nothing to show on Profile without a session.
+
+    if (!user) {
       navigation.replace("Login");
+      return;
+    }
+
+    await setWelcomeSeen(user.id);
+    if (cancelledRef.current) return;
+    const nextStep = await auth.acknowledgeWelcome();
+    if (cancelledRef.current) return;
+    switch (nextStep) {
+      case "PRIVACY_TERMS":
+        navigation.replace("PrivacyTerms");
+        break;
+      case "REGISTRATION":
+        navigation.replace("PrivacyTerms");
+        break;
+      case "WELCOME_ANIMATION":
+        navigation.replace("WelcomeVideo");
+        break;
+      case "PROFILE_SETUP":
+        navigation.replace("Profile");
+        break;
+      default:
+        navigation.replace("MainTabs");
     }
   }
 
