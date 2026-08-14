@@ -33,11 +33,13 @@ export function OtpScreen({ navigation }: Props) {
             case "WELCOME_ANIMATION":
               navigation.replace("WelcomeVideo");
               break;
+            // UI-POLISH SCOPE CUT (temporary, this branch only): Profile/
+            // MainTabs don't exist in this branch -- see RootNavigator.tsx's
+            // doc comment. Restore the real targets when this merges back
+            // into claude/rapex-deployment-summary-f2nraq.
             case "PROFILE_SETUP":
-              navigation.replace("Profile");
-              break;
             default:
-              navigation.replace("MainTabs");
+              navigation.replace("Login");
           }
         }}
       />

@@ -1,13 +1,9 @@
-import type { NavigatorScreenParams } from "@react-navigation/native";
-
-export type MainTabParamList = {
-  Home: undefined;
-  Marketplace: { categoryId?: string } | undefined;
-  Wishlist: undefined;
-  Orders: undefined;
-  Earn: undefined;
-};
-
+/**
+ * UI-POLISH SCOPE CUT (temporary, this branch only): routes past REX
+ * Welcome are removed here -- see RootNavigator.tsx's doc comment. The full
+ * RootStackParamList (with MainTabs and everything under it) lives on
+ * claude/rapex-deployment-summary-f2nraq.
+ */
 export type RootStackParamList = {
   Splash: undefined;
   Welcome: undefined;
@@ -19,21 +15,6 @@ export type RootStackParamList = {
   PrivacyTerms: undefined;
   Register: undefined;
   RegisterSuccess: undefined;
-  RegisterIdentity: undefined;
-  RegisterContact: undefined;
   Otp: undefined;
-  RegisterLocation: undefined;
-  Community: undefined;
   WelcomeVideo: undefined;
-  MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
-  Store: { storeId: string };
-  Product: { productId: string };
-  Checkout: { productId: string; quantity: number } | undefined;
-  Address: { fromRegistration?: boolean } | undefined;
-  Wallet: undefined;
-  Profile: undefined;
-  Rex: undefined;
-  AuctionHome: undefined;
-  AuctionDetails: { auctionId: string };
-  AuctionProfile: undefined;
 };
