@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Animated, Image, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useVideoPlayer, VideoView, type VideoSource } from "expo-video";
 import { Sparkles } from "lucide-react-native";
@@ -38,15 +38,35 @@ const TAGLINE = "Gawang Lokal, Para sa Masa";
  */
 const WELCOME_DURATION_S = 9.5;
 const REVEAL_PHASE_S = WELCOME_DURATION_S / 3; // fallback-only reveal phasing, see !hasVideo branch below
-/** REX is fully visible and holding his pose from ~4s in the real video -- the name overlay fades in alongside him, not before. */
-const NAME_OVERLAY_START_S = 4;
+
+/**
+ * The welcome speech-bubble timing -- code-driven animation layered over
+ * the video (REX himself stays baked into the clip, only this bubble is
+ * real UI). REX is fully visible and holding his pose from ~4s in the
+ * real video, so the bubble waits until then to appear.
+ */
+const BUBBLE_START_S = 4;
+/** How long the bubble stays fully grown/visible before it shrinks back down -- "around 2 seconds" per spec. */
+const BUBBLE_VISIBLE_S = 2;
+const BUBBLE_GROW_MS = 450;
+const BUBBLE_SHRINK_MS = 350;
+const TYPEWRITER_MS_PER_CHAR = 32;
 
 export function WelcomeVideoScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const { auth } = useRepositories();
   const draft = useRegistrationDraft();
+  const firstName = draft.firstName || "there";
+  const welcomeText = `Welcome, ${firstName}!`;
   const [secondsLeft, setSecondsLeft] = useState(WELCOME_DURATION_S);
   const [finishing, setFinishing] = useState(false);
+  // Speech-bubble animation: scale-driven (not opacity), matching spec --
+  // "just pop up like Fading but we do is ReScaling". Starts at 0 (fully
+  // collapsed, invisible) so the Animated.View can stay mounted the whole
+  // time without a separate visibility flag.
+  const bubbleScale = useRef(new Animated.Value(0)).current;
+  const [typedChars, setTypedChars] = useState(0);
+  const typeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Real branding.tagline (2026-08-14 Xano confirmation), only reachable
   // for a real session -- getAuthMe() requires auth, so this stays null for
   // the pending-registration path and the existing hardcoded TAGLINE below
@@ -155,10 +175,64 @@ export function WelcomeVideoScreen({ navigation }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [secondsLeft]);
 
+  // The welcome speech bubble: grow in (scale 0 -> 1, slight overshoot for
+  // a "pop" feel) once REX is settled, type out the name, hold, then
+  // shrink back to 0 at the same anchor point it grew from -- never a
+  // fade, never a move, just rescaling in place per spec. Runs on its own
+  // real-time timers (not the once-per-second countdown state above) so
+  // the motion itself stays smooth.
+  useEffect(() => {
+    if (!hasVideo) return undefined;
+
+    const growTimer = setTimeout(() => {
+      if (cancelledRef.current) return;
+      Animated.spring(bubbleScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 80,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (!finished || cancelledRef.current) return;
+        let charsRevealed = 0;
+        typeIntervalRef.current = setInterval(() => {
+          charsRevealed += 1;
+          setTypedChars(charsRevealed);
+          if (charsRevealed >= welcomeText.length && typeIntervalRef.current) {
+            clearInterval(typeIntervalRef.current);
+            typeIntervalRef.current = null;
+          }
+        }, TYPEWRITER_MS_PER_CHAR);
+      });
+    }, BUBBLE_START_S * 1000);
+
+    const shrinkTimer = setTimeout(
+      () => {
+        if (cancelledRef.current) return;
+        if (typeIntervalRef.current) {
+          clearInterval(typeIntervalRef.current);
+          typeIntervalRef.current = null;
+        }
+        setTypedChars(welcomeText.length); // don't leave it mid-type if the hold window was short
+        Animated.timing(bubbleScale, {
+          toValue: 0,
+          duration: BUBBLE_SHRINK_MS,
+          useNativeDriver: true,
+        }).start();
+      },
+      (BUBBLE_START_S + BUBBLE_VISIBLE_S) * 1000,
+    );
+
+    return () => {
+      clearTimeout(growTimer);
+      clearTimeout(shrinkTimer);
+      if (typeIntervalRef.current) clearInterval(typeIntervalRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasVideo]);
+
   const elapsed = WELCOME_DURATION_S - secondsLeft;
   const progress = Math.min(1, elapsed / WELCOME_DURATION_S);
   const revealStep = Math.min(2, Math.floor(elapsed / REVEAL_PHASE_S)); // 0=RAPEX, 1=REX, 2=Hi {name}
-  const firstName = draft.firstName || "there";
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -175,11 +249,20 @@ export function WelcomeVideoScreen({ navigation }: Props) {
                 video's own aspect ratio (900x1920) is close enough to the
                 canvas below that this rarely letterboxes in practice. */}
             <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="contain" nativeControls={false} />
-            {elapsed >= NAME_OVERLAY_START_S ? (
-              <View style={styles.nameOverlay} pointerEvents="none">
-                <Text style={styles.nameOverlayText}>Welcome, {firstName}!</Text>
+            {/* Speech-bubble trail (small -> big, like a classic thought-bubble
+                leading up from REX's head) + the bubble itself, all inside one
+                Animated.View so the whole cluster scales as a single unit from
+                one fixed anchor point -- never moves, never fades, only rescales. */}
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.bubbleCluster, { transform: [{ scale: bubbleScale }] }]}
+            >
+              <View style={styles.bubble}>
+                <Text style={styles.bubbleText}>{welcomeText.slice(0, typedChars)}</Text>
               </View>
-            ) : null}
+              <View style={styles.bubbleTrailMedium} />
+              <View style={styles.bubbleTrailSmall} />
+            </Animated.View>
           </>
         ) : (
           <View style={styles.revealWrap}>
@@ -222,21 +305,52 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.04)",
   },
-  nameOverlay: {
+  // Positioned above REX's head in the real video (he sits roughly in the
+  // lower half of the frame) -- percentage-based so it stays correctly
+  // placed as the canvas is scaled responsively across device sizes.
+  bubbleCluster: {
     position: "absolute",
-    bottom: 20,
+    top: "30%",
     left: 16,
     right: 16,
     alignItems: "center",
   },
-  nameOverlayText: {
-    color: "#FFFFFF",
-    fontSize: 22,
+  bubble: {
+    backgroundColor: "rgba(255,255,255,0.88)", // slightly transparent -- background/REX stay faintly visible through it
+    borderRadius: 22,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    minWidth: 160,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  bubbleText: {
+    color: "#1A1030",
+    fontSize: 18,
     fontWeight: "800",
     textAlign: "center",
-    textShadowColor: "rgba(0,0,0,0.6)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
+  },
+  // The two trailing dots below the bubble -- a classic thought-bubble
+  // tail (small, then medium, growing toward the main bubble).
+  bubbleTrailMedium: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    marginTop: 6,
+  },
+  bubbleTrailSmall: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    marginTop: 5,
   },
   revealWrap: { alignItems: "center", justifyContent: "center", gap: 6 },
   revealText: { fontSize: 48, fontWeight: "800", letterSpacing: 2 },
