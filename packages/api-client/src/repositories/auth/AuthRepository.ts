@@ -47,22 +47,27 @@ export type LoginResult = { status: "otp_required" } | { status: "authenticated"
 export type NextStep = "PRIVACY_TERMS" | "REGISTRATION" | "WELCOME_ANIMATION" | "PROFILE_SETUP" | "HOME";
 
 /**
- * The richer `GET /auth/me` payload Xano confirmed exists (2026-08-14
- * handover) beyond the bare `next_step` `getNextStep()` already reads.
- * `registrationProgress`/`profileChecklist`/`branding` are typed `unknown`
- * on purpose -- Xano confirmed these fields exist and what they're for, but
- * not their exact internal shape (is progress a percent? an object per
- * step? etc.). Inventing a shape here would be exactly the kind of guessed
- * contract this codebase avoids; a consumer narrows these once the real
- * shape is confirmed. `nextStep`/`welcomeSeen` ARE explicitly confirmed
- * fields, so those are typed for real.
+ * The richer `GET /auth/me` payload Xano confirmed exists, beyond the bare
+ * `next_step` `getNextStep()` already reads. Field-level confirmation as of
+ * 2026-08-14:
+ *   - `next_step` (text), `welcome_seen` (boolean), `registration_progress`
+ *     (integer 0-100) -- typed for real below.
+ *   - `profile_checklist` -- confirmed to be an array, but its *item* shape
+ *     (what fields each entry has, and what an entry's presence/absence
+ *     means) was not specified. Typed as `unknown[]` rather than guessed --
+ *     a consumer narrows individual items once that's confirmed.
+ *   - `branding` -- confirmed to be an object; `tagline` and
+ *     `welcomeVideoUrl` are the two sub-fields named explicitly in this
+ *     project's Xano handover. Both optional since even those two aren't
+ *     guaranteed present on every response, and no other sub-field name has
+ *     been confirmed.
  */
 export type AuthMeResponse = {
   nextStep: NextStep | null;
   welcomeSeen: boolean;
-  registrationProgress: unknown;
-  profileChecklist: unknown;
-  branding: unknown;
+  registrationProgress: number | null;
+  profileChecklist: unknown[];
+  branding: { tagline?: string; welcomeVideoUrl?: string } | null;
 };
 
 export interface AuthRepository {

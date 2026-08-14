@@ -181,9 +181,8 @@ export class XanoAuthRepository implements AuthRepository {
 
   /**
    * Real `GET /auth/me` read -- requires a session (2026-08-14 Xano
-   * confirmation). See AuthMeResponse's doc comment for why
-   * registrationProgress/profileChecklist/branding are passed through
-   * `unknown` rather than a guessed shape.
+   * confirmation). See AuthMeResponse's doc comment for exactly which
+   * fields/sub-fields are confirmed vs. still-unconfirmed shape.
    */
   async getAuthMe(): Promise<AuthMeResponse | null> {
     const token = await this.tokenStorage.getToken();
@@ -191,16 +190,18 @@ export class XanoAuthRepository implements AuthRepository {
     const result = await this.client.request<{
       next_step?: NextStep;
       welcome_seen?: boolean;
-      registration_progress?: unknown;
-      profile_checklist?: unknown;
-      branding?: unknown;
+      registration_progress?: number;
+      profile_checklist?: unknown[];
+      branding?: { tagline?: string; welcome_video_url?: string };
     }>({ path: "/auth/me", method: "GET" });
     return {
       nextStep: result?.next_step ?? null,
       welcomeSeen: result?.welcome_seen ?? false,
-      registrationProgress: result?.registration_progress,
-      profileChecklist: result?.profile_checklist,
-      branding: result?.branding,
+      registrationProgress: result?.registration_progress ?? null,
+      profileChecklist: result?.profile_checklist ?? [],
+      branding: result?.branding
+        ? { tagline: result.branding.tagline, welcomeVideoUrl: result.branding.welcome_video_url }
+        : null,
     };
   }
 

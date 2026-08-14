@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { Avatar, Badge, Button, ErrorState, GlassCard, Loading } from "@rapex/ui-native";
-import { useRepositories, type AuthUser } from "@rapex/api-client";
+import { useRepositories, type AuthMeResponse, type AuthUser } from "@rapex/api-client";
 import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
 import { useAppTheme } from "../hooks/useAppTheme";
@@ -83,9 +83,15 @@ export function ProfileScreen({ navigation }: Props) {
   const address = useDeliveryAddress();
   const localPhotoUri = useProfilePhotoUri();
   const [user, setUser] = useState<AuthUser | null | undefined>(undefined);
+  // Real GET /auth/me read (2026-08-14 Xano confirmation) -- backs the
+  // "Complete Your Profile" progress number below. `undefined` while
+  // loading, `null` once resolved with no session or a failed fetch (never
+  // hangs forever on a real network error).
+  const [authMe, setAuthMe] = useState<AuthMeResponse | null | undefined>(undefined);
 
   useEffect(() => {
     auth.getCurrentUser().then(setUser);
+    auth.getAuthMe().then(setAuthMe).catch(() => setAuthMe(null));
   }, [auth]);
 
   async function pickPhoto() {
@@ -103,18 +109,28 @@ export function ProfileScreen({ navigation }: Props) {
     updateRegistrationDraft({ gpsLatitude: position.coords.latitude, gpsLongitude: position.coords.longitude, useGpsAsHomeAddress: true });
   }
 
-  if (user === undefined) return <Loading label="Loading profile…" />;
+  if (user === undefined || authMe === undefined) return <Loading label="Loading profile…" />;
   if (user === null) return <ErrorState title="Not signed in" description="Log in to view your profile." />;
 
   const kycCaptured = draft.idFrontUri && draft.idBackUri && draft.selfieUri;
 
-  // PROFILE_SETUP checklist -- the 3 gates the ordering flow actually
-  // needs, computed from real local/registration state, not fabricated.
+  // Per-row done/statusText below are still computed from real local/
+  // registration state -- Xano's confirmed `profile_checklist` is an array,
+  // but its *item* shape (field names, and what an entry's presence means)
+  // wasn't specified beyond that, so mapping individual rows to it would
+  // mean guessing a contract rather than reading a confirmed one. The
+  // fetched array is available on `authMe.profileChecklist` for whenever
+  // that shape is confirmed.
   const contactVerifiedDone = draft.mobileVerified && draft.emailVerified;
   const addressSetDone = address !== null;
   const kycDone = !!kycCaptured;
-  const setupItems = [contactVerifiedDone, addressSetDone, kycDone];
-  const setupPercent = Math.round((setupItems.filter(Boolean).length / setupItems.length) * 100);
+
+  // The completion PERCENT, unlike the per-row detail above, IS a
+  // confirmed, unambiguous Xano field (`registration_progress`, integer
+  // 0-100) -- real backend value, not locally computed. `null` while it
+  // hasn't loaded/isn't available; the card shows an honest loading state
+  // rather than a guessed number in that case.
+  const setupPercent = authMe?.registrationProgress ?? null;
   const setupComplete = setupPercent === 100;
 
   const registrationSteps: { label: string; done: boolean }[] = [
@@ -151,7 +167,7 @@ export function ProfileScreen({ navigation }: Props) {
             Complete Your Profile to Begin Ordering
           </Text>
           <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: theme.colors.brandPrimary, marginBottom: theme.spacing.sm }}>
-            {setupPercent}% Completed
+            {setupPercent !== null ? `${setupPercent}% Completed` : "Loading progress…"}
           </Text>
           <View
             style={{
@@ -162,7 +178,7 @@ export function ProfileScreen({ navigation }: Props) {
               marginBottom: theme.spacing.sm,
             }}
           >
-            <View style={{ height: "100%", width: `${setupPercent}%`, borderRadius: 4, backgroundColor: theme.colors.brandPrimary }} />
+            <View style={{ height: "100%", width: `${setupPercent ?? 0}%`, borderRadius: 4, backgroundColor: theme.colors.brandPrimary }} />
           </View>
 
           <ChecklistRow

@@ -64,9 +64,9 @@ export class MockAuthRepository implements AuthRepository {
     return delay({
       nextStep: "HOME",
       welcomeSeen: true,
-      registrationProgress: undefined,
-      profileChecklist: undefined,
-      branding: undefined,
+      registrationProgress: 100,
+      profileChecklist: [],
+      branding: null,
     });
   }
 

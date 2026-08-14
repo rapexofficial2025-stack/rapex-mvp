@@ -35,6 +35,11 @@ export function WelcomeVideoScreen({ navigation }: Props) {
   const draft = useRegistrationDraft();
   const [secondsLeft, setSecondsLeft] = useState(WELCOME_DURATION_S);
   const [finishing, setFinishing] = useState(false);
+  // Real branding.tagline (2026-08-14 Xano confirmation), only reachable
+  // for a real session -- getAuthMe() requires auth, so this stays null for
+  // the pending-registration path and the existing hardcoded TAGLINE below
+  // is the fallback in every case where it isn't available.
+  const [taglineOverride, setTaglineOverride] = useState<string | null>(null);
   // Guards against navigating/setting state after this screen has already
   // unmounted (e.g. the user backgrounds/leaves mid-countdown) -- same
   // problem SplashScreen's own `cancelled` flag solves, needed here too now
@@ -45,6 +50,25 @@ export function WelcomeVideoScreen({ navigation }: Props) {
       cancelledRef.current = true;
     };
   }, []);
+
+  // Fires once on mount, independent of the countdown -- only proceeds to
+  // fetch branding if a real session already exists (getCurrentUser() is a
+  // local cache read, not a network call, so this is cheap even on the
+  // pending-registration path where it simply resolves null and stops).
+  useEffect(() => {
+    auth
+      .getCurrentUser()
+      .then((user) => (user ? auth.getAuthMe() : null))
+      .then((authMe) => {
+        if (cancelledRef.current) return;
+        if (authMe?.branding?.tagline) setTaglineOverride(authMe.branding.tagline);
+      })
+      .catch(() => {
+        // Fetch failed -- stay on the existing hardcoded TAGLINE, same as
+        // never having branding data at all.
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth]);
 
   // Always called unconditionally (Rules of Hooks) -- WELCOME_VIDEO_SOURCE
   // is a stable module-level constant, so `hasVideo` never changes across
@@ -127,7 +151,7 @@ export function WelcomeVideoScreen({ navigation }: Props) {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Image source={LOGO} style={styles.logo} resizeMode="contain" />
-      <Text style={[styles.tagline, { color: theme.colors.textSecondary }]}>{TAGLINE}</Text>
+      <Text style={[styles.tagline, { color: theme.colors.textSecondary }]}>{taglineOverride ?? TAGLINE}</Text>
 
       <View style={styles.canvas}>
         <View style={styles.countdownBadge}>
