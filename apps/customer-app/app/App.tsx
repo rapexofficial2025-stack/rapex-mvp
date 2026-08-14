@@ -1,6 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import * as WebBrowser from "expo-web-browser";
+import { ErrorBoundary } from "@rapex/ui-native";
 import { AppProviders } from "../providers/AppProviders";
 import { RootNavigator } from "../navigation/RootNavigator";
 
@@ -11,11 +12,13 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function App() {
   return (
-    <AppProviders>
-      <NavigationContainer>
-        <RootNavigator />
-        <StatusBar style="auto" />
-      </NavigationContainer>
-    </AppProviders>
+    <ErrorBoundary>
+      <AppProviders>
+        <NavigationContainer>
+          <RootNavigator />
+          <StatusBar style="auto" />
+        </NavigationContainer>
+      </AppProviders>
+    </ErrorBoundary>
   );
 }

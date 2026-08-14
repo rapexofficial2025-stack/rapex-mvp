@@ -16,3 +16,4 @@ export * from "./SearchBar";
 export * from "./NotificationBell";
 export * from "./RapexMapView";
 export * from "./Hotspot";
+export * from "./ErrorBoundary";
