@@ -12,22 +12,34 @@ import { resetRegistrationDraft, useRegistrationDraft } from "../services/regist
 type Props = NativeStackScreenProps<RootStackParamList, "WelcomeVideo">;
 
 /**
- * Set this to `require("../../assets/video/welcome.mp4")` once the real
- * RAPEX Welcome video is added at that path. No such file exists in this
- * repo today -- shipping a fabricated/corrupt placeholder video would be
- * worse than not having one, so the canvas below falls back to a text
- * reveal sequence (RAPEX / REX / "Hi, {name}!") when there's nothing to
- * play. Everything else (the 10s countdown, play-once guarantee,
- * welcome_seen persistence) is fully wired and needs no change once a real
- * source is set -- the video simply fills the same canvas area.
+ * Real RAPEX Welcome video (2026-08-14) -- a single composited clip: brand
+ * mark forming out of a dark flare (~0-3s), then the full RAPEX/REX
+ * composition holding steady through the rest of the clip (~4-9.5s). REX
+ * himself is baked directly into the video, not a separate transparent
+ * layer -- confirmed deliberately simpler than a multi-layer approach,
+ * since aligning a separate REX asset over a separate background proved
+ * impractical both in video editing and in code. No personalized text is
+ * baked into the clip (confirmed by inspecting frames across the full
+ * timeline), so the dynamic "Welcome, {name}!" text below is real UI
+ * overlaid on top, not part of the video itself.
  */
-const WELCOME_VIDEO_SOURCE: VideoSource | null = null;
+const WELCOME_VIDEO_SOURCE: VideoSource | null = require("../assets/video/welcome.mp4");
 
 const LOGO = require("../../../assets/brand/Branding Logo (Available)/Logo.png");
 const TAGLINE = "Gawang Lokal, Para sa Masa";
 
-const WELCOME_DURATION_S = 10;
-const REVEAL_PHASE_S = WELCOME_DURATION_S / 3; // RAPEX / REX / Hi {name}, evenly split across the 10s window
+/**
+ * Matches the real video's actual duration (900x1920 @ 30fps, 284 frames =
+ * 9.467s -- measured directly from the file, not assumed) with a small
+ * margin so the timer never cuts the clip off early. Still the one timer
+ * authoritative for navigation, independent of video playback, per the
+ * existing design below -- a video that runs long or short shouldn't
+ * change when this screen exits.
+ */
+const WELCOME_DURATION_S = 9.5;
+const REVEAL_PHASE_S = WELCOME_DURATION_S / 3; // fallback-only reveal phasing, see !hasVideo branch below
+/** REX is fully visible and holding his pose from ~4s in the real video -- the name overlay fades in alongside him, not before. */
+const NAME_OVERLAY_START_S = 4;
 
 export function WelcomeVideoScreen({ navigation }: Props) {
   const theme = useAppTheme();
@@ -155,10 +167,20 @@ export function WelcomeVideoScreen({ navigation }: Props) {
 
       <View style={styles.canvas}>
         <View style={styles.countdownBadge}>
-          <Text style={styles.countdownBadgeText}>{secondsLeft}s</Text>
+          <Text style={styles.countdownBadgeText}>{Math.max(0, Math.ceil(secondsLeft))}s</Text>
         </View>
         {hasVideo ? (
-          <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />
+          <>
+            {/* "contain", not "cover" -- REX must never be cropped; the real
+                video's own aspect ratio (900x1920) is close enough to the
+                canvas below that this rarely letterboxes in practice. */}
+            <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="contain" nativeControls={false} />
+            {elapsed >= NAME_OVERLAY_START_S ? (
+              <View style={styles.nameOverlay} pointerEvents="none">
+                <Text style={styles.nameOverlayText}>Welcome, {firstName}!</Text>
+              </View>
+            ) : null}
+          </>
         ) : (
           <View style={styles.revealWrap}>
             <View style={[styles.mascotBadge, { backgroundColor: theme.colors.brandPrimary }]}>
@@ -181,7 +203,7 @@ export function WelcomeVideoScreen({ navigation }: Props) {
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress * 100}%`, backgroundColor: theme.colors.brandPrimary }]} />
       </View>
-      <Text style={[styles.countdownText, { color: theme.colors.textSecondary }]}>{secondsLeft}s</Text>
+      <Text style={[styles.countdownText, { color: theme.colors.textSecondary }]}>{Math.max(0, Math.ceil(secondsLeft))}s</Text>
     </View>
   );
 }
@@ -192,13 +214,29 @@ const styles = StyleSheet.create({
   tagline: { fontSize: 14, fontWeight: "600", letterSpacing: 0.5 },
   canvas: {
     width: "100%",
-    aspectRatio: 9 / 12,
+    aspectRatio: 900 / 1920, // matches the real welcome.mp4's actual dimensions
     maxHeight: 420,
     borderRadius: 20,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.04)",
+  },
+  nameOverlay: {
+    position: "absolute",
+    bottom: 20,
+    left: 16,
+    right: 16,
+    alignItems: "center",
+  },
+  nameOverlayText: {
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "800",
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
   revealWrap: { alignItems: "center", justifyContent: "center", gap: 6 },
   revealText: { fontSize: 48, fontWeight: "800", letterSpacing: 2 },
