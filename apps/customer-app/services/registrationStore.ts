@@ -61,6 +61,20 @@ export type RegistrationDraft = {
   municipality: PilotArea | null;
   barangay: string | null;
   postalCode: string | null;
+
+  // Real Xano location IDs (super_app/locations/*, 2026-08-14 handover) --
+  // separate from the string fields above, which predate this contract and
+  // stay in place for the free-text/pilot-area address path. These back
+  // the real cascading picker and are what actually gets submitted as
+  // region_id/province_id/municipality_id/barangay_id on signup.
+  regionId: string | null;
+  regionName: string | null;
+  provinceId: string | null;
+  provinceName: string | null;
+  municipalityId: string | null;
+  municipalityName: string | null;
+  barangayId: string | null;
+  barangayName: string | null;
   subdivision: string;
   street: string;
   block: string;
@@ -98,6 +112,14 @@ function emptyDraft(): RegistrationDraft {
     municipality: null,
     barangay: null,
     postalCode: null,
+    regionId: null,
+    regionName: null,
+    provinceId: null,
+    provinceName: null,
+    municipalityId: null,
+    municipalityName: null,
+    barangayId: null,
+    barangayName: null,
     subdivision: "",
     street: "",
     block: "",

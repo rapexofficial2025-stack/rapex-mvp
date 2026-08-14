@@ -8,9 +8,8 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ChevronRight, Eye, EyeOff, MapPin } from "lucide-react-native";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { RapexGlassCard, ErrorState } from "@rapex/ui-native";
-import { PILOT_AREAS, type PilotArea } from "@rapex/constants";
 import type { RootStackParamList } from "../../types/navigation";
-import { PickerField } from "../../components/PickerField";
+import { CascadingAddressPicker, EMPTY_CASCADING_ADDRESS, type CascadingAddressValue } from "../../components/CascadingAddressPicker";
 import { LANGUAGE_OPTIONS, updateRegistrationDraft, useRegistrationDraft, type RapexLanguage } from "../../services/registrationStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Register">;
@@ -19,16 +18,15 @@ type Props = NativeStackScreenProps<RootStackParamList, "Register">;
  * Single combined registration form (replaces the old separate Language +
  * Birthday + Account steps) -- matches the founder-provided reference
  * design's "Account Information Fill-Up" screen exactly: language cards,
- * name/email/mobile/password, then Cavite delivery address fields, one
+ * name/email/mobile/password, then a real address cascading picker, one
  * submit. Age is already gated at AgeGateScreen (real backend check) before
  * this screen is ever reached, so it isn't asked again here.
  *
- * GAP (flagged, not guessed around): there's no real region/province/
- * municipality/barangay ID lookup in this codebase (only the fixed
- * PILOT_AREAS constant + free-text barangay/street), so `address_line_1` is
- * sent but the *_id fields are omitted -- see AuthRepository's RegisterInput
- * doc comment. Only birth *year* is collected (at AgeGateScreen), so
- * `date_of_birth` is a January 1 placeholder for that year, not a full DOB.
+ * Address now uses the real Xano `super_app/locations/*` cascading picker
+ * (2026-08-14 handover) -- region_id/province_id/municipality_id/
+ * barangay_id are real, submitted to signup exactly as confirmed. Only
+ * birth *year* is collected (at AgeGateScreen), so `date_of_birth` is a
+ * January 1 placeholder for that year, not a full DOB.
  */
 export function RegisterAccountScreen({ navigation }: Props) {
   const { auth } = useRepositories();
@@ -38,8 +36,7 @@ export function RegisterAccountScreen({ navigation }: Props) {
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [municipality, setMunicipality] = useState<PilotArea>(PILOT_AREAS[0]);
-  const [barangay, setBarangay] = useState("");
+  const [address, setAddress] = useState<CascadingAddressValue>(EMPTY_CASCADING_ADDRESS);
   const [street, setStreet] = useState("");
   const [landmark, setLandmark] = useState("");
 
@@ -49,7 +46,21 @@ export function RegisterAccountScreen({ navigation }: Props) {
     // Kept in the shared draft so downstream screens (RegisterSuccess's
     // greeting, WelcomeVideo's "Hi, {name}!", Profile) can read it -- this
     // form uses local state for editing, the draft store for sharing.
-    updateRegistrationDraft({ firstName: firstName || fullName, surname, email, mobile, password });
+    updateRegistrationDraft({
+      firstName: firstName || fullName,
+      surname,
+      email,
+      mobile,
+      password,
+      regionId: address.regionId,
+      regionName: address.regionName,
+      provinceId: address.provinceId,
+      provinceName: address.provinceName,
+      municipalityId: address.municipalityId,
+      municipalityName: address.municipalityName,
+      barangayId: address.barangayId,
+      barangayName: address.barangayName,
+    });
     return auth.register({
       email,
       password,
@@ -58,12 +69,21 @@ export function RegisterAccountScreen({ navigation }: Props) {
       lastName: surname,
       mobile,
       dateOfBirth: draft.dateOfBirth ?? undefined,
-      addressLine1: `${street}, ${barangay}, ${municipality}${landmark ? ` (near ${landmark})` : ""}`,
+      regionId: address.regionId ?? undefined,
+      provinceId: address.provinceId ?? undefined,
+      municipalityId: address.municipalityId ?? undefined,
+      barangayId: address.barangayId ?? undefined,
+      addressLine1: `${street}, ${address.barangayName ?? ""}, ${address.municipalityName ?? ""}${landmark ? ` (near ${landmark})` : ""}`,
     });
   });
 
   const canSubmit =
-    fullName.trim().length > 0 && email.trim().length > 0 && mobile.trim().length > 0 && password.length > 0 && draft.language !== null;
+    fullName.trim().length > 0 &&
+    email.trim().length > 0 &&
+    mobile.trim().length > 0 &&
+    password.length > 0 &&
+    draft.language !== null &&
+    address.barangayId !== null;
 
   return (
     <View style={styles.flex}>
@@ -123,10 +143,9 @@ export function RegisterAccountScreen({ navigation }: Props) {
 
               <View style={styles.section}>
                 <Text style={styles.sectionLabel}>
-                  <MapPin color="#FB923C" size={13} /> Cavite Delivery Location
+                  <MapPin color="#FB923C" size={13} /> Delivery Address
                 </Text>
-                <PickerField label="Municipality / City" value={municipality} options={[...PILOT_AREAS]} onSelect={(v) => setMunicipality(v as PilotArea)} />
-                <Field label="Barangay" value={barangay} onChangeText={setBarangay} placeholder="e.g. Alapan II" />
+                <CascadingAddressPicker value={address} onChange={setAddress} />
                 <Field label="Street & House Number" value={street} onChangeText={setStreet} placeholder="e.g. 1618 Advincula Ave" />
                 <Field label="Nearest Rider Landmark" value={landmark} onChangeText={setLandmark} placeholder="e.g. Beside Chapel / Brgy Hall" />
               </View>

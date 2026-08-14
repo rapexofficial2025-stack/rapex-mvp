@@ -43,6 +43,10 @@ export type { RiderRepository, UpdateRiderProfileInput } from "./repositories/ri
 export type { RiderEconomyRepository } from "./repositories/rider/RiderEconomyRepository";
 export type { DeliveryRepository } from "./repositories/delivery/DeliveryRepository";
 export type { RiderWalletRepository } from "./repositories/wallet/RiderWalletRepository";
+export type { ReferenceDataRepository, LocationOption, Community } from "./repositories/reference/ReferenceDataRepository";
+export { XanoReferenceDataRepository } from "./repositories/reference/XanoReferenceDataRepository";
+export type { KycRepository, SubmitKycInput, SubmitKycResult } from "./repositories/kyc/KycRepository";
+export { XanoKycRepository } from "./repositories/kyc/XanoKycRepository";
 
 // Hooks
 export * from "./hooks/useAsync";
