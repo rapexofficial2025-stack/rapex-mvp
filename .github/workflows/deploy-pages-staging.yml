@@ -1,10 +1,19 @@
 name: Deploy staging (GitHub Pages)
 
-# Manual only, on purpose: this will fail until GitHub Pages is enabled for
-# this repo (Settings -> Pages -> Source: GitHub Actions), which only a repo
-# admin can do. Auto-running this on every push would just spam failures
-# until that one-time manual step happens. See docs/deployment/README.md.
+# Auto-deploys on every push to the active dev branch -- Irvin monitors
+# staging.rapexmarketplace.store from his phone during work hours (field
+# job, no laptop access) and wants it to reflect whatever was just pushed,
+# without a separate manual trigger step each time. workflow_dispatch is
+# kept too, for an on-demand re-run (e.g. after a Pages/DNS config change
+# with no code change). This will fail until GitHub Pages is enabled for
+# this repo (Settings -> Pages -> Source: GitHub Actions), which only a
+# repo admin can do -- see docs/deployment/README.md. That one-time step
+# hasn't happened yet as of this change, so pushes will keep failing until
+# it does; not a regression, just still-pending per the manual-actions
+# table there.
 on:
+  push:
+    branches: [claude/rapex-deployment-summary-f2nraq]
   workflow_dispatch:
 
 permissions:
