@@ -34,29 +34,35 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Base includes the /rapex-mvp/ repo-name prefix GitHub Pages project
-      # sites always add (https://<org>.github.io/rapex-mvp/...) -- omitting
-      # it is a real bug that was caught and fixed this session (see
+      # Base paths are root-relative (/merchant/, not /rapex-mvp/merchant/)
+      # because this site is served from a custom domain
+      # (staging.rapexmarketplace.store, see the CNAME step below), which
+      # serves from its own root -- unlike a default project-page URL
+      # (https://<org>.github.io/rapex-mvp/...), which needs the repo-name
+      # prefix (a real bug caught and fixed earlier this session, see
       # apps/admin-portal/src/App.tsx's basename comment for the related
-      # router fix). Each web portal is verified to typecheck/build clean
-      # under both this shape and site-root-only before being wired in here.
+      # router fix). If the custom domain is ever removed and this needs to
+      # fall back to the default github.io project-page URL, these 5
+      # VITE_BASE_PATH/EXPO_WEB_BASE_PATH values need the /rapex-mvp/ prefix
+      # added back. Each web portal is verified to typecheck/build clean
+      # under this shape before being wired in here.
       - name: Typecheck all apps
         run: pnpm -r --if-present typecheck
 
       - name: Build admin-portal (/admin/)
         run: pnpm --filter admin-portal build
         env:
-          VITE_BASE_PATH: /rapex-mvp/admin/
+          VITE_BASE_PATH: /admin/
 
       - name: Build merchant-portal (/merchant/)
         run: pnpm --filter merchant-portal build
         env:
-          VITE_BASE_PATH: /rapex-mvp/merchant/
+          VITE_BASE_PATH: /merchant/
 
       - name: Build provider-portal (/provider/)
         run: pnpm --filter provider-portal build
         env:
-          VITE_BASE_PATH: /rapex-mvp/provider/
+          VITE_BASE_PATH: /provider/
 
       # customer-app and rider-app are Expo/React Native apps -- exported
       # for web via `expo export -p web` (uses react-native-web, already a
@@ -70,12 +76,12 @@ jobs:
       - name: Build customer-app (/customer/)
         run: cd apps/customer-app && npx expo export -p web
         env:
-          EXPO_WEB_BASE_PATH: /rapex-mvp/customer
+          EXPO_WEB_BASE_PATH: /customer
 
       - name: Build rider-app (/rider/)
         run: cd apps/rider-app && npx expo export -p web
         env:
-          EXPO_WEB_BASE_PATH: /rapex-mvp/rider
+          EXPO_WEB_BASE_PATH: /rider
 
       - name: Assemble combined Pages site
         run: |
@@ -85,6 +91,13 @@ jobs:
           cp -r apps/provider-portal/dist site/provider
           cp -r apps/customer-app/dist site/customer
           cp -r apps/rider-app/dist site/rider
+          # Tells GitHub Pages to serve this deployment on the custom domain
+          # instead of only the default <org>.github.io/rapex-mvp/ URL. DNS
+          # for staging.rapexmarketplace.store must point at GitHub Pages
+          # (a CNAME record to <org>.github.io, set at the registrar --
+          # see docs/deployment/README.md) before this actually resolves;
+          # this file alone only configures the GitHub side.
+          echo "staging.rapexmarketplace.store" > site/CNAME
           cat > site/index.html <<'HTML'
           <!doctype html>
           <html><head><meta charset="utf-8"><title>RAPEX Staging</title></head>
