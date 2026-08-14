@@ -17,6 +17,7 @@
     "@rapex/types": "workspace:*",
     "@rapex/ui-web": "workspace:*",
     "@rapex/utils": "workspace:*",
+    "@sentry/react": "^10.70.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"

@@ -4,10 +4,11 @@ import { ErrorBoundary } from '@rapex/ui-web'
 import './index.css'
 import App from './App.tsx'
 import { AppProviders } from './AppProviders.tsx'
+import { reportCrash } from './services/sentry'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
+    <ErrorBoundary onError={reportCrash}>
       <AppProviders>
         <App />
       </AppProviders>

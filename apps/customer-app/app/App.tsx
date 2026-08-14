@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { ErrorBoundary } from "@rapex/ui-native";
 import { AppProviders } from "../providers/AppProviders";
 import { RootNavigator } from "../navigation/RootNavigator";
+import { reportCrash } from "../services/sentry";
 
 // Required once at startup for expo-auth-session's Google sign-in redirect
 // to resolve correctly (closes the auth popup/tab and returns control to
@@ -12,7 +13,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function App() {
   return (
-    <ErrorBoundary>
+    <ErrorBoundary onError={reportCrash}>
       <AppProviders>
         <NavigationContainer>
           <RootNavigator />
