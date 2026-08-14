@@ -13,6 +13,7 @@ import { RegisterSuccessScreen } from "../screens/register/RegisterSuccessScreen
 import { RegisterIdentityScreen } from "../screens/register/RegisterIdentityScreen";
 import { RegisterContactScreen } from "../screens/register/RegisterContactScreen";
 import { RegisterLocationScreen } from "../screens/register/RegisterLocationScreen";
+import { CommunityScreen } from "../screens/CommunityScreen";
 import { OtpScreen } from "../screens/OtpScreen";
 import { WelcomeVideoScreen } from "../screens/WelcomeVideoScreen";
 import { MainTabNavigator } from "./MainTabNavigator";
@@ -69,6 +70,7 @@ export function RootNavigator() {
       <Stack.Screen name="RegisterIdentity" component={RegisterIdentityScreen} options={{ headerShown: true, title: "Identity" }} />
       <Stack.Screen name="RegisterContact" component={RegisterContactScreen} options={{ headerShown: true, title: "Verify Contact" }} />
       <Stack.Screen name="RegisterLocation" component={RegisterLocationScreen} options={{ headerShown: true, title: "Location" }} />
+      <Stack.Screen name="Community" component={CommunityScreen} options={{ headerShown: true, title: "Community" }} />
 
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="Store" component={StoreScreen} options={{ headerShown: true, title: "Store" }} />

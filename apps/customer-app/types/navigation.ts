@@ -23,6 +23,7 @@ export type RootStackParamList = {
   RegisterContact: undefined;
   Otp: undefined;
   RegisterLocation: undefined;
+  Community: undefined;
   WelcomeVideo: undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Store: { storeId: string };

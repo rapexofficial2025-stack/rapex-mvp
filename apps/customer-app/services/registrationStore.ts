@@ -75,6 +75,14 @@ export type RegistrationDraft = {
   municipalityName: string | null;
   barangayId: string | null;
   barangayName: string | null;
+
+  // Culture/Community (Xano `rapex-core/community-master`, 2026-08-14
+  // handover) -- GET-only confirmed contract, no confirmed endpoint yet to
+  // save a user's chosen community against their profile, so this is kept
+  // locally only, same as every other unconfirmed-write field here.
+  communityId: string | null;
+  communityName: string | null;
+
   subdivision: string;
   street: string;
   block: string;
@@ -120,6 +128,8 @@ function emptyDraft(): RegistrationDraft {
     municipalityName: null,
     barangayId: null,
     barangayName: null,
+    communityId: null,
+    communityName: null,
     subdivision: "",
     street: "",
     block: "",

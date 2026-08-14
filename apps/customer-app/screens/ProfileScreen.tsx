@@ -234,6 +234,16 @@ export function ProfileScreen({ navigation }: Props) {
           </View>
           <Button label={draft.gpsLatitude !== null ? "Active" : "Turn On"} size="sm" variant={draft.gpsLatitude !== null ? "secondary" : "primary"} onPress={enableGps} />
         </View>
+
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: theme.spacing.md }}>
+          <View>
+            <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: theme.colors.textPrimary }}>Community</Text>
+            <Text style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.textSecondary }}>
+              {draft.communityName ?? "Not set"}
+            </Text>
+          </View>
+          <Button label={draft.communityName ? "Change" : "Select"} size="sm" variant="secondary" onPress={() => navigation.navigate("Community")} />
+        </View>
       </GlassCard>
 
       <GlassCard>
