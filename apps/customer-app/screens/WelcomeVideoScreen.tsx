@@ -154,11 +154,16 @@ export function WelcomeVideoScreen({ navigation }: Props) {
       case "WELCOME_ANIMATION":
         navigation.replace("WelcomeVideo");
         break;
+      // UI-POLISH SCOPE CUT (temporary, this branch only): the real
+      // next_step values here are PROFILE_SETUP and the authenticated
+      // default (MainTabs), but Profile/MainTabs don't exist in this
+      // branch -- see RootNavigator.tsx's doc comment. Falls back to Login
+      // rather than silently pretending those screens still exist; restore
+      // the real "Profile" / "MainTabs" targets when this merges back into
+      // claude/rapex-deployment-summary-f2nraq.
       case "PROFILE_SETUP":
-        navigation.replace("Profile");
-        break;
       default:
-        navigation.replace("MainTabs");
+        navigation.replace("Login");
     }
   }
 

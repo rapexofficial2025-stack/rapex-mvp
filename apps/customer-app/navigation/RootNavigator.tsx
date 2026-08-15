@@ -10,27 +10,23 @@ import { ForgotPasswordScreen } from "../screens/ForgotPasswordScreen";
 import { PrivacyTermsScreen } from "../screens/register/PrivacyTermsScreen";
 import { RegisterAccountScreen } from "../screens/register/RegisterAccountScreen";
 import { RegisterSuccessScreen } from "../screens/register/RegisterSuccessScreen";
-import { RegisterIdentityScreen } from "../screens/register/RegisterIdentityScreen";
-import { RegisterContactScreen } from "../screens/register/RegisterContactScreen";
-import { RegisterLocationScreen } from "../screens/register/RegisterLocationScreen";
-import { CommunityScreen } from "../screens/CommunityScreen";
 import { OtpScreen } from "../screens/OtpScreen";
 import { WelcomeVideoScreen } from "../screens/WelcomeVideoScreen";
-import { MainTabNavigator } from "./MainTabNavigator";
-import { StoreScreen } from "../screens/StoreScreen";
-import { ProductScreen } from "../screens/ProductScreen";
-import { CheckoutScreen } from "../screens/CheckoutScreen";
-import { AddressScreen } from "../screens/AddressScreen";
-import { WalletScreen } from "../screens/WalletScreen";
-import { ProfileScreen } from "../screens/ProfileScreen";
-import { RexScreen } from "../screens/RexScreen";
-import { AuctionHomeScreen } from "../screens/AuctionHomeScreen";
-import { AuctionDetailsScreen } from "../screens/AuctionDetailsScreen";
-import { AuctionProfileScreen } from "../screens/AuctionProfileScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /**
+ * UI-POLISH SCOPE CUT (temporary, this branch only): everything past REX
+ * Welcome -- MainTabs and its whole subtree, Store/Product/Checkout/
+ * Address/Wallet/Profile/Rex/Auctions, plus the Profile-only optional steps
+ * (RegisterIdentity/RegisterContact/RegisterLocation/Community) that are
+ * unreachable once Profile is gone -- is removed from this branch so the
+ * flow up to REX Welcome can be polished in isolation. Nothing here is a
+ * product decision: the full flow (with all of the above) lives on
+ * claude/rapex-deployment-summary-f2nraq and is untouched. Whatever UI
+ * changes come out of this branch get merged back into that full flow, not
+ * the other way around.
+ *
  * Auth flow order (matches the founder-provided reference design, ported
  * from a web mockup to real React Native screens here -- see each screen's
  * own doc comment for what changed structurally):
@@ -38,15 +34,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
  *   Splash -> Welcome (Landing, "Let's get Started")
  *     -> AgeGate (real backend 18+ + 48h device lockout check)
  *       -> IpLockout (only if blocked)
- *     -> Login -> Otp (2FA) -> MainTabs
+ *     -> Login -> Otp (2FA) -> [MainTabs, cut here]
  *       -> PendingApproval (if the account isn't Admin-approved yet)
  *       -> ForgotPassword
  *       -> PrivacyTerms -> Register (single combined form, real signup)
- *         -> RegisterSuccess -> WelcomeVideo (REX) -> Profile or Login
- *
- * RegisterIdentity/RegisterContact/RegisterLocation are no longer part of
- * the mandatory chain (the real account already exists after Register) --
- * they're optional, reachable later from Profile's setup checklist.
+ *         -> RegisterSuccess -> WelcomeVideo (REX) -- last screen in this branch
  */
 export function RootNavigator() {
   return (
@@ -65,32 +57,6 @@ export function RootNavigator() {
       <Stack.Screen name="Register" component={RegisterAccountScreen} />
       <Stack.Screen name="RegisterSuccess" component={RegisterSuccessScreen} />
       <Stack.Screen name="WelcomeVideo" component={WelcomeVideoScreen} />
-
-      {/* Optional, post-registration -- reachable from Profile's setup checklist. */}
-      <Stack.Screen name="RegisterIdentity" component={RegisterIdentityScreen} options={{ headerShown: true, title: "Identity" }} />
-      <Stack.Screen name="RegisterContact" component={RegisterContactScreen} options={{ headerShown: true, title: "Verify Contact" }} />
-      <Stack.Screen name="RegisterLocation" component={RegisterLocationScreen} options={{ headerShown: true, title: "Location" }} />
-      <Stack.Screen name="Community" component={CommunityScreen} options={{ headerShown: true, title: "Community" }} />
-
-      <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-      <Stack.Screen name="Store" component={StoreScreen} options={{ headerShown: true, title: "Store" }} />
-      <Stack.Screen name="Product" component={ProductScreen} options={{ headerShown: true, title: "Product" }} />
-      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ headerShown: true, title: "Checkout" }} />
-      <Stack.Screen name="Address" component={AddressScreen} options={{ headerShown: true, title: "Delivery Address" }} />
-      <Stack.Screen name="Wallet" component={WalletScreen} options={{ headerShown: true, title: "Wallet" }} />
-      <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: "Profile" }} />
-      <Stack.Screen name="Rex" component={RexScreen} options={{ headerShown: true, title: "R.E.X." }} />
-      <Stack.Screen name="AuctionHome" component={AuctionHomeScreen} options={{ headerShown: true, title: "Auctions" }} />
-      <Stack.Screen
-        name="AuctionDetails"
-        component={AuctionDetailsScreen}
-        options={{ headerShown: true, title: "Auction" }}
-      />
-      <Stack.Screen
-        name="AuctionProfile"
-        component={AuctionProfileScreen}
-        options={{ headerShown: true, title: "My Auctions" }}
-      />
     </Stack.Navigator>
   );
 }
