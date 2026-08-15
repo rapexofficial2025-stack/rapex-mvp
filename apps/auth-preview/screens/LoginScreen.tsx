@@ -11,14 +11,14 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
 const BACKGROUND = require("../assets/images/login-lightbackground.png");
 const HEX_ICONS = [
-  require("../assets/icons/store.png"),
-  require("../assets/icons/food.png"),
-  require("../assets/icons/services.png"),
-  require("../assets/icons/auction.png"),
-  require("../assets/icons/delivery.png"),
+  require("../assets/icons/store-icon.png"),
+  require("../assets/icons/food-icon.png"),
+  require("../assets/icons/services-icon.png"),
+  require("../assets/icons/auction-icon.png"),
+  require("../assets/icons/delivery-icon.png"),
 ];
 
-/** Screen 3 -- email/password + social, purely visual (see README). */
+/** Screen 3 -- email/password + Google, purely visual (see README). */
 export function LoginScreen({ navigation }: Props) {
   return (
     <ImageBackground source={BACKGROUND} resizeMode="cover" style={styles.container}>
@@ -52,8 +52,8 @@ export function LoginScreen({ navigation }: Props) {
             </View>
 
             <AuthButton
-              title="Continue with Facebook"
-              icon={require("../assets/icons/facebook.png")}
+              title="Continue with Google"
+              icon={require("../assets/icons/google-logo-icon.png")}
               variant="glass"
               onPress={() => {}}
             />
