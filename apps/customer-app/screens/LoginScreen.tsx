@@ -20,7 +20,12 @@ import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { Hotspot, useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
 import { CATEGORY_HOTSPOTS, TOP_ICON_HOTSPOTS, FloatingReferenceModal, type FloatingKey } from "../components/LoginReferenceOverlays";
-import { GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_WEB_CLIENT_ID, isGoogleSignInConfigured } from "../services/googleAuthConfig";
+import {
+  GOOGLE_ANDROID_CLIENT_ID_OR_PLACEHOLDER,
+  GOOGLE_IOS_CLIENT_ID_OR_PLACEHOLDER,
+  GOOGLE_WEB_CLIENT_ID_OR_PLACEHOLDER,
+  isGoogleSignInConfigured,
+} from "../services/googleAuthConfig";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -55,9 +60,9 @@ export function LoginScreen({ navigation }: Props) {
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
   const googleLogin = useAsyncAction((idToken: string) => auth.loginWithGoogle(idToken));
   const [, googleResponse, promptGoogleSignIn] = Google.useIdTokenAuthRequest({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID_OR_PLACEHOLDER,
+    iosClientId: GOOGLE_IOS_CLIENT_ID_OR_PLACEHOLDER,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID_OR_PLACEHOLDER,
   });
 
   async function routeByNextStep() {
