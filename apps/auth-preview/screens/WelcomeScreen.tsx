@@ -1,78 +1,52 @@
-import { ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { StatusBar } from "expo-status-bar";
+import { ImageBackground, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
+import { AuthButton } from "../components/buttons/AuthButton";
+import { GradientButton } from "../components/buttons/GradientButton";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
-const BACKGROUND = require("../assets/backgrounds/login-dark-1.png");
+const BACKGROUND = require("../assets/images/login-lightbackground.png");
 
-/** Screen 1 -- purely visual, "Let's get Started" just navigates to AgeGate. */
+/** Screen 1 -- brand intro with Login / Sign Up choice. Visual only. */
 export function WelcomeScreen({ navigation }: Props) {
   return (
-    <View style={styles.flex}>
-      <StatusBar style="light" />
-      <ImageBackground source={BACKGROUND} style={styles.flex} resizeMode="cover">
-        <SafeAreaView style={styles.flex} edges={["top", "bottom"]}>
-          <View style={styles.ctaWrap}>
-            <Pressable
-              onPress={() => navigation.navigate("AgeGate")}
-              style={({ pressed }) => [styles.ctaPressable, { opacity: pressed ? 0.9 : 1 }]}
-              accessibilityRole="button"
-              accessibilityLabel="Let's get Started"
-            >
-              <LinearGradient
-                colors={["#F97316", "#EC4899", "#8B5CF6"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.ctaButton}
-              >
-                <Text style={styles.ctaText}>Let's get Started</Text>
-                <View style={styles.ctaChevronWrap}>
-                  <Text style={styles.ctaChevron}>{">"}</Text>
-                </View>
-              </LinearGradient>
-            </Pressable>
-          </View>
-        </SafeAreaView>
-      </ImageBackground>
-    </View>
+    <ImageBackground source={BACKGROUND} resizeMode="cover" style={styles.background}>
+      <SafeAreaView style={styles.overlay} edges={["top", "bottom"]}>
+        <View style={styles.brandContainer}>
+          <Text style={styles.brandTitle}>RAPEX</Text>
+          <Text style={styles.brandSubtitle}>Fast delivery, seamless checkout.</Text>
+        </View>
+
+        <View style={styles.actionArea}>
+          <GradientButton title="Login" onPress={() => navigation.navigate("AgeGate")} />
+          <AuthButton title="Sign Up" onPress={() => navigation.navigate("SignUp")} />
+        </View>
+
+        <Text style={styles.footerText}>Secure buyer access, dual-shield verification powered by Xano.</Text>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  ctaWrap: {
-    position: "absolute",
-    top: "78%",
-    left: "8%",
-    width: "84%",
+  background: { flex: 1, justifyContent: "flex-end" },
+  overlay: {
+    flex: 1,
+    padding: 28,
+    justifyContent: "space-between",
+    backgroundColor: "rgba(10, 12, 24, 0.62)",
   },
-  ctaPressable: {},
-  ctaButton: {
-    borderRadius: 999,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    shadowColor: "#000000",
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
+  brandContainer: { marginTop: 120 },
+  brandTitle: { fontSize: 52, fontWeight: "900", color: "#FFFFFF", letterSpacing: 4 },
+  brandSubtitle: {
+    marginTop: 12,
+    fontSize: 18,
+    color: "rgba(255,255,255,0.8)",
+    lineHeight: 28,
+    maxWidth: "80%",
   },
-  ctaText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
-  ctaChevronWrap: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ctaChevron: { color: "#8B5CF6", fontSize: 13, fontWeight: "700" },
+  actionArea: { gap: 12, marginBottom: 36 },
+  footerText: { color: "rgba(255,255,255,0.62)", fontSize: 14, textAlign: "center", marginBottom: 16 },
 });

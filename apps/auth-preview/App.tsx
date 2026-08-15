@@ -1,9 +1,13 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SplashScreen } from "./screens/SplashScreen";
 import { WelcomeScreen } from "./screens/WelcomeScreen";
 import { AgeGateScreen } from "./screens/AgeGateScreen";
 import { LoginScreen } from "./screens/LoginScreen";
+import { SignUpScreen } from "./screens/SignUpScreen";
+import { MobileOtpScreen } from "./screens/MobileOtpScreen";
+import { EmailVerificationScreen } from "./screens/EmailVerificationScreen";
 
 /**
  * Standalone, backend-free preview of just the auth screens -- built so
@@ -21,9 +25,13 @@ import { LoginScreen } from "./screens/LoginScreen";
  * (or by porting these screens back there), not here.
  */
 export type AuthStackParamList = {
+  Splash: undefined;
   Welcome: undefined;
   AgeGate: undefined;
   Login: undefined;
+  SignUp: undefined;
+  MobileOtp: undefined;
+  EmailVerification: undefined;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -32,10 +40,18 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ animation: "fade" }} />
           <Stack.Screen name="AgeGate" component={AgeGateScreen} options={{ animation: "slide_from_right" }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} options={{ animation: "slide_from_right" }} />
+          <Stack.Screen name="MobileOtp" component={MobileOtpScreen} options={{ animation: "slide_from_right" }} />
+          <Stack.Screen
+            name="EmailVerification"
+            component={EmailVerificationScreen}
+            options={{ animation: "slide_from_right" }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
