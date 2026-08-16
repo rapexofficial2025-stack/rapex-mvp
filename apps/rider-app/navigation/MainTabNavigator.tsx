@@ -43,10 +43,10 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     const color = focused ? "#D8B4FE" : "rgba(255,255,255,0.55)";
     return (
       <Pressable key={tab.key} style={styles.tab} onPress={() => navigation.navigate(tab.key)}>
-        <View style={[styles.tabIconPill, focused && styles.tabIconPillActive]}>
+        <View style={[styles.tabPill, focused && styles.tabPillActive]}>
           <tab.icon color={focused ? "#FFFFFF" : color} size={20} />
+          <Text style={{ color: focused ? "#FFFFFF" : color, fontSize: 11, fontWeight: "600", marginTop: 3 }}>{tab.label}</Text>
         </View>
-        <Text style={{ color, fontSize: 11, fontWeight: "600", marginTop: 4 }}>{tab.label}</Text>
       </Pressable>
     );
   };
@@ -89,6 +89,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
             <Power color="#F5EEFF" size={24} />
           </LinearGradient>
         </Pressable>
+        <Text style={styles.centerLabel}>{isOnline ? "Go Offline" : "Go Online"}</Text>
       </View>
     </View>
   );
@@ -154,11 +155,17 @@ const styles = StyleSheet.create({
   // pins the button dead-center.
   centerButtonWrap: {
     position: "absolute",
-    top: -22,
+    top: -28,
     left: 0,
     right: 0,
     alignItems: "center",
     zIndex: 10,
+  },
+  centerLabel: {
+    color: "#C4A6F5",
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 3,
   },
   centerButtonGlow: {
     borderRadius: 34,
@@ -193,14 +200,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  tabIconPill: {
-    width: 44,
-    height: 30,
-    borderRadius: 14,
+  // Wraps icon + label together as one block so the active-tab highlight
+  // covers both, matching the reference (not just an icon chip above text).
+  tabPill: {
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 16,
   },
-  tabIconPillActive: {
+  tabPillActive: {
     backgroundColor: "rgba(168,85,247,0.28)",
     borderWidth: 1,
     borderColor: "rgba(196,166,245,0.4)",
