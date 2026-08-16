@@ -75,6 +75,12 @@ importers:
 
   apps/auth-preview:
     dependencies:
+      '@rapex/theme':
+        specifier: workspace:*
+        version: link:../../packages/theme
+      '@rapex/ui-native':
+        specifier: workspace:*
+        version: link:../../packages/ui-native
       '@react-navigation/native':
         specifier: ^7.3.14
         version: 7.3.14(react-native@0.86.2(@babel/core@7.29.7(supports-color@8.1.1))(@types/react@19.2.17)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)

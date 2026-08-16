@@ -8,6 +8,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ShieldCheck, ArrowRight } from "lucide-react-native";
 import type { AuthStackParamList } from "../App";
 import { SelectField } from "../components/ui/SelectField";
+import { LightGlassBackground } from "../components/ui/LightGlassBackground";
 import { setSignUpCulture } from "../services/signUpDraftStore";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "AgeGate">;
@@ -49,8 +50,9 @@ export function AgeGateScreen({ navigation }: Props) {
 
   return (
     <View style={styles.flex}>
-      <StatusBar style="light" />
-      <View style={[styles.flex, styles.background]}>
+      <StatusBar style="dark" />
+      <View style={styles.flex}>
+        <LightGlassBackground />
         <SafeAreaView style={[styles.flex, styles.center]}>
           <View style={styles.card}>
             <LinearGradient
@@ -60,7 +62,7 @@ export function AgeGateScreen({ navigation }: Props) {
               style={styles.cardBorder}
             >
               <View style={styles.cardClip}>
-                <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+                <BlurView intensity={40} tint="light" style={StyleSheet.absoluteFill} />
                 <View style={styles.cardInner}>
                   <View style={styles.iconBadge}>
                     <ShieldCheck color="#FFFFFF" size={28} />
@@ -130,19 +132,18 @@ export function AgeGateScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  background: { backgroundColor: "#130C24" },
   center: { alignItems: "center", justifyContent: "center", paddingHorizontal: 20 },
   card: {
     width: "100%",
-    shadowColor: "#B39DDB",
-    shadowOpacity: 0.35,
+    shadowColor: "#8B5CF6",
+    shadowOpacity: 0.25,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 8 },
     elevation: 10,
   },
   cardBorder: { borderRadius: 24, padding: 1 },
   cardClip: { borderRadius: 23, overflow: "hidden" },
-  cardInner: { padding: 24, alignItems: "center", gap: 14, backgroundColor: "rgba(20, 14, 36, 0.55)" },
+  cardInner: { padding: 24, alignItems: "center", gap: 14, backgroundColor: "rgba(255, 255, 255, 0.55)" },
   iconBadge: {
     width: 56,
     height: 56,
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1,
-    color: "#FB923C",
+    color: "#C2410C",
     backgroundColor: "rgba(249,115,22,0.15)",
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -163,24 +164,24 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     overflow: "hidden",
   },
-  title: { fontSize: 22, fontWeight: "800", color: "#FFFFFF" },
-  subtitle: { fontSize: 12, color: "rgba(255,255,255,0.7)", textAlign: "center", lineHeight: 18 },
-  inputWrap: { width: "100%", gap: 8, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 18, padding: 16 },
-  inputLabel: { fontSize: 10, fontWeight: "800", color: "#C4B5FD", textTransform: "uppercase", letterSpacing: 1 },
+  title: { fontSize: 22, fontWeight: "800", color: "#2E1065" },
+  subtitle: { fontSize: 12, color: "rgba(46, 16, 101, 0.7)", textAlign: "center", lineHeight: 18 },
+  inputWrap: { width: "100%", gap: 8, backgroundColor: "rgba(255,255,255,0.5)", borderRadius: 18, padding: 16 },
+  inputLabel: { fontSize: 10, fontWeight: "800", color: "#7C3AED", textTransform: "uppercase", letterSpacing: 1 },
   input: {
     textAlign: "center",
     fontSize: 30,
     fontWeight: "800",
-    color: "#FFFFFF",
+    color: "#2E1065",
     borderWidth: 2,
     borderColor: "#8B5CF6",
     borderRadius: 16,
     paddingVertical: 10,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(255,255,255,0.7)",
   },
-  ageText: { textAlign: "center", fontSize: 12, fontWeight: "800", color: "#FDBA74" },
+  ageText: { textAlign: "center", fontSize: 12, fontWeight: "800", color: "#C2410C" },
   cultureWrap: { width: "100%" },
-  noticeText: { color: "#FDBA74", fontSize: 12, textAlign: "center" },
+  noticeText: { color: "#C2410C", fontSize: 12, textAlign: "center" },
   ctaWrap: { width: "100%", marginTop: 4 },
   ctaButton: {
     flexDirection: "row",

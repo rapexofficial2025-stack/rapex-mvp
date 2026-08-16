@@ -1,4 +1,4 @@
-import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
@@ -6,20 +6,20 @@ import { AuthButton } from "../components/buttons/AuthButton";
 import { GradientButton } from "../components/buttons/GradientButton";
 import { GlassCard } from "../components/cards/GlassCard";
 import { InputField } from "../components/ui/InputField";
+import { LightGlassBackground } from "../components/ui/LightGlassBackground";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
-const BACKGROUND = require("../assets/backgrounds/login-dark-2.png");
-
-/** Screen 3 -- email/password + Google, purely visual (see README). */
+/** Screen 3 -- email/password + Google, purely visual (see README). Shares the
+ * same light background as AgeGate ("1 background only" for both). */
 export function LoginScreen({ navigation }: Props) {
   return (
-    <ImageBackground source={BACKGROUND} resizeMode="cover" style={styles.container}>
+    <View style={styles.container}>
+      <LightGlassBackground />
       <SafeAreaView style={styles.content} edges={["top", "bottom"]}>
         <View style={styles.brandSection}>
           <Image source={require("../assets/logo/rapex-logo.png")} style={styles.logo} resizeMode="contain" />
           <Image source={require("../assets/logo/rapex-name-only.png")} style={styles.wordmark} resizeMode="contain" />
-          <Image source={require("../assets/logo/masa-white-tagline.png")} style={styles.tagline} resizeMode="contain" />
         </View>
 
         <View style={styles.loginSection}>
@@ -52,29 +52,28 @@ export function LoginScreen({ navigation }: Props) {
 
         <Text style={styles.footerText}>RAPEX Marketplace v1.0</Text>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { flex: 1, backgroundColor: "rgba(0,0,0,0.18)" },
+  content: { flex: 1 },
   brandSection: { flex: 2, alignItems: "center", justifyContent: "center" },
   logo: { width: 110, height: 110 },
   wordmark: { width: 230, height: 55, marginTop: 10 },
-  tagline: { width: 220, height: 24, marginTop: 6 },
   loginSection: { flex: 3 },
   glassCard: {
     width: "90%",
     alignSelf: "center",
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
+    borderColor: "rgba(139,92,246,0.25)",
   },
-  loginTitle: { fontSize: 28, fontWeight: "700", color: "#FFFFFF", textAlign: "center", marginBottom: 6 },
-  loginSubtitle: { fontSize: 14, color: "rgba(255,255,255,0.70)", textAlign: "center", marginBottom: 24 },
+  loginTitle: { fontSize: 28, fontWeight: "700", color: "#2E1065", textAlign: "center", marginBottom: 6 },
+  loginSubtitle: { fontSize: 14, color: "rgba(46, 16, 101, 0.7)", textAlign: "center", marginBottom: 24 },
   dividerContainer: { flexDirection: "row", alignItems: "center", marginVertical: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.18)" },
-  dividerText: { color: "#FFFFFF", marginHorizontal: 12, fontSize: 12, fontWeight: "600" },
-  footerText: { color: "rgba(255,255,255,0.55)", fontSize: 12, textAlign: "center", marginBottom: 16 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: "rgba(139,92,246,0.25)" },
+  dividerText: { color: "#2E1065", marginHorizontal: 12, fontSize: 12, fontWeight: "600" },
+  footerText: { color: "rgba(46, 16, 101, 0.55)", fontSize: 12, textAlign: "center", marginBottom: 16 },
 });

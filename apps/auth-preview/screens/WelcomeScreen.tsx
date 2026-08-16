@@ -6,6 +6,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
 import { SlideToContinueButton } from "../components/ui/SlideToContinueButton";
 import { FeaturePreviewModal } from "../components/ui/FeaturePreviewModal";
+import { GlassCard } from "../components/cards/GlassCard";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
@@ -125,7 +126,9 @@ export function WelcomeScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.ctaArea}>
-          <SlideToContinueButton label="Let's get Started" onComplete={() => navigation.navigate("AgeGate")} />
+          <GlassCard style={styles.ctaCard}>
+            <SlideToContinueButton label="Let's get Started" onComplete={() => navigation.navigate("AgeGate")} />
+          </GlassCard>
         </View>
 
         <View style={styles.footerBox}>
@@ -220,6 +223,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   ctaArea: { paddingHorizontal: 20, marginBottom: 20 },
+  ctaCard: { marginTop: 0 },
   footerBox: {
     marginHorizontal: 20,
     borderWidth: 1,
