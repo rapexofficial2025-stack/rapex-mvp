@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ImageBackground, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
@@ -7,13 +7,12 @@ import { GradientButton } from "../components/buttons/GradientButton";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
-// TODO: swap back to an ImageBackground once a final background image is chosen
-// (login-lightbackground.png was removed from assets/images during art rework).
+const BACKGROUND = require("../assets/backgrounds/login-lightbackground.png");
 
 /** Screen 1 -- brand intro with Login / Sign Up choice. Visual only. */
 export function WelcomeScreen({ navigation }: Props) {
   return (
-    <View style={styles.background}>
+    <ImageBackground source={BACKGROUND} resizeMode="cover" style={styles.background}>
       <SafeAreaView style={styles.overlay} edges={["top", "bottom"]}>
         <View style={styles.brandContainer}>
           <Text style={styles.brandTitle}>RAPEX</Text>
@@ -27,16 +26,17 @@ export function WelcomeScreen({ navigation }: Props) {
 
         <Text style={styles.footerText}>Secure buyer access, dual-shield verification powered by Xano.</Text>
       </SafeAreaView>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: { flex: 1, justifyContent: "flex-end", backgroundColor: "#0F0420" },
+  background: { flex: 1, justifyContent: "flex-end" },
   overlay: {
     flex: 1,
     padding: 28,
     justifyContent: "space-between",
+    backgroundColor: "rgba(10, 12, 24, 0.62)",
   },
   brandContainer: { marginTop: 120 },
   brandTitle: { fontSize: 52, fontWeight: "900", color: "#FFFFFF", letterSpacing: 4 },
