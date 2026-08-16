@@ -1,4 +1,5 @@
 export * from "./useTheme";
+export * from "./useMapStyleMode";
 export * from "./ThemeProvider";
 export * from "./ThemeToggle";
 export * from "./Button";

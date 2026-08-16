@@ -5,8 +5,10 @@ import { Bell, MessageCircle, Menu, Compass, Layers, Plus, ChevronRight, Package
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Badge, Button, ErrorState, GlassCard, Loading, RapexGlassCard, RapexMapView } from "@rapex/ui-native";
+import type { MapStyleElement } from "react-native-maps";
+import { Badge, Button, ErrorState, GlassCard, Loading, RapexGlassCard, RapexMapView, useMapStyleMode, type MapStyleMode } from "@rapex/ui-native";
 import {
+  useActiveDelivery,
   useAsyncAction,
   useCurrentOffer,
   useIncentiveProgress,
@@ -16,7 +18,7 @@ import {
   useRiderWalletSummary,
 } from "@rapex/api-client";
 import { formatPeso } from "@rapex/utils";
-import { DARK_MAP_STYLE } from "@rapex/constants";
+import { DARK_MAP_STYLE, NIGHT_MAP_STYLE, RIDER_STATUS_COLORS, type RiderMapStatus } from "@rapex/constants";
 import type { MainTabParamList, RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
 
@@ -27,6 +29,14 @@ type Props = CompositeScreenProps<BottomTabScreenProps<MainTabParamList, "Home">
 const DEFAULT_LATITUDE = 14.4297;
 const DEFAULT_LONGITUDE = 120.936;
 const GOOGLE_MAPS_CONFIGURED = !!process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+// Rider's own choice, independent of the app's light/dark theme -- see useMapStyleMode.
+const MAP_STYLE_BY_MODE: Record<MapStyleMode, MapStyleElement[] | undefined> = {
+  light: undefined,
+  dark: DARK_MAP_STYLE,
+  night: NIGHT_MAP_STYLE,
+};
+const MAP_STYLE_LABELS: Record<MapStyleMode, string> = { light: "Light", dark: "Dark", night: "Night" };
 
 /**
  * Rebuilt to match the reference design (map header + profile/wallet card +
@@ -43,12 +53,14 @@ const GOOGLE_MAPS_CONFIGURED = !!process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
  */
 export function HomeScreen({ navigation }: Props) {
   const theme = useAppTheme();
+  const mapStyle = useMapStyleMode();
   const { rider, delivery } = useRepositories();
   const { data: profile, loading: profileLoading, error: profileError, refetch: refetchProfile } = useRiderProfile();
   const { data: earnings } = useRiderEarnings();
   const { data: wallet } = useRiderWalletSummary();
   const { data: incentive } = useIncentiveProgress();
   const { data: offer, refetch: refetchOffer } = useCurrentOffer();
+  const { data: activeDelivery } = useActiveDelivery();
 
   const toggleOnline = useAsyncAction((next: boolean) => rider!.setAvailabilityStatus(next ? "online" : "offline"));
   const acceptOffer = useAsyncAction((offerId: string) => delivery!.acceptOffer(offerId));
@@ -100,6 +112,35 @@ export function HomeScreen({ navigation }: Props) {
   const isOnline = profile.availabilityStatus === "online";
   const ordersOngoing = offer ? 1 : 0; // Rider model is single-active-delivery right now, not a queue -- see MockDeliveryRepository.
 
+  // Collapse real availability + delivery status into the 5 map-relevant buckets (see RIDER_STATUS_COLORS).
+  const riderMapStatus: RiderMapStatus = !isOnline
+    ? "offline"
+    : !activeDelivery
+      ? "idle"
+      : activeDelivery.status === "failed-delivery" || activeDelivery.status === "cancelled"
+        ? "problem"
+        : ["picked-up", "on-the-way", "arrived-customer"].includes(activeDelivery.status)
+          ? "delivering"
+          : "to-merchant";
+
+  // Straight-line only until a real Directions/Routes API proxy exists server-side (see RapexMapView's routes prop doc).
+  const activeRoute = activeDelivery
+    ? {
+        id: activeDelivery.orderId,
+        coordinates:
+          riderMapStatus === "delivering"
+            ? [
+                { latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE },
+                { latitude: activeDelivery.customerLatitude, longitude: activeDelivery.customerLongitude },
+              ]
+            : [
+                { latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE },
+                { latitude: activeDelivery.merchantLatitude, longitude: activeDelivery.merchantLongitude },
+              ],
+        color: RIDER_STATUS_COLORS[riderMapStatus],
+      }
+    : null;
+
   return (
     <View style={[styles.page, { backgroundColor: theme.colors.background }]}>
       {/* Map header -- real RapexMapView once EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is set, otherwise
@@ -108,11 +149,21 @@ export function HomeScreen({ navigation }: Props) {
       <View style={styles.mapArea}>
         {GOOGLE_MAPS_CONFIGURED ? (
           <RapexMapView
-            markers={[{ id: profile.id, role: "rider", latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE, label: profile.fullName }]}
+            markers={[
+              {
+                id: profile.id,
+                role: "rider",
+                latitude: DEFAULT_LATITUDE,
+                longitude: DEFAULT_LONGITUDE,
+                label: profile.fullName,
+                color: RIDER_STATUS_COLORS[riderMapStatus],
+              },
+            ]}
+            routes={activeRoute ? [activeRoute] : []}
             initialLatitude={DEFAULT_LATITUDE}
             initialLongitude={DEFAULT_LONGITUDE}
             style={StyleSheet.absoluteFill}
-            customMapStyle={theme.mode === "dark" ? DARK_MAP_STYLE : undefined}
+            customMapStyle={MAP_STYLE_BY_MODE[mapStyle.mode]}
           />
         ) : (
           <View style={[StyleSheet.absoluteFill, styles.mapPlaceholder]} />
@@ -145,9 +196,10 @@ export function HomeScreen({ navigation }: Props) {
           <Pressable style={styles.mapIconButton}>
             <Compass color="#FFFFFF" size={18} />
           </Pressable>
-          <Pressable style={styles.mapIconButton}>
+          <Pressable style={styles.mapIconButton} onPress={mapStyle.cycleMode}>
             <Layers color="#FFFFFF" size={18} />
           </Pressable>
+          <Text style={styles.mapStyleLabel}>{MAP_STYLE_LABELS[mapStyle.mode]}</Text>
         </View>
       </View>
 
@@ -376,7 +428,8 @@ const styles = StyleSheet.create({
   },
   onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#FFFFFF" },
   onlinePillText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
-  mapSideButtons: { position: "absolute", right: 16, bottom: 90, gap: 8 },
+  mapSideButtons: { position: "absolute", right: 16, bottom: 90, gap: 8, alignItems: "center" },
+  mapStyleLabel: { color: "#FFFFFF", fontSize: 9, fontWeight: "700", backgroundColor: "rgba(0,0,0,0.4)", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   sheet: {
     flex: 1,
     marginTop: -24,

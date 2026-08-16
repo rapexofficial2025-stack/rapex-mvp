@@ -87,3 +87,61 @@ export const DARK_MAP_STYLE = [
     stylers: [{ color: "#3E4373" }],
   },
 ];
+
+/**
+ * High-contrast night-driving style -- distinct from DARK_MAP_STYLE, which is
+ * an aesthetic brand theme. This one prioritizes actual road visibility in
+ * low light: near-black background, bright high-contrast road lines, POI
+ * icons/labels stripped out entirely to cut visual clutter while riding.
+ * Selectable independently of the app's light/dark theme -- see
+ * useMapStyleMode -- since a rider's real-world lighting/vision needs don't
+ * necessarily match whatever theme the rest of the UI is in.
+ */
+export const NIGHT_MAP_STYLE = [
+  { elementType: "geometry", stylers: [{ color: "#050608" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#E5E7EB" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#000000" }] },
+  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  {
+    featureType: "administrative",
+    elementType: "geometry",
+    stylers: [{ color: "#374151" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#D1D5DB" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#050608" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#F3F4F6" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#FB923C" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#000000" }],
+  },
+  {
+    featureType: "road.local",
+    elementType: "geometry",
+    stylers: [{ color: "#9CA3AF" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#000000" }],
+  },
+];

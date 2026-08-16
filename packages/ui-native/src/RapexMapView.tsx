@@ -1,5 +1,6 @@
+import { Fragment } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE, type MapStyleElement } from "react-native-maps";
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, type MapStyleElement } from "react-native-maps";
 import { MAP_MARKER_COLORS, type MapMarkerRole } from "@rapex/constants";
 
 /**
@@ -20,6 +21,14 @@ export type RapexMapMarker = {
   latitude: number;
   longitude: number;
   label?: string;
+  /** Overrides the role's default color -- e.g. a live rider status color (RIDER_STATUS_COLORS). */
+  color?: string;
+};
+
+export type RapexMapRoute = {
+  id: string;
+  coordinates: { latitude: number; longitude: number }[];
+  color?: string;
 };
 
 export type RapexMapViewProps = {
@@ -32,9 +41,12 @@ export type RapexMapViewProps = {
   onMarkerPress?: (marker: RapexMapMarker) => void;
   /** Google Maps JSON style array (e.g. DARK_MAP_STYLE from @rapex/constants) -- omit for the default look. */
   customMapStyle?: MapStyleElement[];
+  /** Straight-line paths only (rider -> merchant/customer) until a real Directions/Routes API proxy exists server-side -- see deliveryFeeEngine.ts's estimateRoadDistanceKm for the same caveat applied to distance math. */
+  routes?: RapexMapRoute[];
 };
 
 const DEFAULT_DELTA = 0.02;
+const DEFAULT_ROUTE_COLOR = "#8B5CF6";
 
 export function RapexMapView({
   markers,
@@ -45,6 +57,7 @@ export function RapexMapView({
   style,
   onMarkerPress,
   customMapStyle,
+  routes = [],
 }: RapexMapViewProps) {
   return (
     <View style={[styles.container, style]}>
@@ -59,12 +72,24 @@ export function RapexMapView({
           longitudeDelta,
         }}
       >
+        {routes.map((route) => {
+          const color = route.color ?? DEFAULT_ROUTE_COLOR;
+          // Two stacked polylines fake a "glow": a wide, translucent line behind a thin solid one.
+          // A Fragment (not a View) -- MapView's children must be direct map overlay components,
+          // wrapping them in a real View breaks native rendering.
+          return (
+            <Fragment key={route.id}>
+              <Polyline coordinates={route.coordinates} strokeColor={`${color}44`} strokeWidth={10} lineCap="round" lineJoin="round" />
+              <Polyline coordinates={route.coordinates} strokeColor={color} strokeWidth={4} lineCap="round" lineJoin="round" />
+            </Fragment>
+          );
+        })}
         {markers.map((marker) => (
           <Marker
             key={marker.id}
             coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
             title={marker.label}
-            pinColor={MAP_MARKER_COLORS[marker.role]}
+            pinColor={marker.color ?? MAP_MARKER_COLORS[marker.role]}
             onPress={onMarkerPress ? () => onMarkerPress(marker) : undefined}
           />
         ))}
