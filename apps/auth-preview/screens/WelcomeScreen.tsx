@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Image, ImageBackground, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Bell, HelpCircle, Link2, Menu, MessageCircle } from "lucide-react-native";
+import { Bell, HelpCircle, Link2, Menu, MessageCircle, Phone } from "lucide-react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
 import { SlideToContinueButton } from "../components/ui/SlideToContinueButton";
@@ -80,19 +80,29 @@ export function WelcomeScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.quickRow}>
-            <View style={styles.quickPill}>
-              <MessageCircle color="#FFFFFF" size={16} />
-              <Text style={styles.quickPillText}>Chat</Text>
+            {/* Support contacts -- left of the divider, own group so this row
+                isn't a single centered cluster anymore. */}
+            <View style={styles.quickGroup}>
+              <View style={styles.quickPill}>
+                <MessageCircle color="#FFFFFF" size={16} />
+                <Text style={styles.quickPillText}>Chat Support</Text>
+              </View>
+              <View style={styles.quickPill}>
+                <Phone color="#FFFFFF" size={16} />
+                <Text style={styles.quickPillText}>WhatsApp/Viber</Text>
+              </View>
             </View>
-            <View style={styles.quickDivider} />
-            <View style={styles.quickPill}>
-              <Link2 color="#FFFFFF" size={16} />
-              <Text style={styles.quickPillText}>Page</Text>
-            </View>
-            <View style={styles.quickDivider} />
-            <View style={styles.quickPill}>
-              <HelpCircle color="#FFFFFF" size={16} />
-              <Text style={styles.quickPillText}>FAQ</Text>
+
+            <View style={styles.quickDividerTall} />
+
+            {/* Page/FAQ -- right of the divider, icon-only to fit both groups on one row. */}
+            <View style={styles.quickGroup}>
+              <Pressable hitSlop={8} style={styles.quickIconOnly}>
+                <Link2 color="#FFFFFF" size={16} />
+              </Pressable>
+              <Pressable hitSlop={8} style={styles.quickIconOnly}>
+                <HelpCircle color="#FFFFFF" size={16} />
+              </Pressable>
             </View>
           </View>
         </SafeAreaView>
@@ -116,19 +126,24 @@ export function WelcomeScreen({ navigation }: Props) {
 
         <View style={styles.featureRow}>
           {FEATURES.map((feature) => (
-            <Pressable key={feature.key} style={styles.featureButton} onPress={() => setActivePreview(feature.preview)}>
-              <View style={styles.featureHex}>
-                <Image source={feature.icon} style={styles.featureIcon} resizeMode="contain" />
-              </View>
-              <Text style={styles.featureLabel}>{feature.label}</Text>
+            <Pressable
+              key={feature.key}
+              style={styles.featureButton}
+              onPress={() => setActivePreview(feature.preview)}
+            >
+              {({ pressed }) => (
+                <>
+                  <View style={[styles.featureHex, pressed && styles.featureHexPressed]}>
+                    {/* Looks like a static graphic, but this glow only exists while pressed --
+                        the tap feedback the button was missing. */}
+                    {pressed ? <View style={styles.featureGlow} pointerEvents="none" /> : null}
+                    <Image source={feature.icon} style={styles.featureIcon} resizeMode="contain" />
+                  </View>
+                  <Text style={styles.featureLabel}>{feature.label}</Text>
+                </>
+              )}
             </Pressable>
           ))}
-        </View>
-
-        <View style={styles.ctaArea}>
-          <GlassCard style={styles.ctaCard}>
-            <SlideToContinueButton label="Let's get Started" onComplete={() => navigation.navigate("AgeGate")} />
-          </GlassCard>
         </View>
 
         <View style={styles.footerBox}>
@@ -143,6 +158,13 @@ export function WelcomeScreen({ navigation }: Props) {
           <View style={[styles.dot, styles.dotActive]} />
           <View style={styles.dot} />
           <View style={styles.dot} />
+        </View>
+
+        {/* CTA slider -- moved to the very bottom, below the carousel dots. */}
+        <View style={styles.ctaArea}>
+          <GlassCard style={styles.ctaCard}>
+            <SlideToContinueButton label="Let's get Started" onComplete={() => navigation.navigate("AgeGate")} />
+          </GlassCard>
         </View>
       </ScrollView>
 
@@ -167,18 +189,21 @@ const styles = StyleSheet.create({
   quickRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     marginHorizontal: 20,
     marginBottom: 16,
     paddingVertical: 10,
+    paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.18)",
     backgroundColor: "rgba(255,255,255,0.04)",
   },
-  quickPill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14 },
-  quickPillText: { color: "#FFFFFF", fontSize: 13, fontWeight: "600" },
-  quickDivider: { width: 1, height: 16, backgroundColor: "rgba(255,255,255,0.2)" },
+  quickGroup: { flexDirection: "row", alignItems: "center", gap: 12 },
+  quickPill: { flexDirection: "row", alignItems: "center", gap: 5 },
+  quickPillText: { color: "#FFFFFF", fontSize: 11, fontWeight: "600" },
+  quickIconOnly: { padding: 4 },
+  quickDividerTall: { width: 1, height: 22, backgroundColor: "rgba(255,255,255,0.25)", marginHorizontal: 4 },
   hero: { width: "100%", aspectRatio: 0.82, justifyContent: "flex-end" },
   heroOverlay: { alignItems: "center", paddingHorizontal: 24, paddingBottom: 20 },
   heroLogo: { width: 130, height: 90 },
@@ -212,6 +237,16 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.18)",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  featureHexPressed: {
+    borderColor: "rgba(249,115,22,0.8)",
+    backgroundColor: "rgba(249,115,22,0.22)",
+    transform: [{ scale: 0.94 }],
+  },
+  featureGlow: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(249,115,22,0.35)",
   },
   featureIcon: { width: 30, height: 30 },
   featureLabel: {
