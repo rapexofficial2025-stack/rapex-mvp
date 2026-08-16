@@ -4,7 +4,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SplashScreen } from "./screens/SplashScreen";
 import { WelcomeScreen } from "./screens/WelcomeScreen";
 import { AgeGateScreen } from "./screens/AgeGateScreen";
-import { ChildConsentScreen } from "./screens/ChildConsentScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { SignUpScreen } from "./screens/SignUpScreen";
 import { MobileOtpScreen } from "./screens/MobileOtpScreen";
@@ -29,7 +28,6 @@ export type AuthStackParamList = {
   Splash: undefined;
   Welcome: undefined;
   AgeGate: undefined;
-  ChildConsent: undefined;
   Login: undefined;
   SignUp: undefined;
   MobileOtp: undefined;
@@ -61,11 +59,6 @@ export default function App() {
           <Stack.Screen
             name="AgeGate"
             component={AgeGateScreen}
-            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
-          />
-          <Stack.Screen
-            name="ChildConsent"
-            component={ChildConsentScreen}
             options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
           />
           <Stack.Screen

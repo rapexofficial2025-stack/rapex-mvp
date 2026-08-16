@@ -15,9 +15,12 @@ const CURRENT_YEAR = new Date().getFullYear();
 /**
  * Screen 2 -- visual only, no real backend age check here (that lives in
  * apps/customer-app's AgeGateScreen, which calls the real Xano
- * /pre-auth/check-age endpoint). Under 18 routes to ChildConsent instead of
- * Login -- same app/stack, just a different downstream screen, per product
- * decision to reuse this flow rather than build a separate minor-only app.
+ * /pre-auth/check-age endpoint). Under 18 still routes to the SAME Login
+ * screen as everyone else -- there is no separate Child screen anywhere in
+ * auth. A minor never self-registers here; their parent already created
+ * their login credentials via Profile > Child Accounts (see
+ * apps/customer-app/screens/child-accounts/), so under-18 just means
+ * "log in with the account your parent made for you," not a different UI.
  */
 export function AgeGateScreen({ navigation }: Props) {
   const [birthYear, setBirthYear] = useState(String(CURRENT_YEAR - 25));
@@ -64,13 +67,13 @@ export function AgeGateScreen({ navigation }: Props) {
 
                   {underage ? (
                     <Text style={styles.noticeText}>
-                      You're under 18 -- a parent/guardian must provide consent to continue.
+                      You're under 18 -- log in with the account your parent already created for you.
                     </Text>
                   ) : null}
 
                   <Pressable
                     disabled={birthYear.length !== 4}
-                    onPress={() => navigation.navigate(underage ? "ChildConsent" : "Login")}
+                    onPress={() => navigation.navigate("Login")}
                     style={({ pressed }) => [styles.ctaWrap, { opacity: pressed ? 0.9 : 1 }]}
                   >
                     <LinearGradient
@@ -79,9 +82,7 @@ export function AgeGateScreen({ navigation }: Props) {
                       end={{ x: 1, y: 0 }}
                       style={styles.ctaButton}
                     >
-                      <Text style={styles.ctaText}>
-                        {underage ? "Continue with Guardian Consent" : "Confirm Age & Continue"}
-                      </Text>
+                      <Text style={styles.ctaText}>{underage ? "Log In" : "Confirm Age & Continue"}</Text>
                       <ArrowRight color="#FFFFFF" size={16} />
                     </LinearGradient>
                   </Pressable>
