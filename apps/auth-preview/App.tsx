@@ -38,26 +38,55 @@ export type AuthStackParamList = {
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
+/** Real back-arrow, no title text, transparent so each screen's own dark background shows through. */
+const transparentHeaderOptions = {
+  headerShown: true,
+  headerTransparent: true,
+  headerTitle: "",
+  headerTintColor: "#FFFFFF",
+} as const;
+
 export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+          {/* Splash and Welcome stay headerless -- Splash has nothing to go back to, and
+              Welcome's own swipe-to-continue button is the only way forward, no back arrow. */}
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ animation: "fade" }} />
-          <Stack.Screen name="AgeGate" component={AgeGateScreen} options={{ animation: "slide_from_right" }} />
+
+          {/* From here on, a real back-arrow appears (transparent header, no title, white
+              tint -- these screens each have their own full-bleed dark background). */}
+          <Stack.Screen
+            name="AgeGate"
+            component={AgeGateScreen}
+            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
+          />
           <Stack.Screen
             name="ChildConsent"
             component={ChildConsentScreen}
-            options={{ animation: "slide_from_right" }}
+            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
           />
-          <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} options={{ animation: "slide_from_right" }} />
-          <Stack.Screen name="MobileOtp" component={MobileOtpScreen} options={{ animation: "slide_from_right" }} />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
+          />
+          <Stack.Screen
+            name="SignUp"
+            component={SignUpScreen}
+            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
+          />
+          <Stack.Screen
+            name="MobileOtp"
+            component={MobileOtpScreen}
+            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
+          />
           <Stack.Screen
             name="EmailVerification"
             component={EmailVerificationScreen}
-            options={{ animation: "slide_from_right" }}
+            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
           />
         </Stack.Navigator>
       </NavigationContainer>
