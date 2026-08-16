@@ -12,10 +12,10 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 const BACKGROUND = require("../assets/images/login-lightbackground.png");
 const HEX_ICONS = [
   require("../assets/icons/store-icon.png"),
-  require("../assets/icons/food-icon.png"),
+  require("../assets/icons/cook-food-icon.png"),
   require("../assets/icons/services-icon.png"),
-  require("../assets/icons/auction-icon.png"),
-  require("../assets/icons/delivery-icon.png"),
+  require("../assets/icons/auction icon.png"),
+  require("../assets/icons/rider-icon.png"),
 ];
 
 /** Screen 3 -- email/password + Google, purely visual (see README). */
