@@ -57,7 +57,7 @@ export function SplashScreen({ navigation }: Props) {
           style={[styles.logo, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
         />
         <Animated.Image
-          source={require("../assets/logo/rapex-name.png")}
+          source={require("../assets/logo/rapex-name-only.png")}
           resizeMode="contain"
           style={[styles.wordmark, { opacity: nameOpacity, transform: [{ translateY: nameTranslateY }] }]}
         />

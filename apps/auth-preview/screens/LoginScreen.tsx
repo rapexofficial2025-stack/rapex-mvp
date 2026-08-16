@@ -33,8 +33,8 @@ export function LoginScreen({ navigation }: Props) {
 
         <View style={styles.brandSection}>
           <Image source={require("../assets/logo/rapex-logo.png")} style={styles.logo} resizeMode="contain" />
-          <Image source={require("../assets/logo/rapex-name.png")} style={styles.wordmark} resizeMode="contain" />
-          <Image source={require("../assets/logo/tagline.png")} style={styles.tagline} resizeMode="contain" />
+          <Image source={require("../assets/logo/rapex-name-only.png")} style={styles.wordmark} resizeMode="contain" />
+          <Image source={require("../assets/logo/masa-white-tagline.png")} style={styles.tagline} resizeMode="contain" />
         </View>
 
         <View style={styles.loginSection}>
