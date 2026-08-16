@@ -6,8 +6,11 @@ import { WelcomeScreen } from "./screens/WelcomeScreen";
 import { AgeGateScreen } from "./screens/AgeGateScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { SignUpScreen } from "./screens/SignUpScreen";
+import { SignUpAddressScreen } from "./screens/SignUpAddressScreen";
 import { MobileOtpScreen } from "./screens/MobileOtpScreen";
 import { EmailVerificationScreen } from "./screens/EmailVerificationScreen";
+import { SignUpCompleteScreen } from "./screens/SignUpCompleteScreen";
+import { WelcomeVideoScreen } from "./screens/WelcomeVideoScreen";
 
 /**
  * Standalone, backend-free preview of just the auth screens -- built so
@@ -30,8 +33,11 @@ export type AuthStackParamList = {
   AgeGate: undefined;
   Login: undefined;
   SignUp: undefined;
+  SignUpAddress: undefined;
   MobileOtp: undefined;
   EmailVerification: undefined;
+  SignUpComplete: undefined;
+  WelcomeVideo: undefined;
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -72,6 +78,11 @@ export default function App() {
             options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
           />
           <Stack.Screen
+            name="SignUpAddress"
+            component={SignUpAddressScreen}
+            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
+          />
+          <Stack.Screen
             name="MobileOtp"
             component={MobileOtpScreen}
             options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
@@ -81,6 +92,14 @@ export default function App() {
             component={EmailVerificationScreen}
             options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
           />
+          <Stack.Screen
+            name="SignUpComplete"
+            component={SignUpCompleteScreen}
+            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
+          />
+          {/* Terminal screen of this preview -- headerless, no back arrow (nothing
+              to usefully go back to once the video's playing/finished). */}
+          <Stack.Screen name="WelcomeVideo" component={WelcomeVideoScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

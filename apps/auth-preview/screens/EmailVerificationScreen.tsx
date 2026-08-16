@@ -15,8 +15,8 @@ export function EmailVerificationScreen({ navigation }: Props) {
         We sent a verification link to your email. Open your mailbox and tap the link to activate your account.
       </Text>
 
-      <GradientButton title="Open Email App" onPress={() => Linking.openURL("mailto:")} />
-      <AuthButton title="Back to Login" onPress={() => navigation.popToTop()} />
+      <GradientButton title="Continue" onPress={() => navigation.navigate("SignUpComplete")} />
+      <AuthButton title="Open Email App" onPress={() => Linking.openURL("mailto:")} />
       <Text style={styles.note}>Not wired to a real backend here -- see the README.</Text>
     </View>
   );

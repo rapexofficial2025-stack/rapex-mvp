@@ -26,7 +26,7 @@ export function SignUpScreen({ navigation }: Props) {
         <InputField placeholder="Phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
         <InputField placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
 
-        <GradientButton title="Sign Up" onPress={() => navigation.navigate("MobileOtp")} />
+        <GradientButton title="Continue" onPress={() => navigation.navigate("SignUpAddress")} />
         <AuthButton title="Back to login" onPress={() => navigation.goBack()} />
       </ScrollView>
     </KeyboardAvoidingView>
