@@ -1,5 +1,5 @@
 import { StyleSheet, View, type ViewStyle } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, type MapStyleElement } from "react-native-maps";
 import { MAP_MARKER_COLORS, type MapMarkerRole } from "@rapex/constants";
 
 /**
@@ -30,6 +30,8 @@ export type RapexMapViewProps = {
   longitudeDelta?: number;
   style?: ViewStyle;
   onMarkerPress?: (marker: RapexMapMarker) => void;
+  /** Google Maps JSON style array (e.g. DARK_MAP_STYLE from @rapex/constants) -- omit for the default look. */
+  customMapStyle?: MapStyleElement[];
 };
 
 const DEFAULT_DELTA = 0.02;
@@ -42,12 +44,14 @@ export function RapexMapView({
   longitudeDelta = DEFAULT_DELTA,
   style,
   onMarkerPress,
+  customMapStyle,
 }: RapexMapViewProps) {
   return (
     <View style={[styles.container, style]}>
       <MapView
         style={styles.map}
         provider={PROVIDER_GOOGLE}
+        customMapStyle={customMapStyle}
         initialRegion={{
           latitude: initialLatitude,
           longitude: initialLongitude,

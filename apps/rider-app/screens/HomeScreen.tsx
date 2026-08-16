@@ -16,6 +16,7 @@ import {
   useRiderWalletSummary,
 } from "@rapex/api-client";
 import { formatPeso } from "@rapex/utils";
+import { DARK_MAP_STYLE } from "@rapex/constants";
 import type { MainTabParamList, RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
 
@@ -111,6 +112,7 @@ export function HomeScreen({ navigation }: Props) {
             initialLatitude={DEFAULT_LATITUDE}
             initialLongitude={DEFAULT_LONGITUDE}
             style={StyleSheet.absoluteFill}
+            customMapStyle={theme.mode === "dark" ? DARK_MAP_STYLE : undefined}
           />
         ) : (
           <View style={[StyleSheet.absoluteFill, styles.mapPlaceholder]} />
