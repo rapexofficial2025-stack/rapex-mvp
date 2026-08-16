@@ -38,7 +38,7 @@ export function LoginScreen({ navigation }: Props) {
 
             <AuthButton
               title="Continue with Google"
-              icon={require("../assets/icons/google-auth-icon.webp")}
+              icon={require("../assets/icons/google-auth-icon.png")}
               variant="glass"
               onPress={() => {}}
             />

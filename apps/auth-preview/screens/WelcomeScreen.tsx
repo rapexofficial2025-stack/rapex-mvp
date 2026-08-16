@@ -26,8 +26,8 @@ const FEATURES: { key: FeatureKey; label: string; icon: ImageSourcePropType; pre
   {
     key: "stores",
     label: "STORES",
-    icon: require("../assets/icons/store-icon.jpg"),
-    preview: require("../assets/icons/store-icon.jpg"),
+    icon: require("../assets/icons/store-icon.png"),
+    preview: require("../assets/icons/store-icon.png"),
   },
   {
     key: "community",

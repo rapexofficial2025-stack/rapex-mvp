@@ -17,6 +17,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Splash">;
 export function SplashScreen({ navigation }: Props) {
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.6)).current;
+  const logoRotate = useRef(new Animated.Value(0)).current;
   const nameOpacity = useRef(new Animated.Value(0)).current;
   const nameTranslateY = useRef(new Animated.Value(15)).current;
 
@@ -28,6 +29,12 @@ export function SplashScreen({ navigation }: Props) {
       useNativeDriver: true,
     }).start();
     Animated.timing(logoScale, {
+      toValue: 1,
+      duration: 1400,
+      easing: Easing.out(Easing.exp),
+      useNativeDriver: true,
+    }).start();
+    Animated.timing(logoRotate, {
       toValue: 1,
       duration: 1400,
       easing: Easing.out(Easing.exp),
@@ -52,6 +59,8 @@ export function SplashScreen({ navigation }: Props) {
     return () => clearTimeout(timer);
   }, [navigation]);
 
+  const logoRotateDeg = logoRotate.interpolate({ inputRange: [0, 1], outputRange: ["-180deg", "0deg"] });
+
   return (
     <View style={styles.page}>
       <StatusBar style="light" hidden />
@@ -60,7 +69,10 @@ export function SplashScreen({ navigation }: Props) {
         <Animated.Image
           source={require("../assets/logo/glass-icon.png")}
           resizeMode="contain"
-          style={[styles.logo, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
+          style={[
+            styles.logo,
+            { opacity: logoOpacity, transform: [{ scale: logoScale }, { rotate: logoRotateDeg }] },
+          ]}
         />
         <Animated.Image
           source={require("../assets/logo/rapex-name-only.png")}
