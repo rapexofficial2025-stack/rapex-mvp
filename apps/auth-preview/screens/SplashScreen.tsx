@@ -34,12 +34,14 @@ export function SplashScreen({ navigation }: Props) {
       easing: Easing.out(Easing.exp),
       useNativeDriver: true,
     }).start();
-    Animated.timing(logoRotate, {
-      toValue: 1,
-      duration: 1400,
-      easing: Easing.out(Easing.exp),
-      useNativeDriver: true,
-    }).start();
+    Animated.loop(
+      Animated.timing(logoRotate, {
+        toValue: 1,
+        duration: 1600,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
     Animated.timing(nameOpacity, {
       toValue: 1,
       duration: 900,
@@ -59,7 +61,7 @@ export function SplashScreen({ navigation }: Props) {
     return () => clearTimeout(timer);
   }, [navigation]);
 
-  const logoRotateDeg = logoRotate.interpolate({ inputRange: [0, 1], outputRange: ["-180deg", "0deg"] });
+  const logoRotateDeg = logoRotate.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
 
   return (
     <View style={styles.page}>
