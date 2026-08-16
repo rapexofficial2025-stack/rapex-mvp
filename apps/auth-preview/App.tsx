@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { SplashScreen } from "./screens/SplashScreen";
 import { WelcomeScreen } from "./screens/WelcomeScreen";
 import { AgeGateScreen } from "./screens/AgeGateScreen";
+import { ChildConsentScreen } from "./screens/ChildConsentScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { SignUpScreen } from "./screens/SignUpScreen";
 import { MobileOtpScreen } from "./screens/MobileOtpScreen";
@@ -28,6 +29,7 @@ export type AuthStackParamList = {
   Splash: undefined;
   Welcome: undefined;
   AgeGate: undefined;
+  ChildConsent: undefined;
   Login: undefined;
   SignUp: undefined;
   MobileOtp: undefined;
@@ -44,6 +46,11 @@ export default function App() {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ animation: "fade" }} />
           <Stack.Screen name="AgeGate" component={AgeGateScreen} options={{ animation: "slide_from_right" }} />
+          <Stack.Screen
+            name="ChildConsent"
+            component={ChildConsentScreen}
+            options={{ animation: "slide_from_right" }}
+          />
           <Stack.Screen name="Login" component={LoginScreen} options={{ animation: "slide_from_right" }} />
           <Stack.Screen name="SignUp" component={SignUpScreen} options={{ animation: "slide_from_right" }} />
           <Stack.Screen name="MobileOtp" component={MobileOtpScreen} options={{ animation: "slide_from_right" }} />

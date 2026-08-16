@@ -1,52 +1,244 @@
-import { ImageBackground, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Image, ImageBackground, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Bell, HelpCircle, Link2, Menu, MessageCircle } from "lucide-react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
-import { AuthButton } from "../components/buttons/AuthButton";
-import { GradientButton } from "../components/buttons/GradientButton";
+import { SlideToContinueButton } from "../components/ui/SlideToContinueButton";
+import { FeaturePreviewModal } from "../components/ui/FeaturePreviewModal";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
-const BACKGROUND = require("../assets/backgrounds/login-lightbackground.png");
+// Placeholder require() paths -- structure/flow only. Drop matching files in
+// and these resolve automatically, no code changes needed:
+//   assets/backgrounds/welcome-hero.png
+//   assets/icons/hex-stores.png, hex-community.png, hex-food.png,
+//     hex-service-provider.png, hex-auction.png
+//   assets/previews/preview-stores.png, preview-community.png,
+//     preview-food.png, preview-service-provider.png, preview-auction.png
+const HERO_BACKGROUND = require("../assets/backgrounds/welcome-hero.png");
+const RAPEX_LOGO = require("../assets/logo/rapex-logo.png");
+const RAPEX_WORDMARK = require("../assets/logo/rapex-name-only.png");
 
-/** Screen 1 -- brand intro with Login / Sign Up choice. Visual only. */
+type FeatureKey = "stores" | "community" | "food" | "serviceProvider" | "auction";
+
+const FEATURES: { key: FeatureKey; label: string; icon: ImageSourcePropType; preview: ImageSourcePropType }[] = [
+  {
+    key: "stores",
+    label: "STORES",
+    icon: require("../assets/icons/hex-stores.png"),
+    preview: require("../assets/previews/preview-stores.png"),
+  },
+  {
+    key: "community",
+    label: "COMMUNITY",
+    icon: require("../assets/icons/hex-community.png"),
+    preview: require("../assets/previews/preview-community.png"),
+  },
+  {
+    key: "food",
+    label: "FOOD",
+    icon: require("../assets/icons/hex-food.png"),
+    preview: require("../assets/previews/preview-food.png"),
+  },
+  {
+    key: "serviceProvider",
+    label: "SERVICE\nPROVIDER",
+    icon: require("../assets/icons/hex-service-provider.png"),
+    preview: require("../assets/previews/preview-service-provider.png"),
+  },
+  {
+    key: "auction",
+    label: "AUCTION",
+    icon: require("../assets/icons/hex-auction.png"),
+    preview: require("../assets/previews/preview-auction.png"),
+  },
+];
+
+/**
+ * Screen 1 -- landing/onboarding page. Visual only: quick-link pills, the
+ * hex feature-preview buttons, and the age-gate handoff are all local;
+ * nothing here calls a backend (see README). Carousel dots at the bottom are
+ * decorative only for now (not a swipeable multi-page carousel yet).
+ */
 export function WelcomeScreen({ navigation }: Props) {
+  const [activePreview, setActivePreview] = useState<ImageSourcePropType | null>(null);
+
   return (
-    <ImageBackground source={BACKGROUND} resizeMode="cover" style={styles.background}>
-      <SafeAreaView style={styles.overlay} edges={["top", "bottom"]}>
-        <View style={styles.brandContainer}>
-          <Text style={styles.brandTitle}>RAPEX</Text>
-          <Text style={styles.brandSubtitle}>Fast delivery, seamless checkout.</Text>
+    <View style={styles.page}>
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+        <SafeAreaView edges={["top"]} style={styles.headerSafe}>
+          <View style={styles.header}>
+            <Pressable hitSlop={10}>
+              <Menu color="#FFFFFF" size={24} />
+            </Pressable>
+            <Text style={styles.headerTitle}>RAPEX Marketplace PH</Text>
+            <Pressable hitSlop={10}>
+              <Bell color="#FFFFFF" size={22} />
+            </Pressable>
+          </View>
+
+          <View style={styles.quickRow}>
+            <View style={styles.quickPill}>
+              <MessageCircle color="#FFFFFF" size={16} />
+              <Text style={styles.quickPillText}>Chat</Text>
+            </View>
+            <View style={styles.quickDivider} />
+            <View style={styles.quickPill}>
+              <Link2 color="#FFFFFF" size={16} />
+              <Text style={styles.quickPillText}>Page</Text>
+            </View>
+            <View style={styles.quickDivider} />
+            <View style={styles.quickPill}>
+              <HelpCircle color="#FFFFFF" size={16} />
+              <Text style={styles.quickPillText}>FAQ</Text>
+            </View>
+          </View>
+        </SafeAreaView>
+
+        <ImageBackground source={HERO_BACKGROUND} resizeMode="cover" style={styles.hero}>
+          <View style={styles.heroOverlay}>
+            <Image source={RAPEX_LOGO} style={styles.heroLogo} resizeMode="contain" />
+            <Image source={RAPEX_WORDMARK} style={styles.heroWordmark} resizeMode="contain" />
+            <Text style={styles.heroTagline}>
+              DELIVERING THE FUTURE, <Text style={styles.heroTaglineAccent}>TODAY.</Text>
+            </Text>
+
+            <Text style={styles.heroHeadline}>
+              ANG BAGONG <Text style={styles.heroHeadlineAccent}>APP</Text>
+              {"\n"}
+              NA PARA SA <Text style={styles.heroHeadlineAccent}>MASA</Text>
+            </Text>
+            <View style={styles.heroDivider} />
+          </View>
+        </ImageBackground>
+
+        <View style={styles.featureRow}>
+          {FEATURES.map((feature) => (
+            <Pressable key={feature.key} style={styles.featureButton} onPress={() => setActivePreview(feature.preview)}>
+              <View style={styles.featureHex}>
+                <Image source={feature.icon} style={styles.featureIcon} resizeMode="contain" />
+              </View>
+              <Text style={styles.featureLabel}>{feature.label}</Text>
+            </Pressable>
+          ))}
         </View>
 
-        <View style={styles.actionArea}>
-          <GradientButton title="Login" onPress={() => navigation.navigate("AgeGate")} />
-          <AuthButton title="Sign Up" onPress={() => navigation.navigate("SignUp")} />
+        <View style={styles.ctaArea}>
+          <SlideToContinueButton label="Let's get Started" onComplete={() => navigation.navigate("AgeGate")} />
         </View>
 
-        <Text style={styles.footerText}>Secure buyer access, dual-shield verification powered by Xano.</Text>
-      </SafeAreaView>
-    </ImageBackground>
+        <View style={styles.footerBox}>
+          <Text style={styles.footerText}>© 2026 Rapex Technologies OPC™</Text>
+          <Text style={styles.footerText}>SEC & BIR Registered. Official Launch: 2026.</Text>
+          <Text style={styles.footerText}>All Rights Reserved.</Text>
+        </View>
+
+        <Text style={styles.footerTagline}>KAHIT SAAN, KAHIT KAILAN.</Text>
+
+        <View style={styles.dotsRow}>
+          <View style={[styles.dot, styles.dotActive]} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+        </View>
+      </ScrollView>
+
+      <FeaturePreviewModal visible={activePreview !== null} image={activePreview} onClose={() => setActivePreview(null)} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: { flex: 1, justifyContent: "flex-end" },
-  overlay: {
-    flex: 1,
-    padding: 28,
+  page: { flex: 1, backgroundColor: "#0B0713" },
+  scrollContent: { paddingBottom: 32 },
+  headerSafe: { backgroundColor: "#0B0713" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "rgba(10, 12, 24, 0.62)",
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 14,
   },
-  brandContainer: { marginTop: 120 },
-  brandTitle: { fontSize: 52, fontWeight: "900", color: "#FFFFFF", letterSpacing: 4 },
-  brandSubtitle: {
-    marginTop: 12,
-    fontSize: 18,
-    color: "rgba(255,255,255,0.8)",
-    lineHeight: 28,
-    maxWidth: "80%",
+  headerTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "700" },
+  quickRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 20,
+    marginBottom: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+    backgroundColor: "rgba(255,255,255,0.04)",
   },
-  actionArea: { gap: 12, marginBottom: 36 },
-  footerText: { color: "rgba(255,255,255,0.62)", fontSize: 14, textAlign: "center", marginBottom: 16 },
+  quickPill: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14 },
+  quickPillText: { color: "#FFFFFF", fontSize: 13, fontWeight: "600" },
+  quickDivider: { width: 1, height: 16, backgroundColor: "rgba(255,255,255,0.2)" },
+  hero: { width: "100%", aspectRatio: 0.82, justifyContent: "flex-end" },
+  heroOverlay: { alignItems: "center", paddingHorizontal: 24, paddingBottom: 20 },
+  heroLogo: { width: 130, height: 90 },
+  heroWordmark: { width: 220, height: 60, marginTop: 4 },
+  heroTagline: { color: "#FFFFFF", fontSize: 12, fontWeight: "700", letterSpacing: 1, marginTop: 6 },
+  heroTaglineAccent: { color: "#F97316" },
+  heroHeadline: {
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "900",
+    textAlign: "center",
+    marginTop: 16,
+    lineHeight: 30,
+  },
+  heroHeadlineAccent: { color: "#F97316" },
+  heroDivider: { width: 90, height: 4, borderRadius: 2, backgroundColor: "#F97316", marginTop: 12 },
+  featureRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 24,
+  },
+  featureButton: { alignItems: "center", width: 62 },
+  featureHex: {
+    width: 58,
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: "rgba(139, 92, 246, 0.25)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  featureIcon: { width: 30, height: 30 },
+  featureLabel: {
+    marginTop: 6,
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
+    textAlign: "center",
+    letterSpacing: 0.5,
+  },
+  ctaArea: { paddingHorizontal: 20, marginBottom: 20 },
+  footerBox: {
+    marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    borderRadius: 18,
+    paddingVertical: 14,
+    alignItems: "center",
+    gap: 2,
+  },
+  footerText: { color: "rgba(255,255,255,0.7)", fontSize: 11 },
+  footerTagline: {
+    textAlign: "center",
+    color: "#C4B5FD",
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 1,
+    marginTop: 14,
+  },
+  dotsRow: { flexDirection: "row", justifyContent: "center", gap: 6, marginTop: 14 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.3)" },
+  dotActive: { width: 20, backgroundColor: "#FFFFFF" },
 });

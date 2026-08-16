@@ -15,8 +15,9 @@ const CURRENT_YEAR = new Date().getFullYear();
 /**
  * Screen 2 -- visual only, no real backend age check here (that lives in
  * apps/customer-app's AgeGateScreen, which calls the real Xano
- * /pre-auth/check-age endpoint). Under 18 just shows an inline message
- * instead of navigating -- there's no IpLockout screen in this preview.
+ * /pre-auth/check-age endpoint). Under 18 routes to ChildConsent instead of
+ * Login -- same app/stack, just a different downstream screen, per product
+ * decision to reuse this flow rather than build a separate minor-only app.
  */
 export function AgeGateScreen({ navigation }: Props) {
   const [birthYear, setBirthYear] = useState(String(CURRENT_YEAR - 25));
@@ -61,11 +62,15 @@ export function AgeGateScreen({ navigation }: Props) {
                     {displayAge !== null ? <Text style={styles.ageText}>Age: {displayAge} years old</Text> : null}
                   </View>
 
-                  {underage ? <Text style={styles.errorText}>You must be 18 or older to continue.</Text> : null}
+                  {underage ? (
+                    <Text style={styles.noticeText}>
+                      You're under 18 -- a parent/guardian must provide consent to continue.
+                    </Text>
+                  ) : null}
 
                   <Pressable
-                    disabled={birthYear.length !== 4 || underage}
-                    onPress={() => navigation.navigate("Login")}
+                    disabled={birthYear.length !== 4}
+                    onPress={() => navigation.navigate(underage ? "ChildConsent" : "Login")}
                     style={({ pressed }) => [styles.ctaWrap, { opacity: pressed ? 0.9 : 1 }]}
                   >
                     <LinearGradient
@@ -74,7 +79,9 @@ export function AgeGateScreen({ navigation }: Props) {
                       end={{ x: 1, y: 0 }}
                       style={styles.ctaButton}
                     >
-                      <Text style={styles.ctaText}>Confirm Age & Continue</Text>
+                      <Text style={styles.ctaText}>
+                        {underage ? "Continue with Guardian Consent" : "Confirm Age & Continue"}
+                      </Text>
                       <ArrowRight color="#FFFFFF" size={16} />
                     </LinearGradient>
                   </Pressable>
@@ -139,7 +146,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.4)",
   },
   ageText: { textAlign: "center", fontSize: 12, fontWeight: "800", color: "#FDBA74" },
-  errorText: { color: "#FCA5A5", fontSize: 12, textAlign: "center" },
+  noticeText: { color: "#FDBA74", fontSize: 12, textAlign: "center" },
   ctaWrap: { width: "100%", marginTop: 4 },
   ctaButton: {
     flexDirection: "row",
