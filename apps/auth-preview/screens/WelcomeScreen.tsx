@@ -16,7 +16,9 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 //     hex-service-provider.png, hex-auction.png
 //   assets/previews/preview-stores.png, preview-community.png,
 //     preview-food.png, preview-service-provider.png, preview-auction.png
-const HERO_BACKGROUND = require("../assets/backgrounds/welcome-hero.png");
+// Reusing the existing login background until a dedicated hero image exists --
+// swap this path once one is ready.
+const HERO_BACKGROUND = require("../assets/backgrounds/login-lightbackground.png");
 const RAPEX_LOGO = require("../assets/logo/rapex-logo.png");
 const RAPEX_WORDMARK = require("../assets/logo/rapex-name-only.png");
 
