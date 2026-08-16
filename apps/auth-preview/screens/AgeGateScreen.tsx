@@ -7,10 +7,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ShieldCheck, ArrowRight } from "lucide-react-native";
 import type { AuthStackParamList } from "../App";
+import { SelectField } from "../components/ui/SelectField";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "AgeGate">;
 
 const CURRENT_YEAR = new Date().getFullYear();
+
+// Placeholder options -- real list is Xano's community-master data (see
+// docs mentioning Culture/Community), not yet available here. Swap once
+// that's wired up.
+const CULTURE_OPTIONS = [
+  { label: "General", value: "general" },
+  { label: "Family", value: "family" },
+  { label: "Student", value: "student" },
+  { label: "Professional", value: "professional" },
+  { label: "Senior", value: "senior" },
+];
 
 /**
  * Screen 2 -- visual only, no real backend age check here (that lives in
@@ -24,6 +36,7 @@ const CURRENT_YEAR = new Date().getFullYear();
  */
 export function AgeGateScreen({ navigation }: Props) {
   const [birthYear, setBirthYear] = useState(String(CURRENT_YEAR - 25));
+  const [culture, setCulture] = useState<string | null>(null);
   const yearNumber = Number(birthYear);
   const displayAge = Number.isFinite(yearNumber) && birthYear.length === 4 ? CURRENT_YEAR - yearNumber : null;
   const underage = displayAge !== null && displayAge < 18;
@@ -63,6 +76,16 @@ export function AgeGateScreen({ navigation }: Props) {
                       onChangeText={setBirthYear}
                     />
                     {displayAge !== null ? <Text style={styles.ageText}>Age: {displayAge} years old</Text> : null}
+                  </View>
+
+                  <View style={styles.cultureWrap}>
+                    <SelectField
+                      label="What is your Culture?"
+                      value={culture}
+                      options={CULTURE_OPTIONS}
+                      onChange={setCulture}
+                      placeholder="Select (optional)"
+                    />
                   </View>
 
                   {underage ? (
@@ -147,6 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.4)",
   },
   ageText: { textAlign: "center", fontSize: 12, fontWeight: "800", color: "#FDBA74" },
+  cultureWrap: { width: "100%" },
   noticeText: { color: "#FDBA74", fontSize: 12, textAlign: "center" },
   ctaWrap: { width: "100%", marginTop: 4 },
   ctaButton: {

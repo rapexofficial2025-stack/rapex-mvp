@@ -4,11 +4,12 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 type Props = {
   title: string;
   onPress?: () => void;
+  disabled?: boolean;
 };
 
-export function GradientButton({ title, onPress }: Props) {
+export function GradientButton({ title, onPress, disabled }: Props) {
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={disabled ? undefined : onPress} style={disabled && styles.disabled}>
       <LinearGradient
         colors={["#FF7A00", "#B100FF"]}
         start={{ x: 0, y: 0.5 }}
@@ -38,4 +39,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   arrow: { fontSize: 22, color: "#7B3FF2", fontWeight: "900" },
+  disabled: { opacity: 0.5 },
 });
