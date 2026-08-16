@@ -5,7 +5,7 @@ import { Bell, MessageCircle, Menu, Compass, Layers, Plus, ChevronRight, Package
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Badge, Button, ErrorState, GlassCard, Loading, RapexGlassCard } from "@rapex/ui-native";
+import { Badge, Button, ErrorState, GlassCard, Loading, RapexGlassCard, RapexMapView } from "@rapex/ui-native";
 import {
   useAsyncAction,
   useCurrentOffer,
@@ -20,6 +20,12 @@ import type { MainTabParamList, RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
 
 type Props = CompositeScreenProps<BottomTabScreenProps<MainTabParamList, "Home">, NativeStackScreenProps<RootStackParamList>>;
+
+// Same pilot-area default used by customer-app's AddressScreen (Kawit town center) -- there's
+// no live GPS/rider-location endpoint wired up yet, so this is a starting viewport, not a real fix.
+const DEFAULT_LATITUDE = 14.4297;
+const DEFAULT_LONGITUDE = 120.936;
+const GOOGLE_MAPS_CONFIGURED = !!process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 /**
  * Rebuilt to match the reference design (map header + profile/wallet card +
@@ -95,9 +101,20 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <View style={[styles.page, { backgroundColor: theme.colors.background }]}>
-      {/* Map header -- placeholder gradient until a real Google Maps API key + live GPS exist. */}
+      {/* Map header -- real RapexMapView once EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is set, otherwise
+          a placeholder. Centered on the pilot area default, not live GPS (no rider-location
+          endpoint wired up yet either way -- see RapexMapView.tsx for both caveats). */}
       <View style={styles.mapArea}>
-        <View style={[StyleSheet.absoluteFill, styles.mapPlaceholder]} />
+        {GOOGLE_MAPS_CONFIGURED ? (
+          <RapexMapView
+            markers={[{ id: profile.id, role: "rider", latitude: DEFAULT_LATITUDE, longitude: DEFAULT_LONGITUDE, label: profile.fullName }]}
+            initialLatitude={DEFAULT_LATITUDE}
+            initialLongitude={DEFAULT_LONGITUDE}
+            style={StyleSheet.absoluteFill}
+          />
+        ) : (
+          <View style={[StyleSheet.absoluteFill, styles.mapPlaceholder]} />
+        )}
         <SafeAreaView edges={["top"]}>
           <View style={styles.mapHeaderRow}>
             <Pressable style={styles.mapIconButton}>
