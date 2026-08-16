@@ -10,27 +10,12 @@ import { InputField } from "../components/ui/InputField";
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
 const BACKGROUND = require("../assets/backgrounds/login-lightbackground.png");
-const HEX_ICONS = [
-  require("../assets/icons/store-icon.jpg"),
-  require("../assets/icons/cook-food-icon.png"),
-  require("../assets/icons/services-icon.png"),
-  require("../assets/icons/auction-icon.png"),
-  require("../assets/icons/rider-icon.PNG"),
-];
 
 /** Screen 3 -- email/password + Google, purely visual (see README). */
 export function LoginScreen({ navigation }: Props) {
   return (
     <ImageBackground source={BACKGROUND} resizeMode="cover" style={styles.container}>
       <SafeAreaView style={styles.content} edges={["top", "bottom"]}>
-        <View style={styles.hexRow}>
-          {HEX_ICONS.map((icon, i) => (
-            <View key={i} style={styles.hexButton}>
-              <Image source={icon} style={styles.hexIcon} />
-            </View>
-          ))}
-        </View>
-
         <View style={styles.brandSection}>
           <Image source={require("../assets/logo/rapex-logo.png")} style={styles.logo} resizeMode="contain" />
           <Image source={require("../assets/logo/rapex-name-only.png")} style={styles.wordmark} resizeMode="contain" />
@@ -74,17 +59,6 @@ export function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1, backgroundColor: "rgba(0,0,0,0.18)" },
-  hexRow: { height: 90, flexDirection: "row", justifyContent: "space-evenly", alignItems: "center" },
-  hexButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hexIcon: { width: 28, height: 28 },
   brandSection: { flex: 2, alignItems: "center", justifyContent: "center" },
   logo: { width: 110, height: 110 },
   wordmark: { width: 230, height: 55, marginTop: 10 },
