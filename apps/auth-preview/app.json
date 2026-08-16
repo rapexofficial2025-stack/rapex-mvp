@@ -12,9 +12,11 @@
       "backgroundColor": "#0B0713"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "ph.rapex.authpreview"
     },
     "android": {
+      "package": "ph.rapex.authpreview",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0B0713"
