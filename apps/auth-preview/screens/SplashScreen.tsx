@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Animated, Easing, ImageBackground, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Animated, Dimensions, Easing, ImageBackground, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
@@ -22,7 +22,10 @@ const TIRE_SIZE = 54;
  * call.
  */
 export function SplashScreen({ navigation }: Props) {
-  const { width } = useWindowDimensions();
+  // Snapshot once at mount via Dimensions.get -- NOT the useWindowDimensions hook, which
+  // re-renders (and was re-firing this whole effect mid-animation, restarting it) whenever
+  // Android settles its layout/insets shortly after the screen mounts.
+  const width = useRef(Dimensions.get("window").width).current;
 
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.6)).current;
@@ -32,13 +35,9 @@ export function SplashScreen({ navigation }: Props) {
 
   const motorcycleX = useRef(new Animated.Value(width)).current;
   const splashPanelX = useRef(new Animated.Value(0)).current;
-  const wheelSpin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const contactX = width * 0.35;
-    const wheelLoop = Animated.loop(
-      Animated.timing(wheelSpin, { toValue: 1, duration: 220, easing: Easing.linear, useNativeDriver: true })
-    );
 
     const sequence = Animated.sequence([
       // Phase 1 (0 - 1.2s): icon fades/scales in with exactly ONE smooth 360 rotation.
@@ -63,22 +62,18 @@ export function SplashScreen({ navigation }: Props) {
       ]),
     ]);
 
-    // Wheels spin only while the motorcycle is on screen and moving (phases 4-5, ~2.5s-3.6s).
-    const wheelTimer = setTimeout(() => wheelLoop.start(), 2500);
-    const stopWheelTimer = setTimeout(() => wheelLoop.stop(), 3600);
-
     sequence.start(() => navigation.replace("Welcome"));
 
     return () => {
-      clearTimeout(wheelTimer);
-      clearTimeout(stopWheelTimer);
-      wheelLoop.stop();
       sequence.stop();
     };
-  }, [navigation, width, logoOpacity, logoScale, logoRotate, nameOpacity, nameTranslateY, motorcycleX, splashPanelX, wheelSpin]);
+    // Intentionally mount-only -- width is a fixed snapshot (see above) and the Animated.Value
+    // refs are stable across renders, so re-running this on every render would restart the
+    // whole cinematic sequence from scratch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigation]);
 
   const logoRotateDeg = logoRotate.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
-  const wheelRotateDeg = wheelSpin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
 
   return (
     <View style={styles.page}>
@@ -105,17 +100,19 @@ export function SplashScreen({ navigation }: Props) {
         </View>
       </Animated.View>
 
-      {/* Motorcycle layer -- above the splash panel so it visibly overlaps/contacts it during the push. */}
+      {/* Motorcycle layer -- above the splash panel so it visibly overlaps/contacts it during the push.
+          Wheels are static for now (not spinning) to keep this transition simple while we confirm
+          the core push/timing works -- re-add wheel rotation once that's solid. */}
       <Animated.View style={[styles.motorcycle, { transform: [{ translateX: motorcycleX }] }]}>
         <Animated.Image
           source={require("../assets/logo/front tire.png")}
           resizeMode="contain"
-          style={[styles.tire, styles.frontTire, { transform: [{ rotate: wheelRotateDeg }] }]}
+          style={[styles.tire, styles.frontTire]}
         />
         <Animated.Image
           source={require("../assets/logo/rear tire.png")}
           resizeMode="contain"
-          style={[styles.tire, styles.rearTire, { transform: [{ rotate: wheelRotateDeg }] }]}
+          style={[styles.tire, styles.rearTire]}
         />
         <Animated.Image
           source={require("../assets/logo/rider no wheel.png")}
