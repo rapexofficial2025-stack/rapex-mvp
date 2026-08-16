@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Animated, Dimensions, Easing, ImageBackground, StyleSheet, View } from "react-native";
+import { Animated, Dimensions, Easing, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
@@ -30,7 +30,10 @@ const PUSH_DURATION = 1400;
  * position (derived from the SAME Animated.Value, not a separate timing),
  * so it visually reads as the rider dragging the panel off screen by
  * contact, ending the moment the rider (and panel) are both fully exited
- * left. login-dark-2 sits behind everything so there's no flash/gap.
+ * left. The page's own solid background color sits behind everything, not
+ * a photo -- login-dark-2 belongs to LoginScreen now, not here (having it
+ * on both Splash and the very next real photo background read as a
+ * doubled/duplicated backdrop).
  */
 export function SplashScreen({ navigation }: Props) {
   const width = useRef(Dimensions.get("window").width).current;
@@ -133,9 +136,6 @@ export function SplashScreen({ navigation }: Props) {
   return (
     <View style={styles.page}>
       <StatusBar style="light" hidden />
-
-      {/* Sits behind everything -- revealed the instant the splash panel clears the left edge. */}
-      <ImageBackground source={require("../assets/backgrounds/login-dark-2.png")} style={StyleSheet.absoluteFill} resizeMode="cover" />
 
       {/* The whole splash panel (background + icon + wordmark) moves together as ONE physical layer. */}
       <Animated.View style={[styles.panel, { transform: [{ translateX: splashPanelX }] }]}>

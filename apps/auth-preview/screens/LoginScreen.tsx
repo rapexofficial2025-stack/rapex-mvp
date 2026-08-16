@@ -9,7 +9,7 @@ import { InputField } from "../components/ui/InputField";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
-const BACKGROUND = require("../assets/backgrounds/login-lightbackground.png");
+const BACKGROUND = require("../assets/backgrounds/login-dark-2.png");
 
 /** Screen 3 -- email/password + Google, purely visual (see README). */
 export function LoginScreen({ navigation }: Props) {
