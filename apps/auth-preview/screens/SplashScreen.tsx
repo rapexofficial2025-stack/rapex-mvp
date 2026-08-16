@@ -17,32 +17,32 @@ export function SplashScreen({ navigation }: Props) {
   useEffect(() => {
     Animated.timing(logoOpacity, {
       toValue: 1,
-      duration: 900,
+      duration: 1200,
       easing: Easing.out(Easing.exp),
       useNativeDriver: true,
     }).start();
     Animated.timing(logoScale, {
       toValue: 1,
-      duration: 1100,
+      duration: 1400,
       easing: Easing.out(Easing.exp),
       useNativeDriver: true,
     }).start();
     Animated.timing(nameOpacity, {
       toValue: 1,
-      duration: 700,
-      delay: 900,
+      duration: 900,
+      delay: 1800,
       easing: Easing.out(Easing.exp),
       useNativeDriver: true,
     }).start();
     Animated.timing(nameTranslateY, {
       toValue: 0,
-      duration: 700,
-      delay: 900,
+      duration: 900,
+      delay: 1800,
       easing: Easing.out(Easing.exp),
       useNativeDriver: true,
     }).start();
 
-    const timer = setTimeout(() => navigation.replace("Welcome"), 2400);
+    const timer = setTimeout(() => navigation.replace("Welcome"), 5000);
     return () => clearTimeout(timer);
   }, [navigation]);
 
