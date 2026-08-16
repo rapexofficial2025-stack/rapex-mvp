@@ -1,4 +1,4 @@
-import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
@@ -9,7 +9,8 @@ import { InputField } from "../components/ui/InputField";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
-const BACKGROUND = require("../assets/images/login-lightbackground.png");
+// TODO: swap back to an ImageBackground once a final background image is chosen
+// (login-lightbackground.png was removed from assets/images during art rework).
 const HEX_ICONS = [
   require("../assets/icons/store-icon.png"),
   require("../assets/icons/cook-food-icon.png"),
@@ -21,7 +22,7 @@ const HEX_ICONS = [
 /** Screen 3 -- email/password + Google, purely visual (see README). */
 export function LoginScreen({ navigation }: Props) {
   return (
-    <ImageBackground source={BACKGROUND} resizeMode="cover" style={styles.container}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.content} edges={["top", "bottom"]}>
         <View style={styles.hexRow}>
           {HEX_ICONS.map((icon, i) => (
@@ -67,13 +68,13 @@ export function LoginScreen({ navigation }: Props) {
 
         <Text style={styles.footerText}>RAPEX Marketplace v1.0</Text>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { flex: 1, backgroundColor: "rgba(0,0,0,0.18)" },
+  container: { flex: 1, backgroundColor: "#0F0420" },
+  content: { flex: 1 },
   hexRow: { height: 90, flexDirection: "row", justifyContent: "space-evenly", alignItems: "center" },
   hexButton: {
     width: 58,
