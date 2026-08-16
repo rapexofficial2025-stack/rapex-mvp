@@ -9,7 +9,6 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Splash">;
 
 const MOTORCYCLE_WIDTH = 240;
 const MOTORCYCLE_HEIGHT = 140;
-const TIRE_SIZE = 54;
 
 /**
  * Screen 0 -- cinematic brand intro (~3.6s), then hands off to Welcome.
@@ -101,25 +100,15 @@ export function SplashScreen({ navigation }: Props) {
       </Animated.View>
 
       {/* Motorcycle layer -- above the splash panel so it visibly overlaps/contacts it during the push.
-          Tires render FIRST so they sit BEHIND the body/fenders (rendered last), matching how a
-          real motorcycle's wheels are partly covered by the frame. Wheels are static for now (no
-          spin) to keep this simple while we confirm the core push/timing works. */}
+          front-tire/rear-tire/rider-no-wheel are all full-canvas PNGs at the same dimensions as
+          the body art (the tire is already correctly positioned within its own transparent
+          canvas), so all three stack at identical size/position -- no manual offsets. Tires
+          render FIRST so they sit BEHIND the body/fenders (rendered last). Wheels are static for
+          now (no spin) to keep this simple while we confirm the core push/timing works. */}
       <Animated.View style={[styles.motorcycle, { transform: [{ translateX: motorcycleX }] }]}>
-        <Animated.Image
-          source={require("../assets/logo/front tire.png")}
-          resizeMode="contain"
-          style={[styles.tire, styles.frontTire]}
-        />
-        <Animated.Image
-          source={require("../assets/logo/rear tire.png")}
-          resizeMode="contain"
-          style={[styles.tire, styles.rearTire]}
-        />
-        <Animated.Image
-          source={require("../assets/logo/rider no wheel.png")}
-          resizeMode="contain"
-          style={styles.motorcycleBody}
-        />
+        <Animated.Image source={require("../assets/logo/front-tire.png")} resizeMode="contain" style={styles.motorcycleLayer} />
+        <Animated.Image source={require("../assets/logo/rear-tire.png")} resizeMode="contain" style={styles.motorcycleLayer} />
+        <Animated.Image source={require("../assets/logo/rider-no-wheel.png")} resizeMode="contain" style={styles.motorcycleLayer} />
       </Animated.View>
     </View>
   );
@@ -159,23 +148,11 @@ const styles = StyleSheet.create({
     height: MOTORCYCLE_HEIGHT,
     zIndex: 20,
   },
-  motorcycleBody: {
+  motorcycleLayer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
     width: "100%",
     height: "100%",
-  },
-  tire: {
-    position: "absolute",
-    width: TIRE_SIZE,
-    height: TIRE_SIZE,
-    bottom: 6,
-  },
-  // Motorcycle faces LEFT (it's pushing the panel that direction) -- front wheel leads on the left,
-  // rear wheel trails on the right. Nudge these two offsets once testing against the real
-  // "rider no wheel" artwork's actual wheel-well positions.
-  frontTire: {
-    left: 18,
-  },
-  rearTire: {
-    right: 18,
   },
 });
