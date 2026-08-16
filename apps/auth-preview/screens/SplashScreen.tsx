@@ -9,7 +9,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Splash">;
 
 const MOTORCYCLE_WIDTH = 240;
 const MOTORCYCLE_HEIGHT = 140;
-const PUSH_DURATION = 1400;
+const PUSH_DURATION = 650; // fast bike run -- was 1400ms, felt too slow/leisurely
 
 /**
  * Screen 0 -- cinematic brand intro (~3.9s), then hands off to Welcome.
