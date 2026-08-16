@@ -11,6 +11,7 @@ import type { RiderEconomyRepository } from "./repositories/rider/RiderEconomyRe
 import type { DeliveryRepository } from "./repositories/delivery/DeliveryRepository";
 import type { ReferenceDataRepository } from "./repositories/reference/ReferenceDataRepository";
 import type { KycRepository } from "./repositories/kyc/KycRepository";
+import type { ChildAccountRepository } from "./repositories/childAccount/ChildAccountRepository";
 
 export type Repositories = {
   auth: AuthRepository;
@@ -27,6 +28,7 @@ export type Repositories = {
   /** Optional so existing apps' repository sets don't need to change -- same convention as the rider fields above. */
   referenceData?: ReferenceDataRepository;
   kyc?: KycRepository;
+  childAccount?: ChildAccountRepository;
 };
 
 const RepositoriesContext = createContext<Repositories | null>(null);

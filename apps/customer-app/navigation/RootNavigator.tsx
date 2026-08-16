@@ -27,6 +27,11 @@ import { RexScreen } from "../screens/RexScreen";
 import { AuctionHomeScreen } from "../screens/AuctionHomeScreen";
 import { AuctionDetailsScreen } from "../screens/AuctionDetailsScreen";
 import { AuctionProfileScreen } from "../screens/AuctionProfileScreen";
+import { ChildAccountsScreen } from "../screens/child-accounts/ChildAccountsScreen";
+import { ChildBasicInfoScreen } from "../screens/child-accounts/ChildBasicInfoScreen";
+import { ChildAddressScreen } from "../screens/child-accounts/ChildAddressScreen";
+import { ChildStudentStatusScreen } from "../screens/child-accounts/ChildStudentStatusScreen";
+import { ChildAuthorizationScreen } from "../screens/child-accounts/ChildAuthorizationScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -79,6 +84,11 @@ export function RootNavigator() {
       <Stack.Screen name="Address" component={AddressScreen} options={{ headerShown: true, title: "Delivery Address" }} />
       <Stack.Screen name="Wallet" component={WalletScreen} options={{ headerShown: true, title: "Wallet" }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: "Profile" }} />
+      <Stack.Screen name="ChildAccounts" component={ChildAccountsScreen} options={{ headerShown: true, title: "Child Accounts" }} />
+      <Stack.Screen name="ChildBasicInfo" component={ChildBasicInfoScreen} options={{ headerShown: true, title: "Add Child" }} />
+      <Stack.Screen name="ChildAddress" component={ChildAddressScreen} options={{ headerShown: true, title: "Add Child" }} />
+      <Stack.Screen name="ChildStudentStatus" component={ChildStudentStatusScreen} options={{ headerShown: true, title: "Add Child" }} />
+      <Stack.Screen name="ChildAuthorization" component={ChildAuthorizationScreen} options={{ headerShown: true, title: "Add Child" }} />
       <Stack.Screen name="Rex" component={RexScreen} options={{ headerShown: true, title: "R.E.X." }} />
       <Stack.Screen name="AuctionHome" component={AuctionHomeScreen} options={{ headerShown: true, title: "Auctions" }} />
       <Stack.Screen

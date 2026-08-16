@@ -32,6 +32,11 @@ export type RootStackParamList = {
   Address: { fromRegistration?: boolean } | undefined;
   Wallet: undefined;
   Profile: undefined;
+  ChildAccounts: undefined;
+  ChildBasicInfo: undefined;
+  ChildAddress: undefined;
+  ChildStudentStatus: undefined;
+  ChildAuthorization: undefined;
   Rex: undefined;
   AuctionHome: undefined;
   AuctionDetails: { auctionId: string };

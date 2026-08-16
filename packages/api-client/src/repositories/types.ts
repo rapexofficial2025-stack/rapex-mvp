@@ -755,3 +755,62 @@ export type MerchantOrderFinancials = {
 };
 
 export type { Paginated };
+
+// ---- Child Accounts / Baon ----
+// Provisional shapes per the Child Accounts/Baon technical proposal
+// (2026-08-16) -- CHILD is a value of the same account_role as
+// customer/rider/merchant/admin, not a separate app or auth system. Field
+// names here are illustrative until a real Xano contract is confirmed
+// (see ChildAccountRepository's Mock implementation for the working
+// stand-in used until then).
+export type ChildAccountStatus = "active" | "inactive";
+
+export type ChildAccountSummary = {
+  id: ID;
+  fullName: string;
+  email: string;
+  dateOfBirth: ISODateString;
+  gender: "Male" | "Female" | "Prefer not to say" | null;
+  status: ChildAccountStatus;
+  isStudent: boolean;
+  createdAt: ISODateString;
+};
+
+export type CreateChildAccountInput = {
+  fullName: string;
+  email: string;
+  password: string;
+  dateOfBirth: ISODateString;
+  gender: "Male" | "Female" | "Prefer not to say" | null;
+  municipalityId: string | null;
+  municipalityName: string | null;
+  barangayId: string | null;
+  barangayName: string | null;
+  addressLine1: string;
+  isStudent: boolean;
+  /** Required when isStudent=true. */
+  studentVerificationRef?: string | null;
+  /** Required when isStudent=false. */
+  nonStudentReason?: string | null;
+  /** Required when isStudent=false. */
+  intendedUsePurpose?: string | null;
+  /** The primary account explicitly authorizing creation -- this IS the authorization step, no separate approval workflow. */
+  parentAuthorizationConfirmed: boolean;
+};
+
+export type ChildBaonSummary = {
+  childId: ID;
+  allocatedBudget: number;
+  spentAmount: number;
+  remainingBudget: number;
+};
+
+export type ChildPurchaseHistoryEntry = OrderSummary & {
+  childId: ID;
+};
+
+export type UnallocatedBalanceSummary = {
+  walletBalance: number;
+  totalCommittedToChildren: number;
+  availableToAllocate: number;
+};

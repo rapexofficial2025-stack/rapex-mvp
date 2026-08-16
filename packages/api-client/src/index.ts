@@ -47,6 +47,16 @@ export type { ReferenceDataRepository, LocationOption, Community } from "./repos
 export { XanoReferenceDataRepository } from "./repositories/reference/XanoReferenceDataRepository";
 export type { KycRepository, SubmitKycInput, SubmitKycResult } from "./repositories/kyc/KycRepository";
 export { XanoKycRepository } from "./repositories/kyc/XanoKycRepository";
+export type { ChildAccountRepository } from "./repositories/childAccount/ChildAccountRepository";
+export { MockChildAccountRepository } from "./repositories/childAccount/MockChildAccountRepository";
+export type {
+  ChildAccountStatus,
+  ChildAccountSummary,
+  CreateChildAccountInput,
+  ChildBaonSummary,
+  ChildPurchaseHistoryEntry,
+  UnallocatedBalanceSummary,
+} from "./repositories/types";
 
 // Hooks
 export * from "./hooks/useAsync";
@@ -58,4 +68,5 @@ export * from "./hooks/useMerchant";
 export * from "./hooks/useAdmin";
 export * from "./hooks/useRider";
 export * from "./hooks/useDelivery";
+export * from "./hooks/useChildAccount";
 export * from "./hooks/useRiderWallet";
