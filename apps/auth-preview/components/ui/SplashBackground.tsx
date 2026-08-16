@@ -14,58 +14,83 @@ type GlowShapeConfig = {
   driftX: [number, number];
   driftY: [number, number];
   duration: number;
+  maxOpacity: number;
+  fadeInDelay: number;
 };
 
-// Soft, slow-drifting glass circles -- no shadow/elevation (Android's `elevation`
+// Soft, slow-drifting glass bubbles -- no shadow/elevation (Android's `elevation`
 // only renders a hard, dark, boxy shadow, not a soft colored glow like iOS
 // shadows -- that was producing the ugly black square edge). Transparency +
 // blur do all the "glow" work instead, which reads as actual glass on both
-// platforms.
+// platforms. 1 big + 2 medium + 2 small, each fading in on its own delay and
+// drifting at its own random pace so they never feel synced/mechanical.
+// Colors bumped ~5% more vibrant than the original flat/"dead" version.
 const SHAPES: GlowShapeConfig[] = [
   {
-    size: 320,
-    top: -90,
-    left: -70,
-    colors: ["rgba(249,115,22,0.14)", "rgba(249,115,22,0.02)"],
-    borderColor: "rgba(249,115,22,0.20)",
-    driftX: [-24, 24],
-    driftY: [-16, 16],
-    duration: 15000,
+    size: 380,
+    top: -100,
+    left: -90,
+    colors: ["rgba(124,58,237,0.19)", "rgba(124,58,237,0.02)"],
+    borderColor: "rgba(124,58,237,0.24)",
+    driftX: [-26, 22],
+    driftY: [-14, 18],
+    duration: 19000,
+    maxOpacity: 0.4,
+    fadeInDelay: 0,
   },
   {
-    size: 300,
-    top: 120,
-    right: -90,
-    colors: ["rgba(124,58,237,0.13)", "rgba(124,58,237,0.02)"],
-    borderColor: "rgba(124,58,237,0.18)",
-    driftX: [18, -18],
-    driftY: [14, -14],
-    duration: 13500,
+    size: 250,
+    top: 130,
+    right: -80,
+    colors: ["rgba(249,115,22,0.19)", "rgba(249,115,22,0.02)"],
+    borderColor: "rgba(249,115,22,0.25)",
+    driftX: [16, -20],
+    driftY: [12, -16],
+    duration: 15200,
+    maxOpacity: 0.4,
+    fadeInDelay: 400,
   },
   {
-    size: 340,
-    bottom: -100,
-    left: -120,
-    colors: ["rgba(249,115,22,0.12)", "rgba(249,115,22,0.02)"],
-    borderColor: "rgba(249,115,22,0.18)",
-    driftX: [-18, 18],
-    driftY: [22, -22],
-    duration: 17000,
+    size: 250,
+    bottom: -80,
+    left: -100,
+    colors: ["rgba(192,132,250,0.17)", "rgba(192,132,250,0.02)"],
+    borderColor: "rgba(192,132,250,0.22)",
+    driftX: [-20, 18],
+    driftY: [20, -18],
+    duration: 16600,
+    maxOpacity: 0.4,
+    fadeInDelay: 900,
   },
   {
-    size: 300,
-    bottom: -70,
-    right: -100,
-    colors: ["rgba(192,132,250,0.11)", "rgba(192,132,250,0.02)"],
-    borderColor: "rgba(192,132,250,0.16)",
-    driftX: [22, -22],
-    driftY: [-10, 10],
-    duration: 14500,
+    size: 160,
+    top: 60,
+    right: 30,
+    colors: ["rgba(249,115,22,0.18)", "rgba(249,115,22,0.02)"],
+    borderColor: "rgba(249,115,22,0.23)",
+    driftX: [10, -14],
+    driftY: [-18, 12],
+    duration: 11400,
+    maxOpacity: 0.4,
+    fadeInDelay: 1300,
+  },
+  {
+    size: 160,
+    bottom: 40,
+    right: -40,
+    colors: ["rgba(124,58,237,0.18)", "rgba(124,58,237,0.02)"],
+    borderColor: "rgba(124,58,237,0.23)",
+    driftX: [-12, 16],
+    driftY: [14, -10],
+    duration: 12800,
+    maxOpacity: 0.4,
+    fadeInDelay: 1800,
   },
 ];
 
 function GlowShape({ config }: { config: GlowShapeConfig }) {
   const drift = useRef(new Animated.Value(0)).current;
+  const fadeIn = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -85,8 +110,21 @@ function GlowShape({ config }: { config: GlowShapeConfig }) {
       ])
     );
     loop.start();
-    return () => loop.stop();
-  }, [config.duration, drift]);
+
+    const fade = Animated.timing(fadeIn, {
+      toValue: config.maxOpacity,
+      duration: 1800,
+      delay: config.fadeInDelay,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    fade.start();
+
+    return () => {
+      loop.stop();
+      fade.stop();
+    };
+  }, [config.duration, config.fadeInDelay, config.maxOpacity, drift, fadeIn]);
 
   return (
     <Animated.View
@@ -103,6 +141,7 @@ function GlowShape({ config }: { config: GlowShapeConfig }) {
           overflow: "hidden",
         },
         {
+          opacity: fadeIn,
           transform: [
             { translateX: drift.interpolate({ inputRange: [0, 1], outputRange: config.driftX }) },
             { translateY: drift.interpolate({ inputRange: [0, 1], outputRange: config.driftY }) },
@@ -125,7 +164,7 @@ function GlowShape({ config }: { config: GlowShapeConfig }) {
   );
 }
 
-/** Subtle drifting glass shapes behind SplashScreen. */
+/** Subtle drifting glass bubbles behind SplashScreen -- 1 big, 2 medium, 2 small, each fading in and drifting on its own random-feeling pace. */
 export function SplashBackground() {
   return (
     <View style={styles.container}>
