@@ -9,13 +9,6 @@ import { FeaturePreviewModal } from "../components/ui/FeaturePreviewModal";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
-// Placeholder require() paths -- structure/flow only. Drop matching files in
-// and these resolve automatically, no code changes needed:
-//   assets/backgrounds/welcome-hero.png
-//   assets/icons/hex-stores.png, hex-community.png, hex-food.png,
-//     hex-service-provider.png, hex-auction.png
-//   assets/previews/preview-stores.png, preview-community.png,
-//     preview-food.png, preview-service-provider.png, preview-auction.png
 // Reusing the existing login background until a dedicated hero image exists --
 // swap this path once one is ready.
 const HERO_BACKGROUND = require("../assets/backgrounds/login-lightbackground.png");
@@ -24,36 +17,41 @@ const RAPEX_WORDMARK = require("../assets/logo/rapex-name-only.png");
 
 type FeatureKey = "stores" | "community" | "food" | "serviceProvider" | "auction";
 
+// icon: reusing your existing icon pack (same files LoginScreen used to
+// reference). preview: TEMPORARY, reusing the same icon image as a
+// stand-in for the real floating info-graphic -- no dedicated preview
+// images exist yet. Swap `preview` to a real assets/previews/*.png once
+// you have one; `icon` doesn't need to change.
 const FEATURES: { key: FeatureKey; label: string; icon: ImageSourcePropType; preview: ImageSourcePropType }[] = [
   {
     key: "stores",
     label: "STORES",
-    icon: require("../assets/icons/hex-stores.png"),
-    preview: require("../assets/previews/preview-stores.png"),
+    icon: require("../assets/icons/store-icon.jpg"),
+    preview: require("../assets/icons/store-icon.jpg"),
   },
   {
     key: "community",
     label: "COMMUNITY",
-    icon: require("../assets/icons/hex-community.png"),
-    preview: require("../assets/previews/preview-community.png"),
+    icon: require("../assets/icons/community-icon.png"),
+    preview: require("../assets/icons/community-icon.png"),
   },
   {
     key: "food",
     label: "FOOD",
-    icon: require("../assets/icons/hex-food.png"),
-    preview: require("../assets/previews/preview-food.png"),
+    icon: require("../assets/icons/cook-food-icon.png"),
+    preview: require("../assets/icons/cook-food-icon.png"),
   },
   {
     key: "serviceProvider",
     label: "SERVICE\nPROVIDER",
-    icon: require("../assets/icons/hex-service-provider.png"),
-    preview: require("../assets/previews/preview-service-provider.png"),
+    icon: require("../assets/icons/services-icon.png"),
+    preview: require("../assets/icons/services-icon.png"),
   },
   {
     key: "auction",
     label: "AUCTION",
-    icon: require("../assets/icons/hex-auction.png"),
-    preview: require("../assets/previews/preview-auction.png"),
+    icon: require("../assets/icons/auction-icon.png"),
+    preview: require("../assets/icons/auction-icon.png"),
   },
 ];
 
