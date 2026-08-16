@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { createBottomTabNavigator, type BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Home, Package, Power, User, Wallet as WalletIcon } from "lucide-react-native";
 import { useAsyncAction, useRepositories, useRiderProfile } from "@rapex/api-client";
 import type { MainTabParamList } from "../types/navigation";
-import { useAppTheme } from "../hooks/useAppTheme";
 import { HomeScreen } from "../screens/HomeScreen";
 import { EarningsScreen } from "../screens/EarningsScreen";
 import { WalletScreen } from "../screens/WalletScreen";
@@ -21,7 +21,6 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
  * toggle uses (rider.setAvailabilityStatus), not a separate/fake control.
  */
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
-  const theme = useAppTheme();
   const { rider } = useRepositories();
   const { data: profile, refetch } = useRiderProfile();
   const toggleOnline = useAsyncAction((next: boolean) => rider!.setAvailabilityStatus(next ? "online" : "offline"));
@@ -41,17 +40,39 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const renderTab = (tab: { key: keyof MainTabParamList; label: string; icon: typeof Home }) => {
     const routeIndex = state.routes.findIndex((r) => r.name === tab.key);
     const focused = state.index === routeIndex;
-    const color = focused ? theme.colors.brandPrimary : theme.colors.textSecondary;
+    const color = focused ? "#D8B4FE" : "rgba(255,255,255,0.55)";
     return (
       <Pressable key={tab.key} style={styles.tab} onPress={() => navigation.navigate(tab.key)}>
-        <tab.icon color={color} size={22} />
-        <Text style={{ color, fontSize: 11, fontWeight: "600", marginTop: 2 }}>{tab.label}</Text>
+        <View style={[styles.tabIconPill, focused && styles.tabIconPillActive]}>
+          <tab.icon color={focused ? "#FFFFFF" : color} size={20} />
+        </View>
+        <Text style={{ color, fontSize: 11, fontWeight: "600", marginTop: 4 }}>{tab.label}</Text>
       </Pressable>
     );
   };
 
   return (
-    <View style={[styles.wrap, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
+    <View style={styles.wrap}>
+      {/* Black glass pill with a violet glow ring -- matches the reference nav texture exactly (same
+          recipe used for the "Go Offline" center button below): dark fill + soft outer purple shadow
+          + a thin bright violet border standing in for the inner glow, since RN shadows are outer-only. */}
+      <View style={styles.glassBar}>
+        <LinearGradient
+          colors={["rgba(255,255,255,0.08)", "rgba(255,255,255,0)"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.barTopHighlight}
+          pointerEvents="none"
+        />
+        <SafeAreaView edges={["bottom"]}>
+          <View style={styles.tabRow}>
+            {tabs.map(renderTab)}
+            <View style={styles.centerSpacer} />
+            {rightTabs.map(renderTab)}
+          </View>
+        </SafeAreaView>
+      </View>
+
       <View style={styles.centerButtonWrap}>
         <Pressable
           onPress={async () => {
@@ -59,24 +80,16 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
             refetch();
           }}
           disabled={toggleOnline.loading}
-          style={[
-            styles.centerButton,
-            { backgroundColor: isOnline ? "#DC2626" : theme.colors.brandPrimary, shadowColor: isOnline ? "#DC2626" : theme.colors.brandPrimary },
-          ]}
+          style={[styles.centerButtonGlow, isOnline && styles.centerButtonGlowActive]}
         >
-          <Power color="#FFFFFF" size={26} />
+          <LinearGradient
+            colors={isOnline ? ["#3B1450", "#1A0B2E"] : ["#2E1065", "#150826"]}
+            style={styles.centerButton}
+          >
+            <Power color="#F5EEFF" size={24} />
+          </LinearGradient>
         </Pressable>
-        <Text style={{ color: theme.colors.textSecondary, fontSize: 11, fontWeight: "700", marginTop: 4 }}>
-          {isOnline ? "Go Offline" : "Go Online"}
-        </Text>
       </View>
-      <SafeAreaView edges={["bottom"]}>
-        <View style={styles.tabRow}>
-          {tabs.map(renderTab)}
-          <View style={styles.centerSpacer} />
-          {rightTabs.map(renderTab)}
-        </View>
-      </SafeAreaView>
     </View>
   );
 }
@@ -110,15 +123,57 @@ export function MainTabNavigator() {
 
 const styles = StyleSheet.create({
   wrap: {
-    borderTopWidth: 1,
+    paddingHorizontal: 14,
+    paddingBottom: 6,
   },
+  // Black glass pill -- dark fill, thin bright-violet stroke, soft violet outer
+  // glow (shadow), matching every row of the reference sheet.
+  glassBar: {
+    borderRadius: 32,
+    overflow: "hidden",
+    backgroundColor: "#150C24",
+    borderWidth: 1,
+    borderColor: "rgba(168,85,247,0.55)",
+    shadowColor: "#A855F7",
+    shadowOpacity: 0.55,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 14,
+  },
+  barTopHighlight: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "55%",
+  },
+  // Absolutely positioned over the FULL bar width (not the tabRow's flex
+  // slots) so it's centered on the pill itself regardless of how many tabs
+  // sit on each side -- the tabRow's own center spacer lines up with this
+  // by construction (equal tab counts left/right), but this is what actually
+  // pins the button dead-center.
   centerButtonWrap: {
     position: "absolute",
-    top: -28,
+    top: -22,
     left: 0,
     right: 0,
     alignItems: "center",
     zIndex: 10,
+  },
+  centerButtonGlow: {
+    borderRadius: 34,
+    padding: 3,
+    borderWidth: 1.5,
+    borderColor: "rgba(196,166,245,0.9)",
+    shadowColor: "#A855F7",
+    shadowOpacity: 0.9,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 12,
+  },
+  centerButtonGlowActive: {
+    borderColor: "rgba(216,180,254,0.95)",
+    shadowOpacity: 1,
   },
   centerButton: {
     width: 60,
@@ -126,20 +181,29 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
   },
   tabRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 30,
+    paddingTop: 18,
     paddingBottom: 6,
+    paddingHorizontal: 6,
   },
   tab: {
     flex: 1,
     alignItems: "center",
+  },
+  tabIconPill: {
+    width: 44,
+    height: 30,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabIconPillActive: {
+    backgroundColor: "rgba(168,85,247,0.28)",
+    borderWidth: 1,
+    borderColor: "rgba(196,166,245,0.4)",
   },
   centerSpacer: {
     flex: 1,
