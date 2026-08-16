@@ -5,7 +5,7 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
 import { GradientButton } from "../components/buttons/GradientButton";
-import { useSignUpFirstName } from "../services/signUpDraftStore";
+import { useSignUpFirstName, useSignUpWelcomeGreeting } from "../services/signUpDraftStore";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "WelcomeVideo">;
 
@@ -39,7 +39,7 @@ const TYPEWRITER_MS_PER_CHAR = 32;
  */
 export function WelcomeVideoScreen({ navigation }: Props) {
   const firstName = useSignUpFirstName();
-  const welcomeText = `Hello, ${firstName}!`;
+  const welcomeText = useSignUpWelcomeGreeting();
   const [finished, setFinished] = useState(false);
   const bubbleScale = useRef(new Animated.Value(0)).current;
   const [typedChars, setTypedChars] = useState(0);

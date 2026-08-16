@@ -8,20 +8,26 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ShieldCheck, ArrowRight } from "lucide-react-native";
 import type { AuthStackParamList } from "../App";
 import { SelectField } from "../components/ui/SelectField";
+import { setSignUpCulture } from "../services/signUpDraftStore";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "AgeGate">;
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-// Placeholder options -- real list is Xano's community-master data (see
-// docs mentioning Culture/Community), not yet available here. Swap once
-// that's wired up.
+// The 8 examples given directly -- real source is Xano's GET
+// /rapex-core/community-master (community_master: id, name, description,
+// is_active), which has the complete 14-item list. Swap this hardcoded
+// array for that fetch once auth-preview (or its successor) is wired to
+// real endpoints.
 const CULTURE_OPTIONS = [
-  { label: "General", value: "general" },
-  { label: "Family", value: "family" },
-  { label: "Student", value: "student" },
-  { label: "Professional", value: "professional" },
-  { label: "Senior", value: "senior" },
+  { label: "Tagalog", value: "tagalog" },
+  { label: "Cebuano / Bisaya", value: "bisaya" },
+  { label: "Ilocano", value: "ilocano" },
+  { label: "Chavacano", value: "chavacano" },
+  { label: "Waray", value: "waray" },
+  { label: "Samal", value: "samal" },
+  { label: "Bicolano", value: "bicolano" },
+  { label: "Other", value: "other" },
 ];
 
 /**
@@ -83,7 +89,10 @@ export function AgeGateScreen({ navigation }: Props) {
                       label="What is your Culture?"
                       value={culture}
                       options={CULTURE_OPTIONS}
-                      onChange={setCulture}
+                      onChange={(v) => {
+                        setCulture(v);
+                        setSignUpCulture(v);
+                      }}
                       placeholder="Select (optional)"
                     />
                   </View>
