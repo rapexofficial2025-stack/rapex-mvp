@@ -101,8 +101,9 @@ export function SplashScreen({ navigation }: Props) {
       </Animated.View>
 
       {/* Motorcycle layer -- above the splash panel so it visibly overlaps/contacts it during the push.
-          Wheels are static for now (not spinning) to keep this transition simple while we confirm
-          the core push/timing works -- re-add wheel rotation once that's solid. */}
+          Tires render FIRST so they sit BEHIND the body/fenders (rendered last), matching how a
+          real motorcycle's wheels are partly covered by the frame. Wheels are static for now (no
+          spin) to keep this simple while we confirm the core push/timing works. */}
       <Animated.View style={[styles.motorcycle, { transform: [{ translateX: motorcycleX }] }]}>
         <Animated.Image
           source={require("../assets/logo/front tire.png")}
