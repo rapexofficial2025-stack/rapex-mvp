@@ -5,6 +5,7 @@ import type { AuthStackParamList } from "../App";
 import { AuthButton } from "../components/buttons/AuthButton";
 import { GradientButton } from "../components/buttons/GradientButton";
 import { InputField } from "../components/ui/InputField";
+import { setSignUpFullName } from "../services/signUpDraftStore";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "SignUp">;
 
@@ -26,7 +27,13 @@ export function SignUpScreen({ navigation }: Props) {
         <InputField placeholder="Phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
         <InputField placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
 
-        <GradientButton title="Continue" onPress={() => navigation.navigate("SignUpAddress")} />
+        <GradientButton
+          title="Continue"
+          onPress={() => {
+            setSignUpFullName(name);
+            navigation.navigate("SignUpAddress");
+          }}
+        />
         <AuthButton title="Back to login" onPress={() => navigation.goBack()} />
       </ScrollView>
     </KeyboardAvoidingView>
