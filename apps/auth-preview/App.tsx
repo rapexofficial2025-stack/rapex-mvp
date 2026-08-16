@@ -7,8 +7,7 @@ import { AgeGateScreen } from "./screens/AgeGateScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { SignUpScreen } from "./screens/SignUpScreen";
 import { SignUpAddressScreen } from "./screens/SignUpAddressScreen";
-import { MobileOtpScreen } from "./screens/MobileOtpScreen";
-import { EmailVerificationScreen } from "./screens/EmailVerificationScreen";
+import { SignUpProfileWalletScreen } from "./screens/SignUpProfileWalletScreen";
 import { SignUpCompleteScreen } from "./screens/SignUpCompleteScreen";
 import { WelcomeVideoScreen } from "./screens/WelcomeVideoScreen";
 
@@ -34,8 +33,7 @@ export type AuthStackParamList = {
   Login: undefined;
   SignUp: undefined;
   SignUpAddress: undefined;
-  MobileOtp: undefined;
-  EmailVerification: undefined;
+  SignUpProfileWallet: undefined;
   SignUpComplete: undefined;
   WelcomeVideo: undefined;
 };
@@ -83,13 +81,8 @@ export default function App() {
             options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
           />
           <Stack.Screen
-            name="MobileOtp"
-            component={MobileOtpScreen}
-            options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
-          />
-          <Stack.Screen
-            name="EmailVerification"
-            component={EmailVerificationScreen}
+            name="SignUpProfileWallet"
+            component={SignUpProfileWalletScreen}
             options={{ animation: "slide_from_right", ...transparentHeaderOptions }}
           />
           <Stack.Screen
