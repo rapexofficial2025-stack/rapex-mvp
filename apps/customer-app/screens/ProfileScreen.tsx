@@ -306,6 +306,7 @@ export function ProfileScreen({ navigation }: Props) {
       </GlassCard>
 
       <Button label="Wallet" onPress={() => navigation.navigate("Wallet")} />
+      <Button label="Child Accounts" variant="secondary" onPress={() => navigation.navigate("ChildAccounts")} />
       <Button
         label="Log Out"
         variant="secondary"
