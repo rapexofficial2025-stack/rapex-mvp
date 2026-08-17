@@ -111,19 +111,12 @@ export function StoreHeroCard({ store, products, storeMode, toggling, onToggleSt
           <Button label={toggling ? "…" : storeMode ? "Set Offline" : "Set Online"} variant="secondary" loading={toggling} onClick={onToggleStoreMode} />
           <Button
             label="Manage Store"
-            variant="outline"
             onClick={() => setPlaceholderAction({ title: "Manage Store", description: "Full store management console coming soon." })}
           />
           <Button
             label="Customer View"
             variant="outline"
             onClick={() => setPlaceholderAction({ title: "Customer View", description: "Preview exactly what customers see on your storefront." })}
-          />
-          <Button label="Boost Store" variant="outline" onClick={() => setShowBoostPanel((v) => !v)} />
-          <Button
-            label="Share Store"
-            variant="outline"
-            onClick={() => setPlaceholderAction({ title: "Share Store", description: "Share your store link on social media and messaging apps." })}
           />
           <Button
             label="Edit Store"
