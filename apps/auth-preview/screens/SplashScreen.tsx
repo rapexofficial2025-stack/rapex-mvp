@@ -23,14 +23,14 @@ const PUSH_DURATION = 650; // fast bike run -- was 1400ms, felt too slow/leisure
  *
  * Motorcycle: after a short hold, the rider runs ONE continuous constant-
  * speed pass from the right edge clean through the left edge -- it never
- * stops or decelerates mid-screen. The splash panel stays perfectly still
- * while the rider is still entering; only once the rider's rear wheel has
- * fully crossed onto screen does the panel start moving, and from that
- * instant on the panel's right edge is glued 1:1 to the rider's rear wheel
- * position (derived from the SAME Animated.Value, not a separate timing),
- * so it visually reads as the rider dragging the panel off screen by
- * contact, ending the moment the rider (and panel) are both fully exited
- * left. The page's own solid background color sits behind everything, not
+ * stops or decelerates mid-screen. The splash panel's right edge is glued
+ * 1:1 to the rider's FRONT wheel (the leading edge of the sprite, since it
+ * travels right-to-left) for the ENTIRE run, derived from the same
+ * Animated.Value via a single linear interpolate -- not a two-phase
+ * hold-then-follow like an earlier version of this screen. Because contact
+ * is at the front wheel (not the rear), the panel is pushed ahead of the
+ * rider from the very first frame, reading as the rider PUSHING the screen
+ * off to the left rather than dragging it from behind. The page's own solid background color sits behind everything, not
  * a photo -- login-dark-2 belongs to LoginScreen now, not here (having it
  * on both Splash and the very next real photo background read as a
  * doubled/duplicated backdrop).
@@ -46,7 +46,17 @@ export function SplashScreen({ navigation }: Props) {
   const nameTranslateY = useRef(new Animated.Value(15)).current;
 
   const motorcycleX = useRef(new Animated.Value(width)).current;
-  const splashPanelX = useRef(new Animated.Value(0)).current;
+  // Derived, not its own Animated.Value: the sprite's left edge IS the front
+  // wheel (rider faces/travels leftward), and translateX + the panel's own
+  // "left: 0" home position means the panel's right edge is always exactly
+  // `motorcycleX` on screen once shifted by `width` -- so this is an exact
+  // linear relationship for the WHOLE run, not just at two endpoints. That's
+  // why a single 2-point interpolate is safe here (no piecewise/held-flat
+  // segment to get wrong, unlike the earlier two-phase version of this screen).
+  const splashPanelX = motorcycleX.interpolate({
+    inputRange: [-MOTORCYCLE_WIDTH, width],
+    outputRange: [-MOTORCYCLE_WIDTH - width, 0],
+  });
 
   useEffect(() => {
     // Frame: slight fade-in, ONE slow smooth 360 twist (~1s).
@@ -96,19 +106,8 @@ export function SplashScreen({ navigation }: Props) {
 
     // Motorcycle: short hold after the wordmark settles, then ONE continuous
     // constant-speed (linear) run all the way from off-right to off-left.
-    // The panel stays put while the rider is still entering; once the rider's rear
-    // wheel has fully crossed onto screen (rider has traveled MOTORCYCLE_WIDTH of its
-    // total width+MOTORCYCLE_WIDTH journey), the panel starts a SEPARATE linear run
-    // to -width timed to finish at the exact same instant the rider finishes -- since
-    // both move at constant speed over that shared remaining duration, the panel's
-    // right edge stays glued to the rider's rear wheel for the whole drag, not just
-    // at the two endpoints. (Deliberately two independently-timed animations rather
-    // than deriving one from a multi-stop interpolate on the other -- confirmed via
-    // self-testing that the interpolate approach doesn't hold the "still entering"
-    // segment flat reliably.)
-    const entryDuration = Math.round((PUSH_DURATION * MOTORCYCLE_WIDTH) / (width + MOTORCYCLE_WIDTH));
-    const dragDuration = PUSH_DURATION - entryDuration;
-
+    // splashPanelX (above) is derived from this same value, so the panel is
+    // pushed in lockstep from the very first frame -- no separate timing.
     const pushTimer = setTimeout(() => {
       Animated.timing(motorcycleX, {
         toValue: -MOTORCYCLE_WIDTH,
@@ -116,20 +115,10 @@ export function SplashScreen({ navigation }: Props) {
         easing: Easing.linear,
         useNativeDriver: true,
       }).start(() => navigation.replace("Welcome"));
-
-      Animated.sequence([
-        Animated.delay(entryDuration),
-        Animated.timing(splashPanelX, {
-          toValue: -width,
-          duration: dragDuration,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-      ]).start();
     }, 2500);
 
     return () => clearTimeout(pushTimer);
-  }, [navigation, width, frameOpacity, frameRotate, birdOpacity, birdScale, nameOpacity, nameTranslateY, motorcycleX, splashPanelX]);
+  }, [navigation, width, frameOpacity, frameRotate, birdOpacity, birdScale, nameOpacity, nameTranslateY, motorcycleX]);
 
   const frameRotateDeg = frameRotate.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
 

@@ -54,9 +54,13 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
           {/* Splash and Welcome stay headerless -- Splash has nothing to go back to, and
-              Welcome's own swipe-to-continue button is the only way forward, no back arrow. */}
+              Welcome's own swipe-to-continue button is the only way forward, no back arrow.
+              Welcome's animation is "none": Splash already does its own full custom push
+              transition (rider shoving the panel off screen), so stacking React Navigation's
+              own screen-transition (e.g. "fade") on top of that read as a second, redundant
+              transition/flash right after the first one finished. */}
           <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ animation: "fade" }} />
+          <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ animation: "none" }} />
 
           {/* From here on, a real back-arrow appears (transparent header, no title, white
               tint -- these screens each have their own full-bleed dark background). */}
