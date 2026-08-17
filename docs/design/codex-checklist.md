@@ -144,14 +144,19 @@ as a picture, not a patch:
 
 - [ ] `LoginPage` — already has a reference design ported; only touch
       for a specific improvement, not a rebuild.
-- [ ] `DashboardPage` — store overview, key stats, recent orders.
+- [x] `DashboardPage` — store overview, key stats, recent orders.
+      Verified by Claude: typecheck/lint/build clean (commit `94ff396`).
 - [ ] `OrdersPage` — order list/detail, status updates.
 - [ ] `StorePage` — store profile/settings management.
 
 ## Checklist — Admin Portal (`apps/admin-portal`)
 
 - [ ] `LoginPage` / `RegisterPage` — admin auth screens.
-- [ ] `DashboardPage` / `CommandCenterPage` — top-level admin overview.
+- [~] `DashboardPage` / `CommandCenterPage` — top-level admin overview.
+      `DashboardPage` done (icon-only approve/reject replaced with labeled
+      buttons, actions capped at 1 primary + 3 secondary) and verified by
+      Claude: typecheck/lint/build clean (commit `918ae8c`).
+      `CommandCenterPage` not started yet.
 - [ ] `EngineCenterPage` — delivery-fee/platform engine controls.
 - [ ] `IntegrationsPage` — third-party integration management.
 - [ ] `OrderFinancialsPage` — order-level financial breakdown.
