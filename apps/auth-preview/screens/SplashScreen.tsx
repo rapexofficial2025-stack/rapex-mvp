@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Animated, Dimensions, Easing, StyleSheet, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
@@ -44,6 +45,8 @@ export function SplashScreen({ navigation }: Props) {
   const birdScale = useRef(new Animated.Value(0.85)).current;
   const nameOpacity = useRef(new Animated.Value(0)).current;
   const nameTranslateY = useRef(new Animated.Value(15)).current;
+
+  const sparkPulse = useRef(new Animated.Value(0)).current;
 
   const motorcycleX = useRef(new Animated.Value(width)).current;
   // Derived, not its own Animated.Value: the sprite's left edge IS the front
@@ -115,10 +118,21 @@ export function SplashScreen({ navigation }: Props) {
         easing: Easing.linear,
         useNativeDriver: true,
       }).start(() => navigation.replace("Welcome"));
+
+      // Spark glow at the contact seam -- a fast flicker/pulse for the whole
+      // push, not a single fade, so it reads as an energetic spark rather
+      // than a slow glow. Loop is torn down by unmount (screen navigates
+      // away right as the push ends), no explicit stop needed.
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(sparkPulse, { toValue: 1, duration: 90, easing: Easing.linear, useNativeDriver: true }),
+          Animated.timing(sparkPulse, { toValue: 0.4, duration: 110, easing: Easing.linear, useNativeDriver: true }),
+        ]),
+      ).start();
     }, 2500);
 
     return () => clearTimeout(pushTimer);
-  }, [navigation, width, frameOpacity, frameRotate, birdOpacity, birdScale, nameOpacity, nameTranslateY, motorcycleX]);
+  }, [navigation, width, frameOpacity, frameRotate, birdOpacity, birdScale, nameOpacity, nameTranslateY, motorcycleX, sparkPulse]);
 
   const frameRotateDeg = frameRotate.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
 
@@ -148,6 +162,22 @@ export function SplashScreen({ navigation }: Props) {
             style={[styles.wordmark, { opacity: nameOpacity, transform: [{ translateY: nameTranslateY }] }]}
           />
         </View>
+
+        {/* Spark glow at the push contact seam -- a CHILD of the panel (not a sibling), so it
+            inherits the panel's own translateX for free and always sits exactly at its right
+            edge, no separate sync math needed. Invisible at rest (off past the screen edge),
+            only enters view once the push begins. */}
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.sparkWrap, { opacity: sparkPulse, transform: [{ scaleX: sparkPulse.interpolate({ inputRange: [0.4, 1], outputRange: [0.7, 1.3] }) }] }]}
+        >
+          <LinearGradient
+            colors={["rgba(249,115,22,0)", "rgba(249,115,22,0.9)", "rgba(139,92,246,0.9)", "rgba(139,92,246,0)"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
       </Animated.View>
 
       {/* Motorcycle layer -- above the splash panel. Tires render first (behind), body last (on
@@ -177,6 +207,14 @@ const styles = StyleSheet.create({
     width: 260,
     alignItems: "center",
     zIndex: 10,
+  },
+  sparkWrap: {
+    position: "absolute",
+    right: -16,
+    top: 0,
+    bottom: 0,
+    width: 32,
+    zIndex: 15,
   },
   iconStack: {
     width: 160,
