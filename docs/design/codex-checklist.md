@@ -167,3 +167,41 @@ as a picture, not a patch:
 Check items off above as you finish them. The founder updates this file
 so Claude can review just the branch + this checklist, without needing
 the full Codex conversation pasted back.
+
+---
+
+## Addendum — routing/file conventions + "checked off" definition
+
+### Routing (react-router-dom, both apps)
+
+**Merchant Portal** (`apps/merchant-portal/src/App.tsx`):
+- Auth screens are top-level: `/login`
+- Everything else lives under `/portal`, wrapped in `<RequireMerchantAuth>` + `<PortalLayout>`:
+  - `/portal/dashboard` → `DashboardPage` (in `src/routes/`)
+  - `/portal/orders` → `OrdersPage` (in `src/routes/`)
+  - `/portal/store` → `StorePage` (in `src/features/store/`)
+- Default route (`/`) redirects to `/login`; `/portal` index redirects to `/portal/store`.
+
+**Admin Portal** (`apps/admin-portal/src/App.tsx`):
+- Auth screens are top-level: `/admin/login`, `/admin/register`
+- Everything else lives under `/admin`, wrapped in `<RequireAdminAuth>` + `<PortalLayout>`:
+  - `/admin/dashboard` → `DashboardPage` (in `src/features/dashboard/`)
+  - `/admin/command-center` → `CommandCenterPage` (in `src/routes/`)
+  - `/admin/verification` → `VerificationQueuePage` (in `src/features/verification/`)
+  - `/admin/engine-center` → `EngineCenterPage` (in `src/features/engine-center/`)
+  - `/admin/order-financials` → `OrderFinancialsPage` (in `src/features/order-financials/`)
+  - `/admin/integrations` → `IntegrationsPage` (in `src/features/integrations/`)
+- Default route (`/`) redirects to `/admin/dashboard`.
+
+**File convention:** newer pages live under `src/features/<feature-name>/<PageName>.tsx`, older ones under `src/routes/<PageName>.tsx` — both are registered the same way in `App.tsx`. Prefer `src/features/<name>/` for anything new. Don't invent a different routing library or folder shape.
+
+### Definition of "checked off" (✅ in the checklist)
+
+An item is done when ALL of the following are true:
+1. The route renders without crashing on a fresh `pnpm install` + `pnpm --filter <app> dev`.
+2. It follows the ground rules (one primary action, no icon-only nav buttons, ≤3 secondary actions, predictable navigation).
+3. Any number/status/data shown is clearly placeholder (not silently invented as if real).
+4. `pnpm --filter merchant-portal typecheck` / `pnpm --filter admin-portal typecheck` passes clean.
+5. It's pushed to `codex/ui-drafts`.
+
+Skeleton-stage items don't need visual polish to count as checked off — just working, rule-following, and typechecked. Polish is a separate later pass.
