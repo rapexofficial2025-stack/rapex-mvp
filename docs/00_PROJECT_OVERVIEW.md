@@ -35,4 +35,4 @@ Imus, Kawit, Lancaster, General Trias.
 **Hard rule:** business logic never lives in the frontend — it belongs in Xano.
 
 ## Status
-Skeletal folder structure only. No application code yet. See [roadmap/09_ROADMAP.md](roadmap/09_ROADMAP.md) for what's next, and [README.md](README.md) for the full docs index.
+Well past skeletal — all 6 apps have real screens, CI is green, and Customer/Merchant/Admin auth is wired to real Xano data (Rider is still mock, pending a backend auth-header decision). See `docs/deployment/README.md` for the current, accurate ground-truth status of what's deployed/verified vs. not, [roadmap/09_ROADMAP.md](roadmap/09_ROADMAP.md) for what's next, and [README.md](README.md) for the full docs index.
