@@ -153,20 +153,8 @@ export function DashboardPage() {
                   <div style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.textSecondary }}>New {applicant.role.replace("-", " ")}</div>
                 </div>
                 <div style={{ display: "flex", gap: theme.spacing.xxs }}>
-                  <button
-                    type="button"
-                    onClick={() => approve.execute(applicant.id).then(() => refetch())}
-                    style={{ border: "none", borderRadius: theme.radius.sm, backgroundColor: theme.colors.success, color: "#fff", width: 26, height: 26, cursor: "pointer" }}
-                  >
-                    ✓
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => reject.execute(applicant.id).then(() => refetch())}
-                    style={{ border: "none", borderRadius: theme.radius.sm, backgroundColor: theme.colors.error, color: "#fff", width: 26, height: 26, cursor: "pointer" }}
-                  >
-                    ✕
-                  </button>
+                  <Button label="Approve" size="sm" onClick={() => approve.execute(applicant.id).then(() => refetch())} />
+                  <Button label="Reject" size="sm" variant="danger" onClick={() => reject.execute(applicant.id).then(() => refetch())} />
                 </div>
               </div>
             ))}
@@ -247,11 +235,10 @@ export function DashboardPage() {
       </div>
 
       {/* Quick actions */}
-      <SectionCard title="Quick Actions">
+      <SectionCard title="Next steps">
         <div style={{ display: "flex", gap: theme.spacing.sm, flexWrap: "wrap" }}>
-          <Button label="Approve Merchant" onClick={() => navigate("/admin/verification")} />
-          <Button label="Approve Rider" variant="secondary" onClick={() => navigate("/admin/verification")} />
-          <Button label="View Live Map" variant="secondary" onClick={() => navigate("/admin/command-center")} />
+          <Button label="Review verification queue" onClick={() => navigate("/admin/verification")} />
+          <Button label="Open command center" variant="secondary" onClick={() => navigate("/admin/command-center")} />
           <Button label="Engine Center" variant="secondary" onClick={() => navigate("/admin/engine-center")} />
           <Button label="Order Financials" variant="secondary" onClick={() => navigate("/admin/order-financials")} />
         </div>
