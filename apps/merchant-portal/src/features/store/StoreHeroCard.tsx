@@ -4,6 +4,7 @@ import { formatPeso } from "@rapex/utils";
 import type { MerchantProduct, MerchantStore } from "@rapex/api-client";
 import { getStoreStats } from "./headquartersMockStats";
 import { PlaceholderActionModal } from "./PlaceholderActionModal";
+import { StoreSettingsModal } from "./StoreSettingsModal";
 
 type StoreHeroCardProps = {
   store: MerchantStore;
@@ -17,6 +18,7 @@ export function StoreHeroCard({ store, products, storeMode, toggling, onToggleSt
   const theme = useTheme();
   const stats = getStoreStats(store.id);
   const [placeholderAction, setPlaceholderAction] = useState<null | { title: string; description: string }>(null);
+  const [showStoreSettings, setShowStoreSettings] = useState(false);
   const [showBoostPanel, setShowBoostPanel] = useState(false);
   const [boostHeadline, setBoostHeadline] = useState("");
   const [boostProductId, setBoostProductId] = useState(products[0]?.id ?? "");
@@ -111,7 +113,7 @@ export function StoreHeroCard({ store, products, storeMode, toggling, onToggleSt
           <Button label={toggling ? "…" : storeMode ? "Set Offline" : "Set Online"} variant="secondary" loading={toggling} onClick={onToggleStoreMode} />
           <Button
             label="Manage Store"
-            onClick={() => setPlaceholderAction({ title: "Manage Store", description: "Full store management console coming soon." })}
+            onClick={() => setShowStoreSettings(true)}
           />
           <Button
             label="Customer View"
@@ -121,7 +123,7 @@ export function StoreHeroCard({ store, products, storeMode, toggling, onToggleSt
           <Button
             label="Edit Store"
             variant="outline"
-            onClick={() => setPlaceholderAction({ title: "Edit Store", description: "Edit your store profile, logo, cover photo, and details." })}
+            onClick={() => setShowStoreSettings(true)}
           />
         </div>
       </div>
@@ -187,6 +189,7 @@ export function StoreHeroCard({ store, products, storeMode, toggling, onToggleSt
           onClose={() => setPlaceholderAction(null)}
         />
       ) : null}
+      {showStoreSettings ? <StoreSettingsModal store={store} onClose={() => setShowStoreSettings(false)} /> : null}
     </div>
   );
 }
