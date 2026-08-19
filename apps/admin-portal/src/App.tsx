@@ -55,6 +55,11 @@ function App() {
           <Route path="product-categories" element={<AdminDataModulePage module="product-categories" />} />
           <Route path="product-images" element={<AdminDataModulePage module="product-images" />} />
           <Route path="product-variants" element={<AdminDataModulePage module="product-variants" />} />
+          <Route path="product-options" element={<AdminDataModulePage module="product-options" />} />
+          <Route path="inventory" element={<AdminDataModulePage module="inventory" />} />
+          <Route path="orders" element={<AdminDataModulePage module="orders" />} />
+          <Route path="delivery" element={<AdminDataModulePage module="delivery" />} />
+          <Route path="riders" element={<AdminDataModulePage module="riders" />} />
         </Route>
         <Route
           path="/admin"
@@ -81,6 +86,11 @@ function App() {
           <Route path="product-categories" element={<AdminDataModulePage module="product-categories" />} />
           <Route path="product-images" element={<AdminDataModulePage module="product-images" />} />
           <Route path="product-variants" element={<AdminDataModulePage module="product-variants" />} />
+          <Route path="product-options" element={<AdminDataModulePage module="product-options" />} />
+          <Route path="inventory" element={<AdminDataModulePage module="inventory" />} />
+          <Route path="orders" element={<AdminDataModulePage module="orders" />} />
+          <Route path="delivery" element={<AdminDataModulePage module="delivery" />} />
+          <Route path="riders" element={<AdminDataModulePage module="riders" />} />
         </Route>
       </Routes>
     </BrowserRouter>
