@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { Badge, useTheme } from "@rapex/ui-web";
 
-export type AdminDataModule = "registration" | "age-engine" | "locations" | "communities" | "merchants" | "product-images" | "product-variants";
+export type AdminDataModule = "registration" | "age-engine" | "locations" | "communities" | "merchants" | "product-categories" | "product-images" | "product-variants";
 
 const CONFIG: Record<AdminDataModule, { eyebrow: string; title: string; description: string; columns: string[]; tabs?: string[] }> = {
   registration: { eyebrow: "REGISTRATION CONTROL", title: "User Registration Monitor", description: "Follow onboarding completion and identify missing requirements.", columns: ["User", "Current step", "Progress", "Missing requirement", "Date started", "Last activity"], tabs: ["All", "In progress", "Complete", "Needs review"] },
@@ -9,6 +9,7 @@ const CONFIG: Record<AdminDataModule, { eyebrow: string; title: string; descript
   locations: { eyebrow: "LOCATION MASTER DATA", title: "Address & Location Management", description: "Manage the hierarchy supplied by Xano: regions, provinces, municipalities, and barangays.", columns: ["ID", "Name", "Code", "Parent", "Active", "Created", "Updated"], tabs: ["Regions", "Provinces", "Municipalities", "Barangays"] },
   communities: { eyebrow: "COMMUNITY MASTER", title: "Community & Culture", description: "Manage community master records and their usage across the marketplace.", columns: ["ID", "Name", "Description", "Active", "Users count", "Created", "Updated"], tabs: ["Community master"] },
   merchants: { eyebrow: "MERCHANT CONTROL", title: "Merchant Management", description: "Review merchant registration, verification, store status, orders, and sales.", columns: ["Merchant ID", "Business", "Category", "Owner", "Location", "Verification", "Store status", "Orders", "Sales", "Created"], tabs: ["All", "Pending", "Active", "Suspended", "Rejected"] },
+  "product-categories": { eyebrow: "PRODUCT CONTROL", title: "Product Categories", description: "Maintain category types separately from Auction, Pre-Loved, Services, and Partnership listings.", columns: ["Category", "Type", "Description", "Active", "Products count", "Created", "Updated"], tabs: ["Merchant products", "Auction", "Pre-Loved", "Services", "Partnership"] },
   "product-images": { eyebrow: "PRODUCT CONTROL", title: "Product Images", description: "Review product image records, primary selection, ordering, and active status.", columns: ["Image", "Product", "Merchant", "Primary", "Sort order", "Status", "Created"], tabs: ["All images", "Primary", "Inactive"] },
   "product-variants": { eyebrow: "PRODUCT CONTROL", title: "Product Variants", description: "Review product option, price, stock, and default-variant records.", columns: ["Variant", "Product", "Code", "Price", "Stock", "Reserved", "Default", "Active"], tabs: ["All variants", "Active", "Inactive"] },
 };

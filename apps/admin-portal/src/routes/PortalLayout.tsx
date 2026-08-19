@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { key: "verification", label: "Verification", path: "/admin/verification" },
   { key: "merchants", label: "Merchants", path: "/admin/merchants" },
   { key: "products", label: "Product Monitoring", path: "/admin/products" },
+  { key: "product-categories", label: "Product Categories", path: "/admin/product-categories" },
   { key: "product-images", label: "Product Images", path: "/admin/product-images" },
   { key: "product-variants", label: "Product Variants", path: "/admin/product-variants" },
   { key: "engine-center", label: "Engine Center", path: "/admin/engine-center" },

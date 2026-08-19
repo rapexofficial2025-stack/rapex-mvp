@@ -52,6 +52,7 @@ function App() {
           <Route path="locations" element={<AdminDataModulePage module="locations" />} />
           <Route path="communities" element={<AdminDataModulePage module="communities" />} />
           <Route path="merchants" element={<AdminDataModulePage module="merchants" />} />
+          <Route path="product-categories" element={<AdminDataModulePage module="product-categories" />} />
           <Route path="product-images" element={<AdminDataModulePage module="product-images" />} />
           <Route path="product-variants" element={<AdminDataModulePage module="product-variants" />} />
         </Route>
@@ -77,6 +78,7 @@ function App() {
           <Route path="locations" element={<AdminDataModulePage module="locations" />} />
           <Route path="communities" element={<AdminDataModulePage module="communities" />} />
           <Route path="merchants" element={<AdminDataModulePage module="merchants" />} />
+          <Route path="product-categories" element={<AdminDataModulePage module="product-categories" />} />
           <Route path="product-images" element={<AdminDataModulePage module="product-images" />} />
           <Route path="product-variants" element={<AdminDataModulePage module="product-variants" />} />
         </Route>
