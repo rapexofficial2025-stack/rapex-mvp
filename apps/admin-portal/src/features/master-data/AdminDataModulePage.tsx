@@ -1,0 +1,27 @@
+import type { CSSProperties } from "react";
+import { Badge, useTheme } from "@rapex/ui-web";
+
+export type AdminDataModule = "registration" | "age-engine" | "locations" | "communities" | "merchants" | "product-images" | "product-variants";
+
+const CONFIG: Record<AdminDataModule, { eyebrow: string; title: string; description: string; columns: string[]; tabs?: string[] }> = {
+  registration: { eyebrow: "REGISTRATION CONTROL", title: "User Registration Monitor", description: "Follow onboarding completion and identify missing requirements.", columns: ["User", "Current step", "Progress", "Missing requirement", "Date started", "Last activity"], tabs: ["All", "In progress", "Complete", "Needs review"] },
+  "age-engine": { eyebrow: "REGISTRATION CONTROL", title: "Age & Registration Engine", description: "Read-only monitoring for the authoritative Xano age-check result.", columns: ["User", "Birth year", "Age result", "Check status", "Checked at", "Lockout"], tabs: ["All checks", "Passed", "Locked", "Needs review"] },
+  locations: { eyebrow: "LOCATION MASTER DATA", title: "Address & Location Management", description: "Manage the hierarchy supplied by Xano: regions, provinces, municipalities, and barangays.", columns: ["ID", "Name", "Code", "Parent", "Active", "Created", "Updated"], tabs: ["Regions", "Provinces", "Municipalities", "Barangays"] },
+  communities: { eyebrow: "COMMUNITY MASTER", title: "Community & Culture", description: "Manage community master records and their usage across the marketplace.", columns: ["ID", "Name", "Description", "Active", "Users count", "Created", "Updated"], tabs: ["Community master"] },
+  merchants: { eyebrow: "MERCHANT CONTROL", title: "Merchant Management", description: "Review merchant registration, verification, store status, orders, and sales.", columns: ["Merchant ID", "Business", "Category", "Owner", "Location", "Verification", "Store status", "Orders", "Sales", "Created"], tabs: ["All", "Pending", "Active", "Suspended", "Rejected"] },
+  "product-images": { eyebrow: "PRODUCT CONTROL", title: "Product Images", description: "Review product image records, primary selection, ordering, and active status.", columns: ["Image", "Product", "Merchant", "Primary", "Sort order", "Status", "Created"], tabs: ["All images", "Primary", "Inactive"] },
+  "product-variants": { eyebrow: "PRODUCT CONTROL", title: "Product Variants", description: "Review product option, price, stock, and default-variant records.", columns: ["Variant", "Product", "Code", "Price", "Stock", "Reserved", "Default", "Active"], tabs: ["All variants", "Active", "Inactive"] },
+};
+
+/** UI skeleton. Data and mutations stay in Xano; this never invents records. */
+export function AdminDataModulePage({ module }: { module: AdminDataModule }) {
+  const theme = useTheme(); const config = CONFIG[module];
+  return <section style={{ padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
+    <header style={styles.header}><div><p style={{ ...styles.eyebrow, color: theme.colors.brandPrimary }}>{config.eyebrow}</p><h1 style={{ ...styles.title, color: theme.colors.textPrimary }}>{config.title}</h1><p style={{ ...styles.description, color: theme.colors.textSecondary }}>{config.description}</p></div><Badge label="Xano data contract required" tone="warning" /></header>
+    <div style={{ ...styles.tabs, background: theme.colors.surface, borderColor: theme.colors.border }}>{config.tabs?.map((tab, index) => <span key={tab} style={{ ...styles.tab, color: index === 0 ? theme.colors.textPrimary : theme.colors.textSecondary, borderColor: index === 0 ? theme.colors.brandPrimary : "transparent" }}>{tab}</span>)}</div>
+    <div style={{ ...styles.table, background: theme.colors.surface, borderColor: theme.colors.border }}><div style={{ ...styles.headerRow, gridTemplateColumns: `repeat(${config.columns.length}, minmax(110px, 1fr))` }}>{config.columns.map((column) => <span key={column}>{column}</span>)}</div><div style={{ ...styles.empty, color: theme.colors.textSecondary }}>No records are shown until this screen is connected to its published Xano endpoint. No data has been invented in the frontend.</div></div>
+  </section>;
+}
+
+const styles: Record<string, CSSProperties> = { header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }, eyebrow: { margin: 0, fontSize: 11, fontWeight: 800, letterSpacing: 1 }, title: { margin: "4px 0", fontSize: 28 }, description: { margin: 0, fontSize: 14 }, tabs: { display: "flex", gap: 4, padding: 6, border: "1px solid", borderRadius: 10, width: "fit-content", maxWidth: "100%", overflowX: "auto" }, tab: { whiteSpace: "nowrap", borderBottom: "2px solid", padding: "7px 10px", fontSize: 12, fontWeight: 750 }, table: { border: "1px solid", borderRadius: 12, overflowX: "auto" }, headerRow: { display: "grid", gap: 12, minWidth: 760, padding: "12px 16px", color: "#8d88a8", fontSize: 10, fontWeight: 800, letterSpacing: .5, textTransform: "uppercase" }, empty: { minWidth: 760, borderTop: "1px solid rgba(130,130,150,.2)", padding: "28px 16px", fontSize: 13 },
+};

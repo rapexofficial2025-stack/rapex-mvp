@@ -6,8 +6,8 @@ type AdminSidebarProps = { items: AdminNavItem[]; activeKey?: string; onNavigate
 const GROUPS: { label?: string; keys: string[] }[] = [
   { keys: ["dashboard"] },
   { label: "OPERATIONS", keys: ["command-center", "order-financials"] },
-  { label: "MANAGEMENT", keys: ["users", "verification", "engine-center"] },
-  { label: "MARKETPLACE", keys: ["products"] },
+  { label: "MANAGEMENT", keys: ["users", "registration", "age-engine", "locations", "communities", "verification", "merchants", "engine-center"] },
+  { label: "MARKETPLACE", keys: ["products", "product-images", "product-variants"] },
   { label: "SYSTEM", keys: ["integrations"] },
 ];
 
@@ -19,7 +19,7 @@ export function AdminSidebar({ items, activeKey, onNavigate, onLogout }: AdminSi
       <img src={`${import.meta.env.BASE_URL}brand/wordmark-logo-v3.png`} alt="RAPEX Command Center" style={{ display: "block", width: 112, height: "auto" }} />
       <span style={{ display: "block", marginTop: 3, color: theme.colors.textSecondary, fontSize: 9, fontWeight: 800, letterSpacing: .6 }}>COMMAND CENTER</span>
     </div>
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
       {GROUPS.map((group, index) => <section key={group.label ?? index}>
         {group.label ? <p style={{ margin: "0 10px 7px", color: theme.colors.textSecondary, fontSize: 9, fontWeight: 800, letterSpacing: .7 }}>{group.label}</p> : null}
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>{group.keys.map((key) => {
