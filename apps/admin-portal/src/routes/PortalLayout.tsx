@@ -23,6 +23,8 @@ const NAV_ITEMS = [
   { key: "orders", label: "Order Management", path: "/admin/orders" },
   { key: "delivery", label: "Delivery Monitoring", path: "/admin/delivery" },
   { key: "riders", label: "Rider Management", path: "/admin/riders" },
+  { key: "errors", label: "Error Center", path: "/admin/errors" },
+  { key: "settings", label: "Operational Settings", path: "/admin/settings" },
   { key: "engine-center", label: "Engine Center", path: "/admin/engine-center" },
   { key: "order-financials", label: "Order Financials", path: "/admin/order-financials" },
   { key: "integrations", label: "Integrations", path: "/admin/integrations" },

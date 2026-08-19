@@ -8,7 +8,7 @@ const GROUPS: { label?: string; keys: string[] }[] = [
   { label: "OPERATIONS", keys: ["command-center", "orders", "delivery", "riders", "order-financials"] },
   { label: "MANAGEMENT", keys: ["users", "registration", "age-engine", "locations", "communities", "verification", "merchants", "engine-center"] },
   { label: "MARKETPLACE", keys: ["products", "product-categories", "product-images", "product-variants", "product-options", "inventory"] },
-  { label: "SYSTEM", keys: ["integrations"] },
+  { label: "SYSTEM", keys: ["integrations", "errors", "settings"] },
 ];
 
 export function AdminSidebar({ items, activeKey, onNavigate, onLogout }: AdminSidebarProps) {

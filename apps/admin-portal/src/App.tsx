@@ -60,6 +60,8 @@ function App() {
           <Route path="orders" element={<AdminDataModulePage module="orders" />} />
           <Route path="delivery" element={<AdminDataModulePage module="delivery" />} />
           <Route path="riders" element={<AdminDataModulePage module="riders" />} />
+          <Route path="errors" element={<AdminDataModulePage module="errors" />} />
+          <Route path="settings" element={<AdminDataModulePage module="system-settings" />} />
         </Route>
         <Route
           path="/admin"
@@ -91,6 +93,8 @@ function App() {
           <Route path="orders" element={<AdminDataModulePage module="orders" />} />
           <Route path="delivery" element={<AdminDataModulePage module="delivery" />} />
           <Route path="riders" element={<AdminDataModulePage module="riders" />} />
+          <Route path="errors" element={<AdminDataModulePage module="errors" />} />
+          <Route path="settings" element={<AdminDataModulePage module="system-settings" />} />
         </Route>
       </Routes>
     </BrowserRouter>
