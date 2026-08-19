@@ -56,3 +56,9 @@ body {
     animation: none;
   }
 }
+
+@media (max-width: 1100px) {
+  .rapex-operations-rail {
+    display: none !important;
+  }
+}

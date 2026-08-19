@@ -1,6 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Sidebar, Topbar, ThemeToggle } from "@rapex/ui-web";
 import { useRepositories } from "@rapex/api-client";
+import { OperationsRail } from "./OperationsRail";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", path: "/admin/dashboard" },
@@ -42,11 +43,14 @@ export function PortalLayout() {
           />
         }
       />
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
         <Topbar title={activeItem?.label ?? "RAPEX Admin"} actions={<ThemeToggle />} />
         <main key={location.pathname} className="rapex-route-transition">
           <Outlet />
         </main>
+        </div>
+        <OperationsRail />
       </div>
     </div>
   );
