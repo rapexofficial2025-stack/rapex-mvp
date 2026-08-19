@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { key: "command-center", label: "Command Center", path: "/admin/command-center" },
   { key: "users", label: "User Management", path: "/admin/users" },
   { key: "verification", label: "Verification", path: "/admin/verification" },
+  { key: "products", label: "Product Monitoring", path: "/admin/products" },
   { key: "engine-center", label: "Engine Center", path: "/admin/engine-center" },
   { key: "order-financials", label: "Order Financials", path: "/admin/order-financials" },
   { key: "integrations", label: "Integrations", path: "/admin/integrations" },

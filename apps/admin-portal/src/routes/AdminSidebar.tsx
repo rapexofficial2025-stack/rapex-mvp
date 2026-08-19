@@ -7,6 +7,7 @@ const GROUPS: { label?: string; keys: string[] }[] = [
   { keys: ["dashboard"] },
   { label: "OPERATIONS", keys: ["command-center", "order-financials"] },
   { label: "MANAGEMENT", keys: ["users", "verification", "engine-center"] },
+  { label: "MARKETPLACE", keys: ["products"] },
   { label: "SYSTEM", keys: ["integrations"] },
 ];
 

@@ -12,6 +12,7 @@ import { RequireAdminAuth } from "./features/auth/RequireAdminAuth";
 import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { IntegrationsPage } from "./features/integrations/IntegrationsPage";
 import { UserManagementPage } from "./features/user-management/UserManagementPage";
+import { ProductMonitoringPage } from "./features/product-monitoring/ProductMonitoringPage";
 
 // GitHub Pages staging can serve this app two ways: (a) owning the whole
 // site root under a repo-name prefix (VITE_BASE_PATH=/rapex-mvp/, the
@@ -44,6 +45,7 @@ function App() {
           <Route path="order-financials" element={<OrderFinancialsPage />} />
           <Route path="integrations" element={<IntegrationsPage />} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="products" element={<ProductMonitoringPage />} />
         </Route>
         <Route
           path="/admin"
@@ -61,6 +63,7 @@ function App() {
           <Route path="order-financials" element={<OrderFinancialsPage />} />
           <Route path="integrations" element={<IntegrationsPage />} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="products" element={<ProductMonitoringPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
