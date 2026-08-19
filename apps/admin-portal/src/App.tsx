@@ -34,6 +34,15 @@ function App() {
         <Route path="/admin/register" element={<RegisterPage />} />
         <Route path="/admin/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/xano-test" element={<XanoLiveTestPage />} />
+        <Route path="/admin/preview" element={<PortalLayout />}>
+          <Route index element={<Navigate to="/admin/preview/dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="command-center" element={<CommandCenterPage />} />
+          <Route path="verification" element={<VerificationQueuePage />} />
+          <Route path="engine-center" element={<EngineCenterPage />} />
+          <Route path="order-financials" element={<OrderFinancialsPage />} />
+          <Route path="integrations" element={<IntegrationsPage />} />
+        </Route>
         <Route
           path="/admin"
           element={

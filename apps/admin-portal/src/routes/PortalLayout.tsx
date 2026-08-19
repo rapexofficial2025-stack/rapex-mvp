@@ -15,8 +15,10 @@ export function PortalLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { auth } = useRepositories();
+  const isPreview = location.pathname.startsWith("/admin/preview");
 
-  const activeItem = NAV_ITEMS.find((item) => location.pathname.startsWith(item.path));
+  const routeFor = (path: string) => (isPreview ? path.replace("/admin/", "/admin/preview/") : path);
+  const activeItem = NAV_ITEMS.find((item) => location.pathname.startsWith(routeFor(item.path)));
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -26,7 +28,7 @@ export function PortalLayout() {
           key: item.key,
           label: item.label,
           active: item.key === activeItem?.key,
-          onClick: () => navigate(item.path),
+          onClick: () => navigate(routeFor(item.path)),
         }))}
         footer={
           <Button

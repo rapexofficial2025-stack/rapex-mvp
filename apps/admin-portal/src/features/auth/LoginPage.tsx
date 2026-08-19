@@ -126,6 +126,10 @@ export function LoginPage() {
         </div>
         {notice ? <p style={styles.notice}>{notice}</p> : null}
 
+        <button type="button" style={styles.previewButton} onClick={() => navigate("/admin/preview/dashboard")}>
+          Preview Admin UI — no sign-in
+        </button>
+
         <button type="button" style={styles.createAccountLink} onClick={() => navigate("/admin/register")}>
           Don't have an account? <span style={styles.createAccountAccent}>Create Account</span>
         </button>
@@ -241,6 +245,16 @@ const styles: Record<string, CSSProperties> = {
   },
   socialIcon: { width: 15, height: 15 },
   notice: { fontSize: 10, color: "rgba(255,255,255,0.65)", marginTop: -2, textAlign: "center" },
+  previewButton: {
+    border: "1px solid rgba(207,182,255,.36)",
+    borderRadius: 10,
+    background: "rgba(255,255,255,.06)",
+    color: "#e4d7ff",
+    padding: "10px",
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
   createAccountLink: {
     background: "none",
     border: "none",
