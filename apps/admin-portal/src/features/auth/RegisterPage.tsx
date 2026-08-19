@@ -23,6 +23,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const register = useAsyncAction((input: { name: string; email: string; phone: string; password: string }) => {
     const [firstName, ...rest] = input.name.trim().split(" ");
     return auth.register({
@@ -34,13 +35,16 @@ export function RegisterPage() {
       mobile: input.phone,
     });
   });
+  const passwordStrength = password.length >= 12 && /[a-zA-Z]/.test(password) && /\d/.test(password) ? "Strong" : password.length >= 8 && /[a-zA-Z]/.test(password) && /\d/.test(password) ? "Normal" : "Weak";
+  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
 
   return (
     <div style={styles.page}>
       <div style={styles.panel}>
         <div>
-          <div style={styles.brand}>RAPEX</div>
-          <div style={styles.subtitle}>Create Admin Account</div>
+          <div style={styles.eyebrow}>RAPEX COMMAND CENTER</div>
+          <div style={styles.brand}>Create Admin Account</div>
+          <div style={styles.subtitle}>Account creation needs an Admin provisioning endpoint before it can be used live.</div>
         </div>
 
         <div style={styles.field}>
@@ -70,6 +74,18 @@ export function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <span style={styles.passwordHint}>Password strength: <strong>{passwordStrength}</strong> · use letters and numbers</span>
+        </div>
+        <div style={styles.field}>
+          <label style={styles.fieldLabel}>Retype password</label>
+          <input
+            style={styles.input}
+            type="password"
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+          {confirmPassword ? <span style={passwordsMatch ? styles.match : styles.noMatch}>{passwordsMatch ? "Passwords match" : "Passwords do not match"}</span> : null}
         </div>
 
         {register.error ? <ErrorState description={register.error} /> : null}
@@ -79,8 +95,13 @@ export function RegisterPage() {
           disabled={register.loading}
           style={styles.primaryButton}
           onClick={async () => {
-            await register.execute({ name, email, phone, password });
-            navigate("/admin/dashboard", { replace: true });
+            if (!passwordsMatch) return;
+            try {
+              await register.execute({ name, email, phone, password });
+              navigate("/admin/dashboard", { replace: true });
+            } catch {
+              // The repository exposes the real Xano provisioning blocker.
+            }
           }}
         >
           {register.loading ? "Creating..." : "Create Account"}
@@ -99,7 +120,7 @@ const styles: Record<string, CSSProperties> = {
     position: "relative",
     minHeight: "100vh",
     backgroundImage: `url(${BACKGROUND})`,
-    backgroundSize: "contain",
+    backgroundSize: "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
     backgroundColor: "#0B0713",
@@ -110,25 +131,28 @@ const styles: Record<string, CSSProperties> = {
   },
   panel: {
     position: "relative",
-    width: "33%",
+    width: "min(100%, 460px)",
     minWidth: 280,
     display: "flex",
     flexDirection: "column",
     gap: 12,
     padding: 24,
-    borderRadius: 16,
-    background: "rgba(11,7,19,0.72)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: 22,
+    background: "linear-gradient(135deg, rgba(24,19,52,.78), rgba(84,49,88,.44))",
+    border: "1px solid rgba(232,210,255,.34)",
+    boxShadow: "inset 1px 1px 0 rgba(255,255,255,.18), 0 18px 48px rgba(3,1,15,.35)",
+    backdropFilter: "blur(18px)",
   },
-  brand: { fontSize: 18, fontWeight: 700, color: "#FFFFFF" },
+  eyebrow: { fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: "#d7bdff" },
+  brand: { fontSize: 26, fontWeight: 750, color: "#FFFFFF" },
   subtitle: { fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 2 },
   field: { display: "flex", flexDirection: "column", gap: 4 },
   fieldLabel: { fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)" },
   input: {
-    border: "1px solid rgba(255,255,255,0.16)",
-    background: "rgba(255,255,255,0.06)",
-    borderRadius: 10,
-    padding: "9px 11px",
+    border: "1px solid rgba(255,255,255,0.22)",
+    background: "rgba(255,255,255,0.08)",
+    borderRadius: 12,
+    padding: "12px 13px",
     outline: "none",
     fontFamily: "inherit",
     fontSize: 13,
@@ -138,13 +162,16 @@ const styles: Record<string, CSSProperties> = {
     marginTop: 2,
     borderRadius: 12,
     padding: "12px",
-    border: "none",
-    background: "linear-gradient(90deg, #F97316, #8B5CF6)",
+    border: "1px solid rgba(245,216,255,.38)",
+    background: "linear-gradient(100deg, #f97316, #d541a2, #7d3ceb)",
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
   },
+  passwordHint: { fontSize: 11, color: "rgba(255,255,255,.62)" },
+  match: { fontSize: 11, color: "#75f5b1" },
+  noMatch: { fontSize: 11, color: "#ffbcbb" },
   backLink: {
     background: "none",
     border: "none",

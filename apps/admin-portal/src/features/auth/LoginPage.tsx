@@ -7,7 +7,6 @@ const BACKGROUND = new URL("../../../../../assets/brand/Background/admin-login.p
 const LOGO = new URL("../../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
 const NAME = new URL("../../../../../assets/brand/Branding Logo (Available)/Name.png", import.meta.url).href;
 const GOOGLE_ICON = new URL("../../../../../assets/brand/icons/google-logo-icon.png", import.meta.url).href;
-const FACEBOOK_ICON = new URL("../../../../../assets/brand/icons/facebook-logo-icon.png", import.meta.url).href;
 
 /**
  * admin-login.png is a full mockup screenshot -- the glass card, divider,
@@ -16,15 +15,10 @@ const FACEBOOK_ICON = new URL("../../../../../assets/brand/icons/facebook-logo-i
  * directly). Only the real logo graphic (not baked into the art) and the
  * right column's login form are real components here.
  *
- * Google/Facebook/Forgot Password were explicitly reversed from
- * internal-only to included (founder decision, confirmed after flagging
- * the conflict with the earlier "Admin is internal-only" rule). Same
- * honest disabled-with-toast pattern as every other app: neither has a
- * configured OAuth Client ID / Meta App ID yet, so pressing them explains
- * why instead of faking success. Forgot Password has no confirmed Xano
- * endpoint for admin (see XanoAdminAuthRepository's requestOtp), same
- * honest toast. Email/password goes through the real, unchanged
- * XanoAdminAuthRepository.login().
+ * Google/Facebook sign-in needs provider configuration. Email/password goes
+ * through the real, unchanged XanoAdminAuthRepository.login(). The visual
+ * treatment is deliberately self-contained: it is an Admin Portal surface,
+ * not a second auth system.
  */
 export function LoginPage() {
   const navigate = useNavigate();
@@ -44,19 +38,20 @@ export function LoginPage() {
 
       <div style={styles.rightPanel}>
         <div>
-          <div style={styles.brand}>RAPEX</div>
-          <div style={styles.subtitle}>Sign In to Command Center</div>
+          <div style={styles.eyebrow}>RAPEX COMMAND CENTER</div>
+          <div style={styles.title}>Admin Login</div>
+          <div style={styles.subtitle}>Access your administration dashboard</div>
         </div>
 
         <div style={styles.field}>
-          <label style={styles.fieldLabel}>Email</label>
+          <label style={styles.fieldLabel}>Email or mobile number</label>
           <div style={styles.inputWrap}>
             <span style={styles.inputIcon}>{"✉️"}</span>
             <input
               style={styles.input}
-              type="email"
+              type="text"
               autoComplete="username"
-              placeholder="Enter your email"
+              placeholder="Enter your email or mobile number"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -89,7 +84,7 @@ export function LoginPage() {
         <button
           type="button"
           style={styles.forgotLink}
-          onClick={() => setNotice("Forgot password isn't set up yet -- contact support for now.")}
+          onClick={() => navigate("/admin/forgot-password")}
         >
           Forgot Password?
         </button>
@@ -101,11 +96,16 @@ export function LoginPage() {
           disabled={login.loading}
           style={styles.primaryButton}
           onClick={async () => {
-            await login.execute({ email, password });
-            navigate("/admin/dashboard", { replace: true });
+            try {
+              await login.execute({ email, password });
+              navigate("/admin/dashboard", { replace: true });
+            } catch {
+              // The Xano error is rendered above. Never open an admin portal
+              // after a failed sign-in attempt.
+            }
           }}
         >
-          {login.loading ? "Signing in..." : `→ Sign In`}
+          {login.loading ? "Signing in…" : "Sign In"}
         </button>
 
         <div style={styles.dividerRow}>
@@ -123,14 +123,6 @@ export function LoginPage() {
             <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
             Google
           </button>
-          <button
-            type="button"
-            style={styles.socialButton}
-            onClick={() => setNotice("Facebook sign-in needs a Meta App ID that isn't configured yet.")}
-          >
-            <img src={FACEBOOK_ICON} alt="Facebook" style={styles.socialIcon} />
-            Facebook
-          </button>
         </div>
         {notice ? <p style={styles.notice}>{notice}</p> : null}
 
@@ -147,46 +139,51 @@ const styles: Record<string, CSSProperties> = {
     position: "relative",
     minHeight: "100vh",
     backgroundImage: `url(${BACKGROUND})`,
-    backgroundSize: "contain",
+    backgroundSize: "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
     backgroundColor: "#0B0713",
     fontFamily: "inherit",
   },
-  // Estimated (not measured) percentage bounds within the background image --
-  // nudge these if they don't line up on a real render.
   leftPanel: {
     position: "absolute",
-    top: "13%",
-    left: "12%",
-    width: "38%",
+    top: "16%",
+    left: "14%",
+    width: "32%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
   },
   rightPanel: {
     position: "absolute",
-    top: "11%",
-    left: "53%",
-    width: "33%",
-    height: "78%",
+    top: "12%",
+    left: "54%",
+    width: "31%",
+    minHeight: 520,
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    gap: 12,
+    gap: 14,
+    padding: 34,
+    borderRadius: 22,
+    border: "1px solid rgba(232, 210, 255, 0.34)",
+    background: "linear-gradient(135deg, rgba(24, 19, 52, 0.68), rgba(84, 49, 88, 0.34))",
+    boxShadow: "inset 1px 1px 0 rgba(255,255,255,.18), 0 18px 48px rgba(3,1,15,.35), 0 0 28px rgba(157,92,255,.18)",
+    backdropFilter: "blur(18px)",
   },
-  brand: { fontSize: 18, fontWeight: 700, color: "#FFFFFF" },
-  subtitle: { fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 2 },
+  eyebrow: { fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: "#d7bdff" },
+  title: { fontSize: 30, fontWeight: 750, letterSpacing: -0.6, color: "#FFFFFF", marginTop: 6 },
+  subtitle: { fontSize: 14, color: "rgba(255,255,255,0.7)", marginTop: 4 },
   field: { display: "flex", flexDirection: "column", gap: 4 },
   fieldLabel: { fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)" },
   inputWrap: {
     display: "flex",
     alignItems: "center",
     gap: 8,
-    border: "1px solid rgba(255,255,255,0.16)",
-    background: "rgba(255,255,255,0.06)",
-    borderRadius: 10,
-    padding: "9px 11px",
+    border: "1px solid rgba(255,255,255,0.22)",
+    background: "rgba(255,255,255,0.075)",
+    borderRadius: 12,
+    padding: "12px 13px",
   },
   inputIcon: { fontSize: 13, opacity: 0.8 },
   input: {
@@ -214,13 +211,14 @@ const styles: Record<string, CSSProperties> = {
   primaryButton: {
     marginTop: 2,
     borderRadius: 12,
-    padding: "12px",
-    border: "none",
-    background: "linear-gradient(90deg, #F97316, #8B5CF6)",
+    padding: "13px",
+    border: "1px solid rgba(245, 216, 255, .38)",
+    background: "linear-gradient(100deg, rgba(249,115,22,.94), rgba(213,65,162,.93), rgba(125,60,235,.96))",
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
+    boxShadow: "0 8px 18px rgba(99,52,207,.28), inset 0 1px 0 rgba(255,255,255,.26)",
   },
   dividerRow: { display: "flex", alignItems: "center", gap: 8, marginTop: 4 },
   dividerLine: { flex: 1, height: 1, background: "rgba(255,255,255,0.14)" },
@@ -235,7 +233,7 @@ const styles: Record<string, CSSProperties> = {
     border: "1px solid rgba(255,255,255,0.16)",
     background: "rgba(255,255,255,0.06)",
     borderRadius: 10,
-    padding: "9px",
+    padding: "11px",
     color: "#FFFFFF",
     fontSize: 12,
     fontWeight: 600,
