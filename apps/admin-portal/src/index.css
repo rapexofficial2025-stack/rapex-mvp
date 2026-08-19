@@ -33,3 +33,26 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Shared desktop portal motion: navigation feels continuous, while keeping
+   motion restrained for operational work. Route content remounts by pathname. */
+.rapex-route-transition {
+  animation: rapex-route-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rapex-route-enter {
+  from {
+    opacity: 0;
+    transform: translateX(8px) translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rapex-route-transition {
+    animation: none;
+  }
+}

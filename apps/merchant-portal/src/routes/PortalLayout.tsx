@@ -26,7 +26,9 @@ export function PortalLayout() {
       />
       <div style={{ flex: 1, minWidth: 0 }}>
         <Topbar title={activeItem?.label ?? "RAPEX Merchant"} actions={<ThemeToggle />} />
-        <Outlet />
+        <main key={location.pathname} className="rapex-route-transition">
+          <Outlet />
+        </main>
       </div>
     </div>
   );
