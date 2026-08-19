@@ -46,7 +46,7 @@ export function LoginPage() {
         <div style={styles.field}>
           <label style={styles.fieldLabel}>Email or mobile number</label>
           <div style={styles.inputWrap}>
-            <span style={styles.inputIcon}>{"✉️"}</span>
+            <span style={styles.inputIcon}>ID</span>
             <input
               style={styles.input}
               type="text"
@@ -61,7 +61,7 @@ export function LoginPage() {
         <div style={styles.field}>
           <label style={styles.fieldLabel}>Password</label>
           <div style={styles.inputWrap}>
-            <span style={styles.inputIcon}>{"\u{1F512}"}</span>
+            <span style={styles.inputIcon}>PW</span>
             <input
               style={styles.input}
               type={showPassword ? "text" : "password"}
@@ -76,7 +76,7 @@ export function LoginPage() {
               style={styles.eyeToggle}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? "\u{1F648}" : "\u{1F441}️"}
+              {showPassword ? "Hide" : "Show"}
             </button>
           </div>
         </div>
@@ -189,7 +189,7 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: 12,
     padding: "12px 13px",
   },
-  inputIcon: { fontSize: 13, opacity: 0.8 },
+  inputIcon: { fontSize: 10, letterSpacing: 0.5, fontWeight: 800, opacity: 0.72 },
   input: {
     border: "none",
     background: "none",
@@ -200,7 +200,7 @@ const styles: Record<string, CSSProperties> = {
     flex: 1,
     minWidth: 0,
   },
-  eyeToggle: { background: "none", border: "none", cursor: "pointer", fontSize: 13, opacity: 0.7, padding: 0 },
+  eyeToggle: { background: "none", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, color: "#E7DAFF", opacity: 0.85, padding: 0 },
   forgotLink: {
     alignSelf: "flex-end",
     background: "none",

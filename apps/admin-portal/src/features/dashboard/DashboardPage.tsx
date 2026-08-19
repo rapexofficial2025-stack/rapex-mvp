@@ -81,12 +81,12 @@ export function DashboardPage() {
 
       {/* Top KPI row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: theme.spacing.md }}>
-        <KpiCard icon="💰" label="Total Revenue (Today)" value={formatPeso(overview.revenueToday)} changePercent={overview.revenueTodayChangePercent} accentColor="#8B5CF633" />
-        <KpiCard icon="🛍️" label="Total Orders (Today)" value={String(overview.ordersToday)} changePercent={overview.ordersTodayChangePercent} accentColor="#3B82F633" />
-        <KpiCard icon="✅" label="Completed Orders" value={String(overview.completedOrdersToday)} changePercent={overview.completedOrdersChangePercent} accentColor="#22C55E33" />
-        <KpiCard icon="⏱️" label="Pending Orders" value={String(overview.pendingOrders)} changePercent={overview.pendingOrdersChangePercent} accentColor="#F59E0B33" />
-        <KpiCard icon="🛵" label="Online Riders" value={String(overview.onlineRiders)} accentColor="#14B8A633" />
-        <KpiCard icon="🏬" label="Online Stores" value={String(overview.onlineStores)} accentColor="#F9731633" />
+        <KpiCard label="Total Revenue (Today)" value={formatPeso(overview.revenueToday)} changePercent={overview.revenueTodayChangePercent} accentColor="#6477FF33" />
+        <KpiCard label="Total Orders (Today)" value={String(overview.ordersToday)} changePercent={overview.ordersTodayChangePercent} accentColor="#6477FF33" />
+        <KpiCard label="Completed Orders" value={String(overview.completedOrdersToday)} changePercent={overview.completedOrdersChangePercent} accentColor="#6477FF33" />
+        <KpiCard label="Pending Orders" value={String(overview.pendingOrders)} changePercent={overview.pendingOrdersChangePercent} accentColor="#6477FF33" />
+        <KpiCard label="Online Riders" value={String(overview.onlineRiders)} accentColor="#6477FF33" />
+        <KpiCard label="Online Stores" value={String(overview.onlineStores)} accentColor="#6477FF33" />
       </div>
 
       {/* Revenue overview + breakdown */}
@@ -197,7 +197,6 @@ export function DashboardPage() {
               gap: theme.spacing.xs,
             }}
           >
-            <div style={{ fontSize: theme.typography.fontSize.lg }}>🗺️</div>
             <div style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textPrimary }}>
               {overview.onlineRiders} riders · {overview.onlineStores} stores online
             </div>

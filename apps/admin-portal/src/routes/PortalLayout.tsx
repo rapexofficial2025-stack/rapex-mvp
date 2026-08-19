@@ -3,13 +3,13 @@ import { Button, Sidebar, Topbar, ThemeToggle } from "@rapex/ui-web";
 import { useRepositories } from "@rapex/api-client";
 
 const NAV_ITEMS = [
-  { key: "dashboard", label: "📊 Dashboard", path: "/admin/dashboard" },
+  { key: "dashboard", label: "Dashboard", path: "/admin/dashboard" },
   { key: "command-center", label: "Command Center", path: "/admin/command-center" },
   { key: "users", label: "User Management", path: "/admin/users" },
-  { key: "verification", label: "🛡️ Verification", path: "/admin/verification" },
-  { key: "engine-center", label: "⚙️ Engine Center", path: "/admin/engine-center" },
-  { key: "order-financials", label: "💰 Order Financials", path: "/admin/order-financials" },
-  { key: "integrations", label: "🔑 API Keys", path: "/admin/integrations" },
+  { key: "verification", label: "Verification", path: "/admin/verification" },
+  { key: "engine-center", label: "Engine Center", path: "/admin/engine-center" },
+  { key: "order-financials", label: "Order Financials", path: "/admin/order-financials" },
+  { key: "integrations", label: "Integrations", path: "/admin/integrations" },
 ];
 
 export function PortalLayout() {
