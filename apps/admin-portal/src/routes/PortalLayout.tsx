@@ -30,6 +30,8 @@ const NAV_ITEMS = [
   { key: "integrations", label: "Integrations", path: "/admin/integrations" },
   { key: "errors", label: "Error Center", path: "/admin/errors" },
   { key: "settings", label: "Operational Settings", path: "/admin/settings" },
+  { key: "receipt-design", label: "Receipt Design", path: "/admin/receipt-design" },
+  { key: "exports", label: "Secure Exports", path: "/admin/exports" },
 ];
 
 export function PortalLayout() {

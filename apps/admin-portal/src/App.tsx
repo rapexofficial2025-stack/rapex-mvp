@@ -16,6 +16,8 @@ import { ProductMonitoringPage } from "./features/product-monitoring/ProductMoni
 import { AdminDataModulePage } from "./features/master-data/AdminDataModulePage";
 import { CategoryEnginePage } from "./features/ecosystem/CategoryEnginePage";
 import { ServiceProvidersPage } from "./features/ecosystem/ServiceProvidersPage";
+import { ReceiptDesignPage } from "./features/receipts/ReceiptDesignPage";
+import { ExportCenterPage } from "./features/receipts/ExportCenterPage";
 
 // GitHub Pages staging can serve this app two ways: (a) owning the whole
 // site root under a repo-name prefix (VITE_BASE_PATH=/rapex-mvp/, the
@@ -66,6 +68,8 @@ function App() {
           <Route path="riders" element={<AdminDataModulePage module="riders" />} />
           <Route path="errors" element={<AdminDataModulePage module="errors" />} />
           <Route path="settings" element={<AdminDataModulePage module="system-settings" />} />
+          <Route path="receipt-design" element={<ReceiptDesignPage />} />
+          <Route path="exports" element={<ExportCenterPage />} />
         </Route>
         <Route
           path="/admin"
@@ -101,6 +105,8 @@ function App() {
           <Route path="riders" element={<AdminDataModulePage module="riders" />} />
           <Route path="errors" element={<AdminDataModulePage module="errors" />} />
           <Route path="settings" element={<AdminDataModulePage module="system-settings" />} />
+          <Route path="receipt-design" element={<ReceiptDesignPage />} />
+          <Route path="exports" element={<ExportCenterPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

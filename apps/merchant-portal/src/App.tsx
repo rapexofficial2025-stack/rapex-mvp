@@ -10,6 +10,7 @@ import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { StorePage } from "./features/store/StorePage";
 import { CapabilityCenterPage } from "./features/capabilities/CapabilityCenterPage";
 import { ListingTypeSelectorPage } from "./features/listings/ListingTypeSelectorPage";
+import { ReceiptHistoryPage } from "./features/receipts/ReceiptHistoryPage";
 
 // GitHub Pages staging serves this app from a /<repo>/ or /<repo>/merchant/
 // subpath via VITE_BASE_PATH -- see vite.config.ts. Unlike admin-portal,
@@ -33,6 +34,7 @@ function App() {
             <Route path="dashboard" element={<DashboardPage previewMode />} />
             <Route path="capabilities" element={<CapabilityCenterPage previewMode />} />
             <Route path="listings/new" element={<ListingTypeSelectorPage previewMode />} />
+            <Route path="receipts" element={<ReceiptHistoryPage />} />
           </Route>
         ) : null}
         <Route
@@ -49,6 +51,7 @@ function App() {
           <Route path="store" element={<StorePage />} />
           <Route path="capabilities" element={<CapabilityCenterPage />} />
           <Route path="listings/new" element={<ListingTypeSelectorPage />} />
+          <Route path="receipts" element={<ReceiptHistoryPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

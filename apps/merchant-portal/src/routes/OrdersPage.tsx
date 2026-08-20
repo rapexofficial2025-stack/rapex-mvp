@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Badge, Button, DataTable, Modal, useTheme, type DataTableColumn } from "@rapex/ui-web";
 import { formatPeso } from "@rapex/utils";
+import { ReceiptPreview, type ReceiptOrder } from "../features/receipts/ReceiptPreview";
 
 type PlaceholderOrder = {
   id: string;
@@ -30,6 +31,7 @@ export function OrdersPage() {
   const theme = useTheme();
   const [selectedOrder, setSelectedOrder] = useState<PlaceholderOrder | null>(null);
   const [statusEditorOpen, setStatusEditorOpen] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState<ReceiptOrder | null>(null);
 
   return (
     <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
@@ -54,7 +56,7 @@ export function OrdersPage() {
       />
 
       {selectedOrder ? (
-        <Modal title={`Order ${selectedOrder.id}`} onClose={() => setSelectedOrder(null)} footer={<Button label="Update order status" onClick={() => setStatusEditorOpen(true)} />}>
+        <Modal title={`Order ${selectedOrder.id}`} onClose={() => setSelectedOrder(null)} footer={<div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}><Button label="Preview receipt" variant="secondary" onClick={() => setReceiptOrder(selectedOrder)} /><Button label="Update order status" onClick={() => setStatusEditorOpen(true)} /></div>}>
           <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
             <Detail label="Customer" value={selectedOrder.customer} />
             <Detail label="Items" value={selectedOrder.itemSummary} />
@@ -64,6 +66,8 @@ export function OrdersPage() {
           </div>
         </Modal>
       ) : null}
+
+      {receiptOrder ? <ReceiptPreview order={receiptOrder} onClose={() => setReceiptOrder(null)} /> : null}
 
       {statusEditorOpen && selectedOrder ? (
         <Modal title="Update order status" onClose={() => setStatusEditorOpen(false)} footer={<Button label="Close" variant="secondary" onClick={() => setStatusEditorOpen(false)} />}>
