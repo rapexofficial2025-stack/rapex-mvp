@@ -80,8 +80,9 @@ export function StoreScreen({ navigation, route }: Props) {
       <FlatList
         data={visibleProducts}
         keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={{ gap: theme.spacing.sm, paddingHorizontal: theme.spacing.lg }}
         contentContainerStyle={{ gap: theme.spacing.sm, paddingBottom: theme.spacing.xl }}
-        ItemSeparatorComponent={() => <View style={{ height: theme.spacing.sm }} />}
         ListHeaderComponent={
           <View>
             {/* Hero -- category-tinted per founder's store-theming reference (2026-08-20) */}
@@ -233,9 +234,7 @@ export function StoreScreen({ navigation, route }: Props) {
           )
         }
         renderItem={({ item }) => (
-          <View style={{ paddingHorizontal: theme.spacing.lg }}>
-            <ProductCard product={item} onPress={() => navigation.navigate("Product", { productId: item.id })} />
-          </View>
+          <ProductCard product={item} storeName={store.name} onPress={() => navigation.navigate("Product", { productId: item.id })} />
         )}
         ListFooterComponent={
           store.reviews.length > 0 ? (
