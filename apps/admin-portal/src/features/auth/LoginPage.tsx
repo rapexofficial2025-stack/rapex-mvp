@@ -2,6 +2,7 @@ import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { ErrorState } from "@rapex/ui-web";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import { signInWithGoogle } from "../../services/socialAuth";
 
 const BACKGROUND = new URL("../../../../../assets/brand/Background/admin-login.png", import.meta.url).href;
 const LOGO = new URL("../../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
@@ -27,7 +28,23 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
+
+  async function handleGoogleSignIn() {
+    setNotice(null);
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      // Firebase identity confirmed -- exchanging it for a real RAPEX admin
+      // session needs Xano's confirmed admin auth contract, not built yet.
+      setNotice(`Signed in as ${result.user.email} with Google. Linking this to a RAPEX admin session isn't wired up yet -- use email/password sign-in for now.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Google sign-in failed.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
 
   return (
     <div style={styles.page}>
@@ -118,10 +135,11 @@ export function LoginPage() {
           <button
             type="button"
             style={styles.socialButton}
-            onClick={() => setNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
+            disabled={googleLoading}
+            onClick={handleGoogleSignIn}
           >
             <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
-            Google
+            {googleLoading ? "Signing in…" : "Google"}
           </button>
         </div>
         {notice ? <p style={styles.notice}>{notice}</p> : null}

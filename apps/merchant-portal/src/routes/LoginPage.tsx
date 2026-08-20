@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { MerchantAuthShell } from "./MerchantAuthShell";
+import { signInWithGoogle } from "../services/socialAuth";
 
 const GOOGLE_ICON = new URL("../../../../assets/brand/icons/google-logo-icon.png", import.meta.url).href;
 
@@ -13,8 +14,24 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
   const verify = useAsyncAction((otpCode: string) => auth.verifyOtp(otpCode));
+
+  async function handleGoogleSignIn() {
+    setNotice(null);
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      // Firebase identity confirmed -- exchanging it for a real RAPEX
+      // merchant session needs Xano's confirmed /auth/me contract, not built yet.
+      setNotice(`Signed in as ${result.user.email} with Google. Linking this to a RAPEX merchant session isn't wired up yet -- use email/password sign-in for now.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Google sign-in failed.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
 
   async function handleLogin(event: React.FormEvent) {
     event.preventDefault();
@@ -94,11 +111,11 @@ export function LoginPage() {
           <button
             className="merchant-social-button"
             type="button"
-            onClick={() => setNotice("Google sign-in is waiting for the browser OAuth client ID. No account was created.")}
+            disabled={googleLoading}
+            onClick={handleGoogleSignIn}
           >
             <img src={GOOGLE_ICON} alt="" />
-            Continue with Google
-            <small>Setup required</small>
+            {googleLoading ? "Signing in…" : "Continue with Google"}
           </button>
 
           <p className="merchant-auth-switch">
