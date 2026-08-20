@@ -30,7 +30,7 @@ export type UpdateStoreInput = Partial<{
   latitude: number;
   longitude: number;
 }>;
-export type CreateProductInput = { name: string; price: number; productCategory: string };
+export type CreateProductInput = { name: string; price: number; productCategory: string; stock?: number };
 export type UpdateProductInput = Partial<{ name: string; price: number; stock: number; isActive: boolean }>;
 export type CreateVariantInput = { name: string; priceDelta: number; stock: number; sku: string };
 export type UpdateVariantInput = Partial<CreateVariantInput>;

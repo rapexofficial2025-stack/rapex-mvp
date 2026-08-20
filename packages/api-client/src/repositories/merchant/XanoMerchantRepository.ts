@@ -97,7 +97,7 @@ export class XanoMerchantRepository implements MerchantRepository {
         name: input.name,
         price: input.price,
         store_id: storeId,
-        stock: 0,
+        stock: input.stock ?? 0,
       },
     });
 
@@ -108,7 +108,7 @@ export class XanoMerchantRepository implements MerchantRepository {
       price: Number(raw.price ?? input.price),
       imageLabel: "🛍️",
       productCategory: input.productCategory,
-      stock: Number(raw.stock ?? 0),
+      stock: Number(raw.stock ?? input.stock ?? 0),
       isActive: true,
       variantCount: 0,
     };

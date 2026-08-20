@@ -405,7 +405,7 @@ export class MockMerchantRepository implements MerchantRepository {
       price: input.price,
       imageLabel: "🛍️",
       productCategory: input.productCategory,
-      stock: 0,
+      stock: input.stock ?? 0,
       isActive: true,
       variantCount: 0,
     };

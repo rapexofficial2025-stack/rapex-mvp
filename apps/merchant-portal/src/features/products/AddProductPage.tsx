@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import Papa from "papaparse";
 import { Badge, Button, EmptyState, ErrorState, Input, Loading, useTheme } from "@rapex/ui-web";
 import { useAsync, useAsyncAction, useRepositories, type ProductImportRow } from "@rapex/api-client";
@@ -10,11 +10,17 @@ import { useMerchantStoreWorkspace } from "../workspace/useMerchantStoreWorkspac
  * phone-only local vendors who are not techy, per founder instruction
  * (2026-08-20): "GCash style" clarity, one core action per screen.
  *
+ * Batch-add flow per founder instruction (2026-08-20): pick one Category
+ * first, then add products into it one after another without the screen
+ * exiting or resetting -- each field except Price and Quantity gets a
+ * "Keep for next product" lock so the merchant isn't retyping the same
+ * Category/Name/Photo for every item in a batch. Category defaults to
+ * locked (it's the thing chosen first and meant to persist); Name and
+ * Photo default to unlocked since those are normally different per item.
+ *
  * Uses merchant.createProduct(), the real Xano-backed E2E Alpha write
  * path (see XanoMerchantRepository's doc comment -- confirmed live
  * against the admin-master-data group, 2026-08-03 handover), not a mock.
- * This is the first screen in this portal that actually calls it outside
- * the one-time onboarding wizard.
  */
 export function AddProductPage() {
   const theme = useTheme();
@@ -26,14 +32,18 @@ export function AddProductPage() {
     [currentStoreId],
   );
 
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
   const [productCategory, setProductCategory] = useState("");
-  const [justAdded, setJustAdded] = useState<string | null>(null);
+  const [lockCategory, setLockCategory] = useState(true);
+  const [name, setName] = useState("");
+  const [lockName, setLockName] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [lockPhoto, setLockPhoto] = useState(false);
+  const [price, setPrice] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [justAdded, setJustAdded] = useState<string | null>(null);
   const [csvNotice, setCsvNotice] = useState<string | null>(null);
 
-  const createProduct = useAsyncAction((input: { name: string; price: number; productCategory: string }) =>
+  const createProduct = useAsyncAction((input: { name: string; price: number; productCategory: string; stock: number }) =>
     merchant!.createProduct(currentStoreId!, input),
   );
 
@@ -85,43 +95,60 @@ export function AddProductPage() {
       <p style={{ color: theme.colors.textSecondary, margin: 0 }}>For {currentStore?.name ?? "your store"}</p>
 
       <div style={{ ...styles.card, background: theme.colors.surface, borderColor: theme.colors.border }}>
-        <label style={styles.photoPicker}>
-          {photoPreview ? (
-            <img src={photoPreview} alt="Product preview" style={styles.photoPreviewImg} />
-          ) : (
-            <span style={{ color: theme.colors.textSecondary, fontSize: 13 }}>📷 Add Photo</span>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            style={{ display: "none" }}
-            onChange={(event) => handlePhotoSelected(event.target.files?.[0])}
-          />
-        </label>
+        <LockableField label="Category" locked={lockCategory} onToggleLock={setLockCategory} theme={theme}>
+          <Input value={productCategory} onChange={(event) => setProductCategory(event.target.value)} placeholder="e.g. Ulam" />
+        </LockableField>
+
+        <LockableField label="Photo" locked={lockPhoto} onToggleLock={setLockPhoto} theme={theme}>
+          <label style={styles.photoPicker}>
+            {photoPreview ? (
+              <img src={photoPreview} alt="Product preview" style={styles.photoPreviewImg} />
+            ) : (
+              <span style={{ color: theme.colors.textSecondary, fontSize: 13 }}>📷 Add Photo</span>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: "none" }}
+              onChange={(event) => handlePhotoSelected(event.target.files?.[0])}
+            />
+          </label>
+        </LockableField>
         {photoPreview ? <Badge label="Photo not saved yet -- needs a confirmed Xano image-upload endpoint" tone="neutral" /> : null}
 
-        <Input label="Product Name" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Chicken Adobo" />
+        <LockableField label="Name" locked={lockName} onToggleLock={setLockName} theme={theme}>
+          <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Chicken Adobo" />
+        </LockableField>
+
         <Input label="Price (₱)" type="number" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="e.g. 99" />
-        <Input label="Category" value={productCategory} onChange={(event) => setProductCategory(event.target.value)} placeholder="e.g. Ulam" />
+        <Input label="Quantity" type="number" value={quantity} onChange={(event) => setQuantity(event.target.value)} placeholder="e.g. 20" />
 
         {createProduct.error ? <ErrorState description={createProduct.error} /> : null}
 
         <Button
           label={createProduct.loading ? "Adding…" : "Add Product"}
           loading={createProduct.loading}
-          disabled={!name || !price}
+          disabled={!name || !price || !productCategory}
           onClick={async () => {
-            const created = await createProduct.execute({ name, price: Number(price), productCategory });
+            const created = await createProduct.execute({
+              name,
+              price: Number(price),
+              productCategory,
+              stock: quantity ? Number(quantity) : 0,
+            });
             setJustAdded(created.name);
-            setName("");
+            // Price and Quantity always clear -- those genuinely differ per
+            // product. Category/Name/Photo only clear if not locked.
             setPrice("");
-            setProductCategory("");
-            setPhotoPreview(null);
+            setQuantity("");
+            if (!lockCategory) setProductCategory("");
+            if (!lockName) setName("");
+            if (!lockPhoto) setPhotoPreview(null);
             refetch();
           }}
         />
-        {justAdded ? <Badge label={`${justAdded} added ✓`} tone="success" /> : null}
+        {justAdded ? <Badge label={`${justAdded} added ✓ -- keep adding, or leave this screen when done`} tone="success" /> : null}
       </div>
 
       <div style={{ ...styles.card, background: theme.colors.surface, borderColor: theme.colors.border }}>
@@ -158,6 +185,36 @@ export function AddProductPage() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+type ThemeShape = ReturnType<typeof useTheme>;
+
+/** A form field with a "🔒 Keep for next product" checkbox -- unchecked fields reset after each Add Product. */
+function LockableField({
+  label,
+  locked,
+  onToggleLock,
+  theme,
+  children,
+}: {
+  label: string;
+  locked: boolean;
+  onToggleLock: (next: boolean) => void;
+  theme: ThemeShape;
+  children: ReactNode;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: theme.colors.textPrimary }}>{label}</span>
+        <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: theme.colors.textSecondary, cursor: "pointer" }}>
+          <input type="checkbox" checked={locked} onChange={(event) => onToggleLock(event.target.checked)} />
+          🔒 Keep for next product
+        </label>
+      </div>
+      {children}
     </div>
   );
 }
