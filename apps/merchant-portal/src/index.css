@@ -163,6 +163,8 @@ button {
 }
 
 .merchant-registration-page {
+  --merchant-cursor-x: 50vw;
+  --merchant-cursor-y: 50vh;
   position: relative;
   isolation: isolate;
   min-height: 100vh;
@@ -174,6 +176,53 @@ button {
   background:
     radial-gradient(circle at 50% -12%, rgba(91, 62, 151, 0.2), transparent 42%),
     linear-gradient(145deg, #04050b 0%, #090713 48%, #05060c 100%);
+}
+
+.merchant-registration-cursor {
+  position: fixed;
+  z-index: 0;
+  top: var(--merchant-cursor-y);
+  left: var(--merchant-cursor-x);
+  width: 230px;
+  height: 230px;
+  display: none;
+  place-items: center;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.72);
+  transition: opacity 220ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: top, left, opacity, transform;
+}
+
+.merchant-registration-cursor::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: "";
+  background:
+    radial-gradient(circle at 38% 38%, rgba(167, 139, 250, 0.68), transparent 42%),
+    radial-gradient(circle at 68% 66%, rgba(249, 115, 22, 0.46), transparent 46%);
+  filter: blur(34px);
+}
+
+.merchant-registration-cursor img {
+  position: relative;
+  width: 88px;
+  height: auto;
+  opacity: 0.58;
+  filter: drop-shadow(0 0 18px rgba(167, 139, 250, 0.38));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .merchant-registration-cursor {
+    display: grid;
+  }
+
+  .merchant-registration-page[data-cursor-active="true"] .merchant-registration-cursor {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .merchant-registration-page__mesh {
@@ -1470,7 +1519,12 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .rapex-route-transition,
   .merchant-registration-card,
-  .merchant-registration-page__glow {
+  .merchant-registration-page__glow,
+  .merchant-registration-cursor {
     animation: none;
+  }
+
+  .merchant-registration-cursor {
+    transition: none;
   }
 }
