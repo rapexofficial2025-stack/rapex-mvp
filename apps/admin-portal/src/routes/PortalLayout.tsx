@@ -32,6 +32,7 @@ const NAV_ITEMS = [
   { key: "integrations", label: "Integrations", path: "/admin/integrations" },
   { key: "errors", label: "Error Center", path: "/admin/errors" },
   { key: "settings", label: "Operational Settings", path: "/admin/settings" },
+  { key: "profile", label: "My Profile", path: "/admin/profile" },
   { key: "super-admin", label: "Security Access", path: "/admin/super-admin" },
   { key: "super-admin-admins", label: "Admin Accounts", path: "/admin/super-admin/admins" },
   { key: "super-admin-users", label: "Users & Roles", path: "/admin/super-admin/users" },

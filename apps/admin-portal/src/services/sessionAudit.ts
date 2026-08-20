@@ -48,3 +48,24 @@ export function recordAdminLogout(reason: AdminLogoutReason): void {
 export function getAdminSessionLog(): AdminSessionEvent[] {
   return readLog();
 }
+
+export type AdminAttendanceSummary = {
+  daysWorked: number;
+  totalLogins: number;
+  lastLoginAt: string | null;
+};
+
+/**
+ * Self-view summary for the admin's own Profile tab -- deliberately exposes
+ * only neutral presence info (days active, login count, last login).
+ * System-idle vs user-manual logout counts are penalty-relevant per the
+ * founder's instruction and must never surface here; use
+ * getAdminSessionLog() directly for that (accounting/audit views only).
+ */
+export function getAdminAttendanceSummary(): AdminAttendanceSummary {
+  const events = readLog();
+  const logins = events.filter((event): event is { type: "login"; at: string } => event.type === "login");
+  const daysWorked = new Set(logins.map((login) => login.at.slice(0, 10))).size;
+  const lastLoginAt = logins.length > 0 ? logins[logins.length - 1]!.at : null;
+  return { daysWorked, totalLogins: logins.length, lastLoginAt };
+}
