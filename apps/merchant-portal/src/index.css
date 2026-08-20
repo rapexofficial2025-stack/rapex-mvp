@@ -1497,6 +1497,15 @@ button {
   .merchant-store-details {
     grid-template-columns: 1fr;
   }
+
+  /* Most RAPEX merchants at this width are phone-only, non-technical local
+     vendors (carinderia, food carts, wet market stalls) -- keep only what a
+     "GCash simple" flow needs (nav, theme, notifications, profile) and drop
+     power-user chrome that doesn't earn its space on a phone. */
+  .merchant-topbar__search,
+  .merchant-topbar__print {
+    display: none;
+  }
 }
 
 /* Shared desktop portal motion: navigation feels continuous, while keeping
