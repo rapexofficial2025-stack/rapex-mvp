@@ -68,6 +68,17 @@ commission/markup calculation, settlement, basic notifications,
 security/RLS, error/audit logging, frontend↔Xano integration, real E2E
 testing, production deployment.
 
+**"Merchant acceptance" made concrete (2026-08-20)**: a full 13-step
+merchant registration→verification→approval flow is now specified in
+`docs/business/Merchant.md` and explicitly declared an Alpha blocker in
+`docs/business/Authentication.md`. This isn't new scope so much as it
+makes an existing MUST-HAVE line item real and buildable: `MERCHANT
+REGISTRATION → AUTH → VERIFICATION → STORE CREATION → ADMIN APPROVAL →
+STORE ACTIVE → PRODUCT UPLOAD → RECEIVE ORDER`. Admin's existing
+Verification Queue UI (`apps/admin-portal/src/features/verification/`)
+is the review surface for this — it needs real data flowing through it
+before launch, not just its current UI shell.
+
 **CONDITIONAL for Alpha** (build/enable only if explicitly kept in
 scope, otherwise defer): COD (only if the full remittance/reconciliation
 cycle is implemented and tested — recommended default is wallet-only,
