@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, View, Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Loading, ErrorState, Button, Badge, EmptyState } from "@rapex/ui-native";
+import { Loading, ErrorState, Button, Badge, EmptyState, Input } from "@rapex/ui-native";
 import { formatPeso } from "@rapex/utils";
-import { useAsync, useAsyncAction, useRepositories, type CartLine } from "@rapex/api-client";
+import { useAsync, useAsyncAction, useMyOrders, useRepositories, type CartLine } from "@rapex/api-client";
 import type { RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { useCartLines, clearCart } from "../services/cartStore";
 import { useDeliveryAddress } from "../services/addressStore";
+import { validateVoucher, FIRST_ORDER_FREE_DELIVERY_MIN_SUBTOTAL, type VoucherResult } from "../services/vouchers";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Checkout">;
 
@@ -107,6 +108,64 @@ function VehicleSelector({
   );
 }
 
+function VoucherSection({
+  appliedVoucher,
+  onApply,
+  onRemove,
+}: {
+  appliedVoucher: VoucherResult | null;
+  onApply: (code: string) => string | null;
+  onRemove: () => void;
+}) {
+  const theme = useAppTheme();
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  if (appliedVoucher) {
+    return (
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: theme.spacing.md,
+          borderRadius: theme.radius.md,
+          borderWidth: 1,
+          borderColor: theme.colors.success,
+          backgroundColor: theme.colors.surfaceAlt,
+        }}
+      >
+        <View>
+          <Text style={{ color: theme.colors.textPrimary, fontWeight: "700", fontSize: theme.typography.fontSize.sm }}>{appliedVoucher.code}</Text>
+          <Text style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.xs }}>{appliedVoucher.description}</Text>
+        </View>
+        <Button label="Remove" variant="outline" size="sm" onPress={onRemove} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ gap: theme.spacing.xs }}>
+      <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>Voucher Code</Text>
+      <View style={{ flexDirection: "row", gap: theme.spacing.sm, alignItems: "flex-end" }}>
+        <View style={{ flex: 1 }}>
+          <Input value={code} onChangeText={setCode} placeholder="Enter voucher code" autoCapitalize="characters" />
+        </View>
+        <Button
+          label="Apply"
+          variant="secondary"
+          onPress={() => {
+            const result = onApply(code);
+            setError(result);
+            if (!result) setCode("");
+          }}
+        />
+      </View>
+      {error ? <Badge label={error} tone="error" /> : null}
+    </View>
+  );
+}
+
 function Row({ label, value }: { label: string; value: string }) {
   const theme = useAppTheme();
   return (
@@ -185,8 +244,11 @@ export function CheckoutScreen({ navigation, route }: Props) {
   const address = useDeliveryAddress();
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleKey | null>(null);
   const [deliveryTiming, setDeliveryTiming] = useState<"now" | "later" | null>(null);
+  const [appliedVoucher, setAppliedVoucher] = useState<VoucherResult | null>(null);
 
   const { data: walletSummary, loading: walletLoading } = useAsync(() => wallet.getWalletSummary(), []);
+  const { data: pastOrders } = useMyOrders();
+  const isFirstOrder = (pastOrders?.length ?? 0) === 0;
 
   const { data: product, loading: productLoading, error: productError } = useAsync(
     () => (productId ? marketplace.getProductById(productId) : Promise.resolve(null)),
@@ -215,8 +277,17 @@ export function CheckoutScreen({ navigation, route }: Props) {
   if (!summary) return null;
 
   const selectedVehicleOption = VEHICLE_OPTIONS.find((v) => v.key === selectedVehicle) ?? null;
-  const effectiveDeliveryFee = deliveryTiming === "now" && selectedVehicleOption ? selectedVehicleOption.basePrice : summary.deliveryFee;
-  const effectiveTotal = summary.subtotal + effectiveDeliveryFee + summary.platformFee;
+  const baseDeliveryFee = deliveryTiming === "now" && selectedVehicleOption ? selectedVehicleOption.basePrice : summary.deliveryFee;
+
+  // First order P150+ gets free delivery automatically -- no code needed.
+  // A manually-applied voucher takes priority over the auto-promo rather
+  // than stacking (see docs/business/Commissions.md's coupon-engine notes).
+  const firstOrderFreeDeliveryEligible = !appliedVoucher && isFirstOrder && summary.subtotal >= FIRST_ORDER_FREE_DELIVERY_MIN_SUBTOTAL;
+  const voucherFreeDelivery = appliedVoucher?.freeDelivery ?? firstOrderFreeDeliveryEligible;
+  const voucherAmountDiscount = appliedVoucher?.discountAmount ?? 0;
+  const effectiveDeliveryFee = voucherFreeDelivery ? 0 : baseDeliveryFee;
+  const deliveryDiscount = baseDeliveryFee - effectiveDeliveryFee;
+  const effectiveTotal = Math.max(0, summary.subtotal + effectiveDeliveryFee + summary.platformFee - voucherAmountDiscount);
   const canPlaceOrder = !!address && !!deliveryTiming;
 
   return (
@@ -225,6 +296,9 @@ export function CheckoutScreen({ navigation, route }: Props) {
         Order Summary
       </Text>
       <Badge label="Preview totals are a mock estimate — no confirmed Xano pricing endpoint yet" tone="warning" />
+      {firstOrderFreeDeliveryEligible ? (
+        <Badge label={`🎉 Free delivery on your first order (₱${FIRST_ORDER_FREE_DELIVERY_MIN_SUBTOTAL}+)`} tone="success" />
+      ) : null}
 
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <View style={{ flex: 1 }}>
@@ -242,10 +316,24 @@ export function CheckoutScreen({ navigation, route }: Props) {
       ))}
       <View style={{ height: 1, backgroundColor: theme.colors.border }} />
       <Row label="Product Total" value={formatPeso(summary.subtotal)} />
-      <Row label="Delivery Fee" value={formatPeso(effectiveDeliveryFee)} />
+      <Row label="Delivery Fee" value={formatPeso(baseDeliveryFee)} />
+      {deliveryDiscount > 0 ? <Row label="Delivery Discount" value={`- ${formatPeso(deliveryDiscount)}`} /> : null}
+      {voucherAmountDiscount > 0 ? <Row label="Voucher Discount" value={`- ${formatPeso(voucherAmountDiscount)}`} /> : null}
       {summary.platformFee > 0 ? <Row label="Platform Fee" value={formatPeso(summary.platformFee)} /> : null}
       <View style={{ height: 1, backgroundColor: theme.colors.border }} />
       <Row label="Final Total" value={formatPeso(effectiveTotal)} />
+
+      <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+      <VoucherSection
+        appliedVoucher={appliedVoucher}
+        onApply={(code) => {
+          const result = validateVoucher(code, summary.subtotal);
+          if (!result.ok) return result.error;
+          setAppliedVoucher(result.result);
+          return null;
+        }}
+        onRemove={() => setAppliedVoucher(null)}
+      />
 
       <View style={{ height: 1, backgroundColor: theme.colors.border }} />
       <Row label="Wallet Balance" value={walletLoading || !walletSummary ? "…" : formatPeso(walletSummary.balance)} />
