@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { GoogleMap, MarkerF, useJsApiLoader } from "@react-google-maps/api";
+import { CircleF, GoogleMap, MarkerF, useJsApiLoader } from "@react-google-maps/api";
 import { MAP_MARKER_COLORS, type MapMarkerRole } from "@rapex/constants";
 
 /**
@@ -26,6 +26,15 @@ export type MapMarker = {
   label?: string;
 };
 
+/** A service-coverage / geo-fence boundary drawn as a circle on the map. */
+export type MapGeoFence = {
+  id: string;
+  center: { lat: number; lng: number };
+  radiusMeters: number;
+  label?: string;
+  color?: string;
+};
+
 export type GoogleMapViewProps = {
   apiKey: string;
   markers: MapMarker[];
@@ -33,12 +42,13 @@ export type GoogleMapViewProps = {
   zoom?: number;
   height?: number | string;
   onMarkerClick?: (marker: MapMarker) => void;
+  geoFences?: MapGeoFence[];
 };
 
 const DEFAULT_ZOOM = 13;
 const CONTAINER_STYLE_BASE = { width: "100%" };
 
-export function GoogleMapView({ apiKey, markers, center, zoom = DEFAULT_ZOOM, height = 400, onMarkerClick }: GoogleMapViewProps) {
+export function GoogleMapView({ apiKey, markers, center, zoom = DEFAULT_ZOOM, height = 400, onMarkerClick, geoFences = [] }: GoogleMapViewProps) {
   const { isLoaded, loadError } = useJsApiLoader({ googleMapsApiKey: apiKey });
 
   const containerStyle = useMemo(() => ({ ...CONTAINER_STYLE_BASE, height }), [height]);
@@ -59,6 +69,21 @@ export function GoogleMapView({ apiKey, markers, center, zoom = DEFAULT_ZOOM, he
 
   return (
     <GoogleMap mapContainerStyle={containerStyle} center={resolvedCenter} zoom={zoom}>
+      {geoFences.map((fence) => (
+        <CircleF
+          key={fence.id}
+          center={fence.center}
+          radius={fence.radiusMeters}
+          options={{
+            fillColor: fence.color ?? "#8B5CF6",
+            fillOpacity: 0.12,
+            strokeColor: fence.color ?? "#8B5CF6",
+            strokeOpacity: 0.7,
+            strokeWeight: 2,
+            clickable: false,
+          }}
+        />
+      ))}
       {markers.map((marker) => (
         <MarkerF
           key={marker.id}
