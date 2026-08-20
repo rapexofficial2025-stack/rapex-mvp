@@ -130,9 +130,7 @@ export function LoginPage() {
           Preview Admin UI — no sign-in
         </button>
 
-        <button type="button" style={styles.createAccountLink} onClick={() => navigate("/admin/register")}>
-          Don't have an account? <span style={styles.createAccountAccent}>Create Account</span>
-        </button>
+        <p style={styles.invitationOnly}>Admin access is invitation-only. Contact an authorized RAPEX administrator if you need access.</p>
       </div>
     </div>
   );
@@ -255,14 +253,5 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 700,
     cursor: "pointer",
   },
-  createAccountLink: {
-    background: "none",
-    border: "none",
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 11,
-    cursor: "pointer",
-    textAlign: "center",
-    marginTop: 4,
-  },
-  createAccountAccent: { color: "#C4B5FD", fontWeight: 700 },
+  invitationOnly: { margin: "4px 0 0", color: "rgba(255,255,255,.56)", fontSize: 11, lineHeight: 1.5, textAlign: "center" },
 };

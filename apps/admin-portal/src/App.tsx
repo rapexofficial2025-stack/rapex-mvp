@@ -40,7 +40,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/login" element={<LoginPage />} />
-        <Route path="/admin/register" element={<RegisterPage />} />
+        <Route path="/admin/register" element={<Navigate to="/admin/login" replace />} />
+        <Route path="/admin/invite/:token" element={<RegisterPage />} />
         <Route path="/admin/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/xano-test" element={<XanoLiveTestPage />} />
         <Route path="/admin/preview" element={<PortalLayout />}>
