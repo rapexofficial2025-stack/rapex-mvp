@@ -184,6 +184,49 @@ Partnership.
     Verification Request.
 ```
 
+## Update (2026-08-20) — store limit + richer store/product creation reference
+Founder pasted a set of mobile mockups (review only, not yet built to spec):
+
+**Store limit rule**: a merchant account can have **up to 3 stores
+maximum, 1 store per category** (e.g. one Food store + one Grocery store
++ one Non-Food store). Not unlimited stores per category.
+
+**Create New Store flow (6 steps in this reference)**: My Stores (empty
+state / list) → Choose Store Category → Store Information (Name, Store
+Type, Description, Contact Number, Email) → Store Location (map pin +
+address + Service Area radius slider, e.g. 3km, adjustable later) →
+Store Settings (Business Hours open/close, Store Status open toggle,
+Delivery Fee, Min. Order Amount) → Review Store Details → Submit for
+Approval → "Store Submitted!" pending-review state. This is a more
+detailed pass over the same shape as the existing 13-step flow above,
+not a contradiction — reconcile the two before building a final version.
+
+**Add Product flow (5 steps in this reference)**: Product Information
+(Name, Category, Description, Product Images) → Price & Variants
+(Regular Price + named variants each with their own price, e.g. "Solo
+₱120 / With Rice ₱150 / Family Pack ₱450") → Inventory (Track Stock
+toggle, Available Stock count, Low Stock Alert threshold, Stock Status)
+→ Add-ons (optional, checkbox list with a price delta each, e.g. "Extra
+Egg +₱15") → Review & Publish (summary card, "Publish Product" or "Save
+as Draft"). Richer than the simpler batch-add flow shipped this session
+(`AddProductPage.tsx`, which deliberately targets non-technical
+phone-only vendors) -- see the "standalone Add/Upload Product screen"
+task for how these two relate. Ties into the existing `createVariant`/
+`getProductVariants` repository methods (see `MerchantRepository.ts`),
+which no UI currently calls.
+
+**Store category list in this reference** (slightly different framing
+than Step 4 above -- reconcile before building): Food Store, Grocery
+Store, Non-Food Store, plus the fuller taxonomy in `Marketplace.md`
+(same 2026-08-20 batch, "RAPEX Master Category System" PDF).
+
+**Merchant dashboard tabs in this reference**: Dashboard, My Store,
+Orders, Products, Sales -- Dashboard shows Today's Sales vs yesterday,
+New/Preparing/Out-for-Delivery/Completed order counts, Store Performance
+(Rating, Total Orders, Repeat Customers %). Sales tab shows a weekly
+sales chart, Gross/Delivery-Fees/Discounts/Net Sales breakdown, Top
+Selling Categories.
+
 ## Xano rule (same as everywhere else)
 Use one identity/authentication foundation (see `Authentication.md`),
 not a separate system for Merchant. Inspect existing tables/APIs first;
