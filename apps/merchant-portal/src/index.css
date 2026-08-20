@@ -162,6 +162,195 @@ button {
   animation: merchant-card-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.merchant-auth__form-card.is-wide {
+  width: min(600px, 100%);
+}
+
+.merchant-registration-progress {
+  margin: 0 0 22px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  list-style: none;
+}
+
+.merchant-registration-progress li {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  color: rgba(245, 245, 252, 0.35);
+  text-align: center;
+}
+
+.merchant-registration-progress li span {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.merchant-registration-progress li small {
+  max-width: 62px;
+  overflow: hidden;
+  font-size: 8px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+}
+
+.merchant-registration-progress li[data-state="current"],
+.merchant-registration-progress li[data-state="complete"] {
+  color: #d9c6ff;
+}
+
+.merchant-registration-progress li[data-state="current"] span {
+  border-color: rgba(199, 167, 255, 0.8);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12);
+  background: rgba(139, 92, 246, 0.3);
+}
+
+.merchant-registration-progress li[data-state="complete"] span {
+  border-color: rgba(141, 233, 176, 0.36);
+  color: #8de9b0;
+}
+
+.merchant-registration-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  border: 0;
+}
+
+.merchant-registration-form fieldset[hidden] {
+  display: none;
+}
+
+.merchant-field select,
+.merchant-field textarea,
+.merchant-field input[type="file"] {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.19);
+  border-radius: 11px;
+  outline: 0;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.merchant-field select { min-height: 44px; }
+.merchant-field select option { color: #f7f7fb; background: #171622; }
+.merchant-field textarea { resize: vertical; }
+
+.merchant-field input[type="file"] {
+  min-height: 44px;
+  color: rgba(245, 245, 252, 0.62);
+  font-size: 10px;
+}
+
+.merchant-file-grid,
+.merchant-verification-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.merchant-file-grid .merchant-field:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+.merchant-verification-grid section,
+.merchant-store-hours-card,
+.merchant-alpha-scope {
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(220, 242, 255, 0.04), rgba(255, 255, 255, 0.055));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px) saturate(115%);
+}
+
+.merchant-verification-grid section > span,
+.merchant-store-hours-card > div > span,
+.merchant-alpha-scope > span {
+  color: #c7a7ff;
+  font-size: 9px;
+  font-weight: 760;
+  letter-spacing: 0.1em;
+}
+
+.merchant-verification-grid h2,
+.merchant-store-hours-card h2,
+.merchant-alpha-scope h2 {
+  margin: 7px 0 12px;
+  color: #fff;
+  font-size: 16px;
+}
+
+.merchant-verification-grid .merchant-secondary-button { width: 100%; margin-top: 10px; }
+
+.merchant-verification-grid section > small {
+  display: block;
+  margin-top: 8px;
+  color: #ffb36b;
+  font-size: 9px;
+  text-align: center;
+}
+
+.merchant-location-actions,
+.merchant-registration-actions { display: flex; gap: 10px; }
+.merchant-location-actions > *,
+.merchant-registration-actions > * { flex: 1; }
+.merchant-registration-actions { margin-top: 4px; }
+
+.merchant-store-hours-card {
+  display: grid;
+  grid-template-columns: 1fr minmax(150px, 0.45fr);
+  align-items: end;
+  gap: 18px;
+}
+
+.merchant-store-hours-card p,
+.merchant-alpha-scope p {
+  margin: 0;
+  color: rgba(245, 245, 252, 0.6);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.merchant-submission-path {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.merchant-submission-path div {
+  min-height: 66px;
+  padding: 12px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.merchant-submission-path span { color: #c7a7ff; font-size: 9px; }
+.merchant-submission-path strong { color: rgba(255, 255, 255, 0.84); font-size: 11px; }
+
+.merchant-form-message.is-api-required {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 179, 107, 0.28);
+  border-radius: 8px;
+  color: rgba(255, 223, 191, 0.84);
+  background: rgba(255, 136, 62, 0.06);
+}
+
 .merchant-auth__form-card h1 {
   margin: 9px 0 6px;
   color: #fff;
@@ -1019,6 +1208,15 @@ button {
 }
 
 @media (max-width: 760px) {
+  .merchant-registration-progress small { display: none; }
+
+  .merchant-file-grid,
+  .merchant-verification-grid,
+  .merchant-store-hours-card,
+  .merchant-submission-path { grid-template-columns: 1fr; }
+
+  .merchant-file-grid .merchant-field:last-child:nth-child(odd) { grid-column: auto; }
+
   .merchant-auth {
     padding: 12px;
   }

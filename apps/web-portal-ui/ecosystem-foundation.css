@@ -780,6 +780,137 @@ html[data-theme="light"] .ecosystem-modal {
 
 /* Super Admin stays visually discoverable while every privileged action remains
    server-authorized. The glass treatment is presentation only, never an access signal. */
+.merchant-verification-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.merchant-verification-tabs button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--ecosystem-border);
+  border-radius: 999px;
+  color: var(--ecosystem-muted);
+  background: var(--ecosystem-surface);
+  cursor: pointer;
+}
+
+.merchant-verification-tabs button[aria-selected="true"] {
+  border-color: rgba(199, 167, 255, 0.55);
+  color: var(--ecosystem-text);
+  background: rgba(135, 92, 246, 0.14);
+}
+
+.merchant-review-card,
+.merchant-review-empty {
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid var(--ecosystem-border);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(220, 242, 255, 0.04), rgba(255, 255, 255, 0.055)),
+    var(--ecosystem-surface);
+  box-shadow: 0 22px 54px rgba(2, 4, 18, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px) saturate(115%);
+}
+
+.merchant-review-card > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.merchant-review-card > header span,
+.merchant-review-columns section > span {
+  color: var(--ecosystem-purple);
+  font-size: 0.7rem;
+  font-weight: 780;
+  letter-spacing: 0.1em;
+}
+
+.merchant-review-card h2 {
+  margin: 7px 0 4px;
+  color: var(--ecosystem-text);
+}
+
+.merchant-review-card header p,
+.merchant-review-empty p {
+  margin: 0;
+  color: var(--ecosystem-muted);
+}
+
+.merchant-review-columns {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.merchant-review-columns section {
+  padding: 18px;
+  border: 1px solid var(--ecosystem-border);
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.merchant-review-columns dl { margin: 14px 0 0; }
+
+.merchant-review-columns dl div {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ecosystem-border);
+}
+
+.merchant-review-columns dt { color: var(--ecosystem-muted); font-size: 0.75rem; }
+.merchant-review-columns dd { margin: 0; color: var(--ecosystem-text); font-size: 0.8rem; }
+
+.merchant-review-rule,
+.merchant-review-notice {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid var(--ecosystem-purple);
+  border-radius: 8px;
+  color: var(--ecosystem-muted);
+  background: rgba(135, 92, 246, 0.06);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.merchant-review-card > footer {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.merchant-correction-form {
+  margin-top: 16px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--ecosystem-border);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.merchant-correction-form label { display: grid; gap: 8px; color: var(--ecosystem-text); font-size: 0.8rem; }
+
+.merchant-correction-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--ecosystem-border);
+  border-radius: 10px;
+  color: var(--ecosystem-text);
+  background: rgba(0, 0, 0, 0.18);
+  resize: vertical;
+}
+
+.merchant-correction-form > div { display: flex; gap: 9px; }
+.merchant-review-empty strong { color: var(--ecosystem-text); }
+
 .super-admin-page {
   position: relative;
 }
@@ -987,6 +1118,10 @@ html[data-theme="light"] .ecosystem-modal {
 }
 
 @media (max-width: 720px) {
+  .merchant-review-columns { grid-template-columns: 1fr; }
+
+  .merchant-review-columns dl div { grid-template-columns: 1fr; gap: 4px; }
+
   .super-admin-action-grid {
     grid-template-columns: 1fr;
   }

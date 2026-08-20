@@ -8,11 +8,13 @@ export function MerchantAuthShell({
   title,
   description,
   children,
+  wide = false,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   children: ReactNode;
+  wide?: boolean;
 }) {
   return (
     <main
@@ -33,7 +35,7 @@ export function MerchantAuthShell({
         </div>
 
         <div className="merchant-auth__form-panel">
-          <div className="merchant-auth__form-card">
+          <div className={`merchant-auth__form-card${wide ? " is-wide" : ""}`}>
             <span className="merchant-auth__eyebrow">{eyebrow}</span>
             <h1>{title}</h1>
             <p className="merchant-auth__description">{description}</p>
