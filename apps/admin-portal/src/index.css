@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@rapex/theme/tokens.css";
+@import "../../web-portal-ui/portal-dashboard.css";
 
 /*
  * Tailwind is available for new UI work per the RAPEX design-system

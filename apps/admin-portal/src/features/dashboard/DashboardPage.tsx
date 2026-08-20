@@ -1,5 +1,4 @@
-import type { ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Badge, Button, ErrorState, Loading, useTheme } from "@rapex/ui-web";
 import {
   useApproveApplicantAction,
@@ -16,6 +15,7 @@ import { RevenueDonut } from "./RevenueDonut";
 import { KpiCard } from "./KpiCard";
 import { MOCK_ACTIVITY } from "../operations-command-center/mockData";
 import { ACTIVITY_LABEL } from "../operations-command-center/statusStyles";
+import { PortalDashboardFrame, PortalPanel } from "../../shared/portal-ui/PortalDashboardPrimitives";
 
 const ORDER_STATUS_TONE: Record<RecentOrderStatus, "neutral" | "info" | "warning" | "success" | "error"> = {
   pending: "neutral",
@@ -32,31 +32,12 @@ const SYSTEM_STATUS_COLOR: Record<SystemServiceStatus, string> = {
   down: "#EF4444",
 };
 
-function SectionCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
-  const theme = useTheme();
-  return (
-    <div
-      className="rapex-admin-glass-card"
-      style={{
-        borderRadius: theme.radius.lg,
-        padding: theme.spacing.lg,
-        display: "flex",
-        flexDirection: "column",
-        gap: theme.spacing.sm,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: theme.typography.fontSize.base, fontWeight: 700, color: theme.colors.textPrimary }}>{title}</div>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
-
 export function DashboardPage() {
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isPreview = location.pathname.startsWith("/admin/preview");
+  const adminPath = (path: string) => (isPreview ? path.replace("/admin/", "/admin/preview/") : path);
   const { data: admin } = useCurrentAdmin();
   const { data: overview, loading, error, refetch } = useDashboardOverview();
   const { data: verificationQueue } = useVerificationQueue();
@@ -67,35 +48,38 @@ export function DashboardPage() {
   if (error || !overview) return <ErrorState description={error ?? "Could not load dashboard."} onRetry={refetch} />;
 
   return (
-    <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Dashboard</h2>
-          <p style={{ margin: 0, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
-            Welcome back{admin ? `, ${admin.name.split(" ")[0]}` : ""}! Here's what's happening today.
-          </p>
-        </div>
-        <Badge label="Mock data — backend endpoint required" tone="warning" />
-      </div>
+    <PortalDashboardFrame
+      eyebrow="RAPEX command center"
+      title="Executive overview"
+      description={`Welcome back${admin ? `, ${admin.name.split(" ")[0]}` : ""}. Monitor today's platform activity from one operational workspace.`}
+      notice={<Badge label="Mock data — backend endpoint required" tone="warning" />}
+      activeTab="overview"
+      tabs={[
+        { key: "overview", label: "Overview", onSelect: () => navigate(adminPath("/admin/dashboard")) },
+        { key: "operations", label: "Operations", onSelect: () => navigate(adminPath("/admin/command-center")) },
+        { key: "finance", label: "Finance", onSelect: () => navigate(adminPath("/admin/order-financials")) },
+        { key: "verification", label: "Verification", onSelect: () => navigate(adminPath("/admin/verification")) },
+      ]}
+    >
 
       {/* Top KPI row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: theme.spacing.md }}>
-        <KpiCard label="Total Revenue (Today)" value={formatPeso(overview.revenueToday)} changePercent={overview.revenueTodayChangePercent} accentColor="#6477FF33" />
-        <KpiCard label="Total Orders (Today)" value={String(overview.ordersToday)} changePercent={overview.ordersTodayChangePercent} accentColor="#6477FF33" />
-        <KpiCard label="Completed Orders" value={String(overview.completedOrdersToday)} changePercent={overview.completedOrdersChangePercent} accentColor="#6477FF33" />
-        <KpiCard label="Pending Orders" value={String(overview.pendingOrders)} changePercent={overview.pendingOrdersChangePercent} accentColor="#6477FF33" />
-        <KpiCard label="Online Riders" value={String(overview.onlineRiders)} accentColor="#6477FF33" />
-        <KpiCard label="Online Stores" value={String(overview.onlineStores)} accentColor="#6477FF33" />
+      <div className="rapex-dashboard-grid">
+        <KpiCard label="Total Revenue (Today)" value={formatPeso(overview.revenueToday)} changePercent={overview.revenueTodayChangePercent} />
+        <KpiCard label="Total Orders (Today)" value={String(overview.ordersToday)} changePercent={overview.ordersTodayChangePercent} />
+        <KpiCard label="Completed Orders" value={String(overview.completedOrdersToday)} changePercent={overview.completedOrdersChangePercent} />
+        <KpiCard label="Pending Orders" value={String(overview.pendingOrders)} changePercent={overview.pendingOrdersChangePercent} />
+        <KpiCard label="Online Riders" value={String(overview.onlineRiders)} />
+        <KpiCard label="Online Stores" value={String(overview.onlineStores)} />
       </div>
 
       {/* Revenue overview + breakdown */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: theme.spacing.md }}>
-        <SectionCard title="Revenue Overview (This Week)">
+        <PortalPanel title="Revenue Overview" subtitle="Placeholder weekly performance">
           <RevenueLineChart points={overview.revenueTrend} />
-        </SectionCard>
-        <SectionCard title="Revenue Breakdown">
+        </PortalPanel>
+        <PortalPanel title="Revenue Breakdown" subtitle="Placeholder platform mix">
           <RevenueDonut slices={overview.revenueBreakdown} />
-        </SectionCard>
+        </PortalPanel>
       </div>
 
       {/* Secondary counters */}
@@ -129,7 +113,7 @@ export function DashboardPage() {
 
       {/* Recent orders / pending approvals / system status */}
       <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr", gap: theme.spacing.md, alignItems: "start" }}>
-        <SectionCard title="Recent Orders" action={<Button className="rapex-glass-button" label="View All" variant="secondary" size="sm" onClick={() => navigate("/admin/order-financials")} />}>
+        <PortalPanel title="Recent Orders" action={<Button className="rapex-glass-button" label="View All" variant="secondary" size="sm" onClick={() => navigate(adminPath("/admin/order-financials"))} />}>
           <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.xs }}>
             {overview.recentOrders.map((order) => (
               <div key={order.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: `${theme.spacing.xs}px 0` }}>
@@ -141,9 +125,9 @@ export function DashboardPage() {
               </div>
             ))}
           </div>
-        </SectionCard>
+        </PortalPanel>
 
-        <SectionCard title="Pending Approvals" action={<Button className="rapex-glass-button" label="View All" variant="secondary" size="sm" onClick={() => navigate("/admin/verification")} />}>
+        <PortalPanel title="Pending Approvals" action={<Button className="rapex-glass-button" label="View All" variant="secondary" size="sm" onClick={() => navigate(adminPath("/admin/verification"))} />}>
           <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
             {(verificationQueue ?? []).slice(0, 4).map((applicant) => (
               <div key={applicant.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -161,9 +145,9 @@ export function DashboardPage() {
               <div style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>Nothing pending.</div>
             ) : null}
           </div>
-        </SectionCard>
+        </PortalPanel>
 
-        <SectionCard title="System Status">
+        <PortalPanel title="System Status">
           <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.xs }}>
             {overview.systemStatus.map((item) => (
               <div key={item.service} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -175,14 +159,14 @@ export function DashboardPage() {
               </div>
             ))}
           </div>
-        </SectionCard>
+        </PortalPanel>
       </div>
 
       {/* Live map widget + activity feed + membership expirations */}
       <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr", gap: theme.spacing.md, alignItems: "start" }}>
-        <SectionCard title="Live Operations Map" action={<Button className="rapex-glass-button" label="View Full Map" variant="secondary" size="sm" onClick={() => navigate("/admin/command-center")} />}>
+        <PortalPanel title="Live Operations Map" action={<Button className="rapex-glass-button" label="View Full Map" variant="secondary" size="sm" onClick={() => navigate(adminPath("/admin/command-center"))} />}>
           <div
-            onClick={() => navigate("/admin/command-center")}
+            onClick={() => navigate(adminPath("/admin/command-center"))}
             style={{
               cursor: "pointer",
               height: 160,
@@ -201,9 +185,9 @@ export function DashboardPage() {
             </div>
             <div style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.brandPrimary }}>Open live map →</div>
           </div>
-        </SectionCard>
+        </PortalPanel>
 
-        <SectionCard title="Live Activity Feed">
+        <PortalPanel title="Live Activity Feed">
           <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.xs, maxHeight: 200, overflowY: "auto" }}>
             {MOCK_ACTIVITY.slice(0, 6).map((event) => (
               <div key={event.id}>
@@ -215,9 +199,9 @@ export function DashboardPage() {
               </div>
             ))}
           </div>
-        </SectionCard>
+        </PortalPanel>
 
-        <SectionCard title="Upcoming Membership Expiration">
+        <PortalPanel title="Upcoming Membership Expiration">
           <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
             {overview.membershipExpirations.map((item) => (
               <div key={item.merchantName} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -229,18 +213,18 @@ export function DashboardPage() {
               <div style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>Nothing expiring soon.</div>
             ) : null}
           </div>
-        </SectionCard>
+        </PortalPanel>
       </div>
 
       {/* Quick actions */}
-      <SectionCard title="Next steps">
+      <PortalPanel title="Next steps">
         <div style={{ display: "flex", gap: theme.spacing.sm, flexWrap: "wrap" }}>
-          <Button className="rapex-primary-button" label="Review verification queue" onClick={() => navigate("/admin/verification")} />
-          <Button className="rapex-glass-button" label="Open command center" variant="secondary" onClick={() => navigate("/admin/command-center")} />
-          <Button className="rapex-glass-button" label="Engine Center" variant="secondary" onClick={() => navigate("/admin/engine-center")} />
-          <Button className="rapex-glass-button" label="Order Financials" variant="secondary" onClick={() => navigate("/admin/order-financials")} />
+          <Button className="rapex-primary-button" label="Review verification queue" onClick={() => navigate(adminPath("/admin/verification"))} />
+          <Button className="rapex-glass-button" label="Open command center" variant="secondary" onClick={() => navigate(adminPath("/admin/command-center"))} />
+          <Button className="rapex-glass-button" label="Engine Center" variant="secondary" onClick={() => navigate(adminPath("/admin/engine-center"))} />
+          <Button className="rapex-glass-button" label="Order Financials" variant="secondary" onClick={() => navigate(adminPath("/admin/order-financials"))} />
         </div>
-      </SectionCard>
-    </div>
+      </PortalPanel>
+    </PortalDashboardFrame>
   );
 }
