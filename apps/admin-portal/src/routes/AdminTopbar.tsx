@@ -1,9 +1,26 @@
+import { useState, type CSSProperties } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ThemeToggle, useTheme } from "@rapex/ui-web";
 
+const SEARCH_ITEMS = [
+  ["Dashboard", "/admin/dashboard"], ["User Management", "/admin/users"], ["Registration Monitor", "/admin/registration"], ["Merchant Management", "/admin/merchants"], ["Product Monitoring", "/admin/products"], ["Inventory", "/admin/inventory"], ["Order Management", "/admin/orders"], ["Delivery Monitoring", "/admin/delivery"], ["Rider Management", "/admin/riders"], ["Verification", "/admin/verification"], ["Error Center", "/admin/errors"], ["Operational Settings", "/admin/settings"],
+] as const;
+
+/** Shell interaction only. Search results are routes until a global-search Xano contract exists. */
 export function AdminTopbar() {
-  const theme = useTheme();
-  return <header style={{ height: 48, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 18px", background: theme.colors.surface, borderBottom: `1px solid ${theme.colors.border}` }}>
-    <label style={{ width: "min(330px, 45vw)" }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden" }}>Search command center</span><input style={{ width: "100%", padding: "8px 10px", background: theme.colors.surfaceAlt, border: `1px solid ${theme.colors.border}`, borderRadius: 7, color: theme.colors.textPrimary, font: "inherit", fontSize: 12, outline: "none" }} placeholder="Search orders, users, stores, riders…" /></label>
-    <div style={{ display: "flex", alignItems: "center", gap: 12 }}><span style={{ color: theme.colors.textSecondary, fontSize: 11 }}>Admin workspace</span><ThemeToggle /></div>
+  const theme = useTheme(); const location = useLocation(); const navigate = useNavigate();
+  const [query, setQuery] = useState(""); const [notificationsOpen, setNotificationsOpen] = useState(false); const [profileOpen, setProfileOpen] = useState(false);
+  const preview = location.pathname.startsWith("/admin/preview"); const routeFor = (path: string) => preview ? path.replace("/admin/", "/admin/preview/") : path;
+  const results = query.trim() ? SEARCH_ITEMS.filter(([label]) => label.toLowerCase().includes(query.toLowerCase())).slice(0, 6) : [];
+  const segments = location.pathname.replace("/admin/preview", "").replace("/admin", "").split("/").filter(Boolean);
+  return <header style={{ ...styles.header, background: theme.colors.surface, borderColor: theme.colors.border }}>
+    <div style={{ minWidth: 180 }}><p style={{ ...styles.breadcrumb, color: theme.colors.textSecondary }}>RAPEX COMMAND CENTER {segments.length ? ` / ${segments.map((part) => part.replace(/-/g, " ")).join(" / ")}` : ""}</p></div>
+    <div style={styles.searchWrap}><input aria-label="Global search" style={{ ...styles.search, background: theme.colors.surfaceAlt, borderColor: theme.colors.border, color: theme.colors.textPrimary }} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search available Admin modules…" />{results.length ? <div style={{ ...styles.results, background: theme.colors.surface, borderColor: theme.colors.border }}>{results.map(([label, path]) => <button type="button" key={path} style={{ ...styles.result, color: theme.colors.textPrimary }} onClick={() => { navigate(routeFor(path)); setQuery(""); }}>{label}<span style={{ color: theme.colors.textSecondary }}>Open module</span></button>)}</div> : null}</div>
+    <div style={styles.actions}><ThemeToggle /><button type="button" style={{ ...styles.control, color: theme.colors.textPrimary, borderColor: theme.colors.border }} onClick={() => { setNotificationsOpen((value) => !value); setProfileOpen(false); }}>Notifications</button><button type="button" style={{ ...styles.control, color: theme.colors.textPrimary, borderColor: theme.colors.border }} onClick={() => { setProfileOpen((value) => !value); setNotificationsOpen(false); }}>Admin profile</button></div>
+    {notificationsOpen ? <div style={{ ...styles.panel, right: 118, background: theme.colors.surface, borderColor: theme.colors.border }}><strong style={{ color: theme.colors.textPrimary }}>Notifications</strong><p style={{ color: theme.colors.textSecondary }}>No live notifications yet. Required contract: authorized notification list with read status and pagination.</p></div> : null}
+    {profileOpen ? <div style={{ ...styles.panel, right: 18, background: theme.colors.surface, borderColor: theme.colors.border }}><strong style={{ color: theme.colors.textPrimary }}>Admin session</strong><p style={{ color: theme.colors.textSecondary }}>Profile and session history require the Admin auth/session contract. No private session data is displayed here.</p></div> : null}
   </header>;
 }
+
+const styles: Record<string, CSSProperties> = { header: { position: "relative", height: 64, display: "flex", alignItems: "center", gap: 16, padding: "0 20px", borderBottom: "1px solid" }, breadcrumb: { margin: 0, fontSize: 11, fontWeight: 750, textTransform: "capitalize", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }, searchWrap: { position: "relative", flex: 1, maxWidth: 420 }, search: { width: "100%", border: "1px solid", borderRadius: 8, padding: "10px 12px", font: "inherit", fontSize: 12, outline: "none" }, results: { position: "absolute", zIndex: 30, top: 44, left: 0, right: 0, border: "1px solid", borderRadius: 10, padding: 6, boxShadow: "0 16px 40px rgba(0,0,0,.22)" }, result: { width: "100%", display: "flex", justifyContent: "space-between", textAlign: "left", border: 0, borderRadius: 7, background: "transparent", padding: "10px", font: "inherit", fontSize: 12, cursor: "pointer" }, actions: { marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }, control: { border: "1px solid", borderRadius: 8, padding: "8px 10px", background: "transparent", font: "inherit", fontSize: 12, fontWeight: 700, cursor: "pointer" }, panel: { position: "absolute", zIndex: 31, top: 56, width: 300, border: "1px solid", borderRadius: 12, padding: 16, boxShadow: "0 16px 40px rgba(0,0,0,.25)", fontSize: 13 },
+};
