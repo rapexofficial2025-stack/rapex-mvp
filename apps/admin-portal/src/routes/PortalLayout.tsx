@@ -30,8 +30,15 @@ const NAV_ITEMS = [
   { key: "integrations", label: "Integrations", path: "/admin/integrations" },
   { key: "errors", label: "Error Center", path: "/admin/errors" },
   { key: "settings", label: "Operational Settings", path: "/admin/settings" },
-  { key: "receipt-design", label: "Receipt Design", path: "/admin/receipt-design" },
-  { key: "exports", label: "Secure Exports", path: "/admin/exports" },
+  { key: "super-admin", label: "Security Access", path: "/admin/super-admin" },
+  { key: "super-admin-admins", label: "Admin Accounts", path: "/admin/super-admin/admins" },
+  { key: "super-admin-users", label: "Users & Roles", path: "/admin/super-admin/users" },
+  { key: "super-admin-stores", label: "Stores & Merchants", path: "/admin/super-admin/stores" },
+  { key: "super-admin-catalog", label: "Products & Listings", path: "/admin/super-admin/catalog" },
+  { key: "super-admin-engines", label: "Formula Engines", path: "/admin/super-admin/engines" },
+  { key: "super-admin-audit", label: "Audit & Recovery", path: "/admin/super-admin/audit" },
+  { key: "receipt-design", label: "Receipt Design", path: "/admin/super-admin/receipt-design" },
+  { key: "exports", label: "Secure Exports", path: "/admin/super-admin/exports" },
 ];
 
 export function PortalLayout() {

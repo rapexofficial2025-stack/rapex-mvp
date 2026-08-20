@@ -11,7 +11,8 @@ const GROUPS: { label?: string; keys: string[] }[] = [
   { label: "DELIVERY", keys: ["command-center", "delivery", "riders"] },
   { label: "CATALOG", keys: ["products", "product-categories", "service-categories", "product-variants", "product-options", "product-images", "inventory"] },
   { label: "MARKETPLACE OPERATIONS", keys: ["merchants", "service-providers", "verification"] },
-  { label: "SYSTEM", keys: ["engine-center", "integrations", "errors", "settings", "receipt-design", "exports"] },
+  { label: "SYSTEM", keys: ["engine-center", "integrations", "errors", "settings"] },
+  { label: "SUPER ADMIN", keys: ["super-admin", "super-admin-admins", "super-admin-users", "super-admin-stores", "super-admin-catalog", "super-admin-engines", "super-admin-audit", "receipt-design", "exports"] },
 ];
 
 export function AdminSidebar({ items, activeKey, onNavigate, onLogout }: AdminSidebarProps) {

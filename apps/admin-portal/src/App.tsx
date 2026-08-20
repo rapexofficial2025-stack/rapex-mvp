@@ -18,6 +18,8 @@ import { CategoryEnginePage } from "./features/ecosystem/CategoryEnginePage";
 import { ServiceProvidersPage } from "./features/ecosystem/ServiceProvidersPage";
 import { ReceiptDesignPage } from "./features/receipts/ReceiptDesignPage";
 import { ExportCenterPage } from "./features/receipts/ExportCenterPage";
+import { SuperAdminAccessPage } from "./features/super-admin/SuperAdminAccessPage";
+import { SuperAdminModulePage } from "./features/super-admin/SuperAdminModulePage";
 
 // GitHub Pages staging can serve this app two ways: (a) owning the whole
 // site root under a repo-name prefix (VITE_BASE_PATH=/rapex-mvp/, the
@@ -68,8 +70,17 @@ function App() {
           <Route path="riders" element={<AdminDataModulePage module="riders" />} />
           <Route path="errors" element={<AdminDataModulePage module="errors" />} />
           <Route path="settings" element={<AdminDataModulePage module="system-settings" />} />
-          <Route path="receipt-design" element={<ReceiptDesignPage />} />
-          <Route path="exports" element={<ExportCenterPage />} />
+          <Route path="receipt-design" element={<Navigate to="/admin/preview/super-admin/receipt-design" replace />} />
+          <Route path="exports" element={<Navigate to="/admin/preview/super-admin/exports" replace />} />
+          <Route path="super-admin" element={<SuperAdminAccessPage />} />
+          <Route path="super-admin/admins" element={<SuperAdminModulePage module="admins" />} />
+          <Route path="super-admin/users" element={<SuperAdminModulePage module="users" />} />
+          <Route path="super-admin/stores" element={<SuperAdminModulePage module="stores" />} />
+          <Route path="super-admin/catalog" element={<SuperAdminModulePage module="catalog" />} />
+          <Route path="super-admin/engines" element={<SuperAdminModulePage module="engines" />} />
+          <Route path="super-admin/audit" element={<SuperAdminModulePage module="audit" />} />
+          <Route path="super-admin/receipt-design" element={<ReceiptDesignPage />} />
+          <Route path="super-admin/exports" element={<ExportCenterPage />} />
         </Route>
         <Route
           path="/admin"
@@ -105,8 +116,17 @@ function App() {
           <Route path="riders" element={<AdminDataModulePage module="riders" />} />
           <Route path="errors" element={<AdminDataModulePage module="errors" />} />
           <Route path="settings" element={<AdminDataModulePage module="system-settings" />} />
-          <Route path="receipt-design" element={<ReceiptDesignPage />} />
-          <Route path="exports" element={<ExportCenterPage />} />
+          <Route path="receipt-design" element={<Navigate to="/admin/super-admin/receipt-design" replace />} />
+          <Route path="exports" element={<Navigate to="/admin/super-admin/exports" replace />} />
+          <Route path="super-admin" element={<SuperAdminAccessPage />} />
+          <Route path="super-admin/admins" element={<SuperAdminModulePage module="admins" />} />
+          <Route path="super-admin/users" element={<SuperAdminModulePage module="users" />} />
+          <Route path="super-admin/stores" element={<SuperAdminModulePage module="stores" />} />
+          <Route path="super-admin/catalog" element={<SuperAdminModulePage module="catalog" />} />
+          <Route path="super-admin/engines" element={<SuperAdminModulePage module="engines" />} />
+          <Route path="super-admin/audit" element={<SuperAdminModulePage module="audit" />} />
+          <Route path="super-admin/receipt-design" element={<ReceiptDesignPage />} />
+          <Route path="super-admin/exports" element={<ExportCenterPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
