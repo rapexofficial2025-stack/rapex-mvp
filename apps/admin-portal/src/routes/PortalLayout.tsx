@@ -3,6 +3,8 @@ import { useRepositories } from "@rapex/api-client";
 import { OperationsRail } from "./OperationsRail";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminTopbar } from "./AdminTopbar";
+import { IdleSessionGuard } from "../shared/IdleSessionGuard";
+import { recordAdminLogout } from "../services/sessionAudit";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", path: "/admin/dashboard" },
@@ -53,6 +55,7 @@ export function PortalLayout() {
   return (
     <div className="rapex-admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
       <AdminSidebar items={NAV_ITEMS} activeKey={activeItem?.key} onNavigate={(path) => navigate(routeFor(path))} onLogout={async () => {
+              if (!isPreview) recordAdminLogout("user_manual");
               await auth.logout();
               navigate("/admin/login", { replace: true });
             }} />
@@ -60,7 +63,7 @@ export function PortalLayout() {
         <div className="rapex-admin-workspace" style={{ flex: 1, minWidth: 0 }}>
         <AdminTopbar />
         <main key={location.pathname} className="rapex-route-transition">
-          <Outlet />
+          {isPreview ? <Outlet /> : <IdleSessionGuard><Outlet /></IdleSessionGuard>}
         </main>
         </div>
         <OperationsRail />

@@ -1,8 +1,9 @@
 import { useState, type CSSProperties } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ErrorState } from "@rapex/ui-web";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { signInWithGoogle } from "../../services/socialAuth";
+import { recordAdminLogin } from "../../services/sessionAudit";
 
 const BACKGROUND = new URL("../../../../../assets/brand/Background/admin-login.png", import.meta.url).href;
 const LOGO = new URL("../../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
@@ -23,11 +24,14 @@ const GOOGLE_ICON = new URL("../../../../../assets/brand/icons/google-logo-icon.
  */
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { auth } = useRepositories();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(
+    searchParams.get("idle") === "1" ? "You were signed out after a period of inactivity. Please sign in again." : null,
+  );
   const [googleLoading, setGoogleLoading] = useState(false);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
 
@@ -115,6 +119,7 @@ export function LoginPage() {
           onClick={async () => {
             try {
               await login.execute({ email, password });
+              recordAdminLogin();
               navigate("/admin/dashboard", { replace: true });
             } catch {
               // The Xano error is rendered above. Never open an admin portal
