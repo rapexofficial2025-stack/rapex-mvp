@@ -16,9 +16,8 @@ export function KpiCard({
 
   return (
     <div
+      className="rapex-admin-glass-kpi"
       style={{
-        backgroundColor: theme.colors.surface,
-        border: `1px solid ${theme.colors.border}`,
         borderTop: `2px solid ${accentColor.replace("33", "")}`,
         borderRadius: theme.radius.lg,
         padding: theme.spacing.lg,

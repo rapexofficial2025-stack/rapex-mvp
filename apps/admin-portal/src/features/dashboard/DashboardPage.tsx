@@ -36,9 +36,8 @@ function SectionCard({ title, action, children }: { title: string; action?: Reac
   const theme = useTheme();
   return (
     <div
+      className="rapex-admin-glass-card"
       style={{
-        backgroundColor: theme.colors.surface,
-        border: `1px solid ${theme.colors.border}`,
         borderRadius: theme.radius.lg,
         padding: theme.spacing.lg,
         display: "flex",
@@ -112,9 +111,9 @@ export function DashboardPage() {
           ["Active Auctions", overview.activeAuctions],
         ].map(([label, value]) => (
           <div
+            className="rapex-soft-glass-card"
             key={label as string}
             style={{
-              backgroundColor: theme.colors.surfaceAlt,
               borderRadius: theme.radius.md,
               padding: theme.spacing.sm,
               textAlign: "center",
@@ -130,7 +129,7 @@ export function DashboardPage() {
 
       {/* Recent orders / pending approvals / system status */}
       <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr", gap: theme.spacing.md, alignItems: "start" }}>
-        <SectionCard title="Recent Orders" action={<Button label="View All" variant="secondary" size="sm" onClick={() => navigate("/admin/order-financials")} />}>
+        <SectionCard title="Recent Orders" action={<Button className="rapex-glass-button" label="View All" variant="secondary" size="sm" onClick={() => navigate("/admin/order-financials")} />}>
           <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.xs }}>
             {overview.recentOrders.map((order) => (
               <div key={order.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: `${theme.spacing.xs}px 0` }}>
@@ -144,7 +143,7 @@ export function DashboardPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Pending Approvals" action={<Button label="View All" variant="secondary" size="sm" onClick={() => navigate("/admin/verification")} />}>
+        <SectionCard title="Pending Approvals" action={<Button className="rapex-glass-button" label="View All" variant="secondary" size="sm" onClick={() => navigate("/admin/verification")} />}>
           <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
             {(verificationQueue ?? []).slice(0, 4).map((applicant) => (
               <div key={applicant.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -153,7 +152,7 @@ export function DashboardPage() {
                   <div style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.textSecondary }}>New {applicant.role.replace("-", " ")}</div>
                 </div>
                 <div style={{ display: "flex", gap: theme.spacing.xxs }}>
-                  <Button label="Approve" size="sm" onClick={() => approve.execute(applicant.id).then(() => refetch())} />
+                  <Button className="rapex-primary-button" label="Approve" size="sm" onClick={() => approve.execute(applicant.id).then(() => refetch())} />
                   <Button label="Reject" size="sm" variant="danger" onClick={() => reject.execute(applicant.id).then(() => refetch())} />
                 </div>
               </div>
@@ -181,7 +180,7 @@ export function DashboardPage() {
 
       {/* Live map widget + activity feed + membership expirations */}
       <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr", gap: theme.spacing.md, alignItems: "start" }}>
-        <SectionCard title="Live Operations Map" action={<Button label="View Full Map" variant="secondary" size="sm" onClick={() => navigate("/admin/command-center")} />}>
+        <SectionCard title="Live Operations Map" action={<Button className="rapex-glass-button" label="View Full Map" variant="secondary" size="sm" onClick={() => navigate("/admin/command-center")} />}>
           <div
             onClick={() => navigate("/admin/command-center")}
             style={{
@@ -236,10 +235,10 @@ export function DashboardPage() {
       {/* Quick actions */}
       <SectionCard title="Next steps">
         <div style={{ display: "flex", gap: theme.spacing.sm, flexWrap: "wrap" }}>
-          <Button label="Review verification queue" onClick={() => navigate("/admin/verification")} />
-          <Button label="Open command center" variant="secondary" onClick={() => navigate("/admin/command-center")} />
-          <Button label="Engine Center" variant="secondary" onClick={() => navigate("/admin/engine-center")} />
-          <Button label="Order Financials" variant="secondary" onClick={() => navigate("/admin/order-financials")} />
+          <Button className="rapex-primary-button" label="Review verification queue" onClick={() => navigate("/admin/verification")} />
+          <Button className="rapex-glass-button" label="Open command center" variant="secondary" onClick={() => navigate("/admin/command-center")} />
+          <Button className="rapex-glass-button" label="Engine Center" variant="secondary" onClick={() => navigate("/admin/engine-center")} />
+          <Button className="rapex-glass-button" label="Order Financials" variant="secondary" onClick={() => navigate("/admin/order-financials")} />
         </div>
       </SectionCard>
     </div>

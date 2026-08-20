@@ -40,13 +40,13 @@ export function PortalLayout() {
   const activeItem = NAV_ITEMS.find((item) => location.pathname.startsWith(routeFor(item.path)));
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="rapex-admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
       <AdminSidebar items={NAV_ITEMS} activeKey={activeItem?.key} onNavigate={(path) => navigate(routeFor(path))} onLogout={async () => {
               await auth.logout();
               navigate("/admin/login", { replace: true });
             }} />
       <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="rapex-admin-workspace" style={{ flex: 1, minWidth: 0 }}>
         <AdminTopbar />
         <main key={location.pathname} className="rapex-route-transition">
           <Outlet />

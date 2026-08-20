@@ -26,10 +26,10 @@ export function AdminSidebar({ items, activeKey, onNavigate, onLogout }: AdminSi
         {group.label ? <p style={{ margin: "0 12px 8px", color: theme.colors.textSecondary, fontSize: 10, fontWeight: 800, letterSpacing: .8 }}>{group.label}</p> : null}
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>{group.keys.map((key) => {
           const item = byKey.get(key); if (!item) return null; const active = item.key === activeKey;
-          return <button key={item.key} type="button" aria-current={active ? "page" : undefined} onClick={() => onNavigate(item.path)} style={{ minHeight: 40, textAlign: "left", border: active ? `1px solid ${theme.colors.brandPrimary}` : "1px solid transparent", borderRadius: 8, padding: "10px 12px", background: active ? `${theme.colors.brandPrimary}14` : "transparent", color: active ? theme.colors.textPrimary : theme.colors.textSecondary, font: "inherit", fontSize: 14, fontWeight: active ? 750 : 600, cursor: "pointer" }}>{item.label}</button>;
+          return <button key={item.key} className={`rapex-admin-nav-item${active ? " is-active" : ""}`} type="button" aria-current={active ? "page" : undefined} onClick={() => onNavigate(item.path)} style={{ minHeight: 40, textAlign: "left", border: active ? `1px solid ${theme.colors.brandPrimary}` : "1px solid transparent", borderRadius: 8, padding: "10px 12px", backgroundColor: active ? `${theme.colors.brandPrimary}14` : "transparent", color: active ? theme.colors.textPrimary : theme.colors.textSecondary, font: "inherit", fontSize: 14, fontWeight: active ? 750 : 600, cursor: "pointer" }}>{item.label}</button>;
         })}</div>
       </section>)}
     </div>
-    <button type="button" onClick={onLogout} style={{ textAlign: "left", border: `1px solid ${theme.colors.border}`, borderRadius: 7, padding: "9px 10px", background: "transparent", color: theme.colors.textSecondary, font: "inherit", fontSize: 12, cursor: "pointer" }}>Log out</button>
+    <button className="rapex-glass-button rapex-admin-logout" type="button" onClick={onLogout} style={{ textAlign: "left", border: `1px solid ${theme.colors.border}`, borderRadius: 7, padding: "9px 10px", backgroundColor: "transparent", color: theme.colors.textSecondary, font: "inherit", fontSize: 12, cursor: "pointer" }}>Log out</button>
   </nav>;
 }
