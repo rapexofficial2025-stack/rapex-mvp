@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import type { CompositeScreenProps } from "@react-navigation/native";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -35,6 +35,18 @@ export function WalletScreen({}: Props) {
         </Text>
         {belowMinimum ? <Badge label="Below minimum -- top up to accept deliveries" tone="error" /> : null}
         <View style={{ marginTop: theme.spacing.sm, gap: theme.spacing.xs }}>
+          {/* Funding source -- GCash/Maya/Bank are Beta scope per docs/business/Wallet.md's
+              Alpha/Beta payment lock (Alpha = RAPEX Wallet only). Shown so the eventual shape
+              is visible, disabled rather than wired to a fake charge. */}
+          <Text style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.xs }}>Fund via</Text>
+          <View style={{ flexDirection: "row", gap: theme.spacing.xs }}>
+            {["GCash", "Maya", "Bank Transfer"].map((method) => (
+              <Pressable key={method} disabled style={{ flex: 1, opacity: 0.5, borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radius.sm, paddingVertical: theme.spacing.xs, alignItems: "center" }}>
+                <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.fontSize.xs, fontWeight: "600" }}>{method}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Badge label="GCash/Maya/Bank require payment-gateway configuration -- Beta scope" tone="neutral" />
           <Input label="Top-up amount" keyboardType="number-pad" value={topUpAmount} onChangeText={setTopUpAmount} />
           {topUp.error ? <ErrorState description={topUp.error} /> : null}
           <Button
