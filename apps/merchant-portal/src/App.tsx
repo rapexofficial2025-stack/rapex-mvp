@@ -3,6 +3,8 @@ import { PortalLayout } from "./routes/PortalLayout";
 import { DashboardPage } from "./routes/DashboardPage";
 import { OrdersPage } from "./routes/OrdersPage";
 import { LoginPage } from "./routes/LoginPage";
+import { RegisterPage } from "./routes/RegisterPage";
+import { ForgotPasswordPage } from "./routes/ForgotPasswordPage";
 import { RequireMerchantAuth } from "./routes/RequireMerchantAuth";
 import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { StorePage } from "./features/store/StorePage";
@@ -20,7 +22,15 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/xano-test" element={<XanoLiveTestPage />} />
+        {import.meta.env.DEV ? (
+          <Route path="/portal/preview" element={<PortalLayout previewMode />}>
+            <Route index element={<Navigate to="/portal/preview/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage previewMode />} />
+          </Route>
+        ) : null}
         <Route
           path="/portal"
           element={
@@ -29,7 +39,7 @@ function App() {
             </RequireMerchantAuth>
           }
         >
-          <Route index element={<Navigate to="/portal/store" replace />} />
+          <Route index element={<Navigate to="/portal/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="store" element={<StorePage />} />
