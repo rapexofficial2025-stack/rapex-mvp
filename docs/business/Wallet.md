@@ -114,3 +114,62 @@ noted there against what's already shipped in the Customer App's Earn tab.
 
 **Audit rule:** every wallet-adjacent action is logged — Login, Wallet,
 Orders, Price Changes, Delivery, Admin Changes.
+
+## Update (2026-08-19) — "Baon" parent→child wallet funding (reported, not verified)
+
+Self-reported by whoever is building Xano, as part of a "Backend Brain
+Feature Complete" progress report — **not independently verified from
+this environment**, and this is the *first* time this concept has
+appeared in any RAPEX doc, so treat it as new information to confirm,
+not an established rule yet.
+
+**Claimed mechanism:** a Parent user's wallet can fund a Child account
+(ties to the existing `role: CHILD` / Child Accounts feature — see
+`apps/customer-app`'s Child Account registration flow). At checkout, if
+the purchasing account's role is `CHILD`, the system is claimed to:
+1. Detect role `CHILD`.
+2. Validate against `child_baon_allocations` (a claimed new
+   table/concept — not in `docs/database/data-dictionary.md`'s 66-table
+   list, needs to be added there once confirmed).
+3. Deduct the purchase amount from the **Parent's** wallet automatically,
+   not the child's own balance.
+
+**What's still needed before this is treated as real:**
+- Exact `child_baon_allocations` schema (fields, limits — e.g. is there
+  a daily/per-order cap the parent sets?).
+- Whether this is a hard requirement for Alpha launch or a Beta-stage
+  feature — not stated in the report.
+- How this interacts with the existing Wallet structure above (does the
+  Child get a `Reserved`/`Spendable` split too, or does the Parent's
+  wallet absorb the escrow-reserve step directly on the child's behalf?).
+- Confirmation this doesn't conflict with `docs/business/User.md`'s
+  existing Child Account rules (a minor logs in with parent-created
+  credentials — this Baon claim adds a *funding* layer on top of that,
+  which is a reasonable extension but needs the same "not independently
+  verified" caveat as everything else in this update).
+
+## Update (2026-08-19) — Xano "MVP Feature Complete" report (reported, not verified)
+
+A report titled "FINAL MVP PROGRESS REPORT (Ready for Launch)" claims the
+full backend — order lifecycle, formula/commission engine, wallet/escrow,
+identity/auth, logistics — is implemented in XanoScript, with a specific
+"Integration Map" of endpoints marked READY (`GET /rapex-auth/auth/me`,
+`GET /super_app/locations/regions`, `GET /rapex-core/community-master`,
+`POST /super_app/checkout`, `PATCH /rapex-orders/order/status`,
+`POST /rapex-auth/submit-kyc`). **Received, not independently verified**
+— same discipline as every other received-doc update in this file.
+Notably:
+- Does **not** explicitly confirm the `22P02` signup/seed error (see
+  `docs/deployment/README.md`) is actually fixed — needs an explicit
+  answer, not assumed from silence.
+- States background workers (late-delivery ₱5/20-min reduction, Food
+  cart 3h/5h expiration) need a **Xano plan upgrade** before they
+  actually run — so these are implemented but not yet *active*.
+- Firebase Cloud Messaging push notifications are not yet wired
+  (`user_devices` table exists, integration doesn't).
+- Endpoint *paths* being marked READY is a real step forward from
+  "nothing exists," but per `docs/api/README.md`'s existing "Still
+  needed" list, real (non-Mock) repository code still requires the
+  actual field-level request/response JSON schemas per endpoint, which
+  this report does not include. See that doc for exactly what's needed
+  before Claude can write real integration code against these.
