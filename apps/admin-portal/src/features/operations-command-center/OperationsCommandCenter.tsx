@@ -6,6 +6,7 @@ import { MapPlaceholder } from "./MapPlaceholder";
 import { ActivityFeed } from "./ActivityFeed";
 import { MerchantInfoCard } from "./MerchantInfoCard";
 import { RiderInfoCard } from "./RiderInfoCard";
+import { MapAccessPanel } from "./MapAccessPanel";
 import { MOCK_RIDERS, MOCK_MERCHANTS, MOCK_ACTIVITY } from "./mockData";
 import type { MapFilter, Merchant, MerchantCategory, Rider } from "./types";
 
@@ -16,6 +17,7 @@ export function OperationsCommandCenter() {
   const [activeFilters, setActiveFilters] = useState<Set<MapFilter>>(new Set());
   const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
+  const [showMapSettings, setShowMapSettings] = useState(false);
 
   const toggleFilter = (filter: MapFilter) => {
     setActiveFilters((current) => {
@@ -58,8 +60,9 @@ export function OperationsCommandCenter() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: theme.colors.background, position: "relative" }}>
-      <div style={{ position: "absolute", top: theme.spacing.sm, right: theme.spacing.sm, zIndex: 1 }}>
-        <Badge label="Mock data — backend endpoint required" tone="warning" />
+      <div style={{ position: "absolute", top: theme.spacing.sm, right: theme.spacing.sm, zIndex: 3, display: "flex", gap: theme.spacing.sm, alignItems: "center" }}>
+        <Badge label="Placeholder map data — Xano endpoint required" tone="warning" />
+        <button type="button" onClick={() => setShowMapSettings(true)} style={{ border: `1px solid ${theme.colors.border}`, borderRadius: theme.radius.sm, padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`, background: theme.colors.surface, color: theme.colors.textPrimary, font: "inherit", fontSize: theme.typography.fontSize.sm, fontWeight: 700, cursor: "pointer" }}>Map access settings</button>
       </div>
       <KpiBar riders={MOCK_RIDERS} merchants={MOCK_MERCHANTS} />
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
@@ -81,6 +84,7 @@ export function OperationsCommandCenter() {
             <MerchantInfoCard merchant={selectedMerchant} onClose={() => setSelectedMerchant(null)} />
           ) : null}
           {selectedRider ? <RiderInfoCard rider={selectedRider} onClose={() => setSelectedRider(null)} /> : null}
+          {showMapSettings ? <MapAccessPanel onClose={() => setShowMapSettings(false)} /> : null}
         </div>
         <ActivityFeed events={MOCK_ACTIVITY} />
       </div>

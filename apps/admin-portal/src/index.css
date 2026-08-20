@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "@rapex/theme/tokens.css";
+@import "../../web-portal-ui/portal-dashboard.css";
+@import "../../web-portal-ui/ecosystem-foundation.css";
 
 /*
  * Tailwind is available for new UI work per the RAPEX design-system
@@ -21,6 +23,502 @@ body {
   margin: 0;
 }
 
+/* Selective Admin glass treatment. The operational workspace stays readable;
+   glass is reserved for important cards, floating controls, and active states. */
+html[data-theme="dark"] {
+  --rapex-admin-shell: #090b18;
+  --rapex-admin-glass-tint: rgba(14, 20, 38, 0.72);
+  --rapex-admin-soft-tint: rgba(255, 255, 255, 0.035);
+  --rapex-admin-glass-border: rgba(255, 255, 255, 0.2);
+  --rapex-admin-glass-shadow:
+    0 24px 58px rgba(0, 0, 0, 0.34),
+    0 8px 24px rgba(5, 12, 30, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 1px 0 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="light"] {
+  --rapex-admin-shell: #e9f2f9;
+  --rapex-admin-glass-tint: rgba(255, 255, 255, 0.42);
+  --rapex-admin-soft-tint: rgba(255, 255, 255, 0.34);
+  --rapex-admin-glass-border: rgba(255, 255, 255, 0.62);
+  --rapex-admin-glass-shadow:
+    0 30px 70px rgba(20, 65, 100, 0.24),
+    0 10px 28px rgba(20, 65, 100, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 1px 0 0 rgba(255, 255, 255, 0.42),
+    inset -1px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+.rapex-admin-shell {
+  background-color: var(--rapex-admin-shell);
+  background-image:
+    radial-gradient(circle at 28% 0%, rgba(100, 119, 255, 0.11), transparent 30rem),
+    radial-gradient(circle at 82% 92%, rgba(20, 184, 166, 0.06), transparent 34rem);
+  background-attachment: fixed;
+}
+
+.rapex-admin-workspace {
+  min-height: 100vh;
+  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.012), transparent 42%);
+}
+
+.rapex-admin-topbar {
+  position: sticky !important;
+  top: 0;
+  z-index: 40;
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.14),
+    rgba(220, 242, 255, 0.07),
+    rgba(180, 220, 245, 0.035),
+    rgba(255, 255, 255, 0.08)
+  );
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.rapex-admin-glass-card,
+.rapex-admin-glass-kpi,
+.rapex-admin-glass-panel {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--rapex-admin-glass-tint);
+  background-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.18),
+    rgba(220, 242, 255, 0.1),
+    rgba(180, 220, 245, 0.055),
+    rgba(255, 255, 255, 0.12)
+  );
+  border: 1px solid var(--rapex-admin-glass-border) !important;
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+  box-shadow: var(--rapex-admin-glass-shadow) !important;
+}
+
+.rapex-admin-glass-card::before,
+.rapex-admin-glass-kpi::before,
+.rapex-admin-glass-panel::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  right: 10%;
+  left: 10%;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.86), transparent);
+  opacity: 0.55;
+}
+
+.rapex-soft-glass-card {
+  background-color: var(--rapex-admin-soft-tint);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.025));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.rapex-glass-input {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(220, 242, 255, 0.045));
+  box-shadow: inset 0 2px 6px rgba(20, 65, 100, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.rapex-glass-input:focus {
+  border-color: rgba(139, 92, 246, 0.72) !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.rapex-glass-button,
+.rapex-primary-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  backdrop-filter: blur(12px) saturate(115%);
+  -webkit-backdrop-filter: blur(12px) saturate(115%);
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+}
+
+.rapex-glass-button {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.17), rgba(220, 242, 255, 0.07), rgba(255, 255, 255, 0.09));
+  box-shadow:
+    0 9px 22px rgba(7, 13, 31, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -3px 8px rgba(20, 65, 100, 0.08);
+}
+
+.rapex-primary-button {
+  background-image: linear-gradient(100deg, rgba(249, 115, 22, 0.82), rgba(236, 72, 153, 0.76) 50%, rgba(124, 60, 255, 0.86));
+  box-shadow:
+    0 4px 0 rgba(74, 23, 156, 0.78),
+    0 10px 22px rgba(12, 7, 30, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    inset 0 -4px 9px rgba(47, 0, 105, 0.22);
+}
+
+.rapex-glass-button::before,
+.rapex-primary-button::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 7%;
+  left: 7%;
+  height: 32%;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.25), transparent);
+}
+
+.rapex-glass-button:hover:not(:disabled),
+.rapex-primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+.rapex-glass-button:active:not(:disabled),
+.rapex-primary-button:active:not(:disabled) {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: inset 0 3px 9px rgba(5, 10, 24, 0.28), 0 3px 9px rgba(5, 10, 24, 0.16);
+}
+
+.rapex-glass-button:focus-visible,
+.rapex-primary-button:focus-visible,
+.rapex-admin-nav-item:focus-visible,
+.rapex-admin-group-title:focus-visible,
+.rapex-admin-search-result:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+.rapex-admin-nav-item {
+  transition: transform 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.rapex-admin-nav-item:hover {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.018));
+}
+
+.rapex-admin-nav-item.is-active {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(220, 242, 255, 0.065), rgba(139, 92, 246, 0.08));
+  box-shadow: 0 7px 18px rgba(8, 12, 30, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.rapex-admin-group-title {
+  position: relative;
+  width: 100%;
+  min-height: 42px;
+  margin: 0 0 6px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: 0.85px;
+  text-align: left;
+  cursor: pointer;
+  transition: color 170ms ease, transform 170ms ease, border-color 170ms ease, background-color 170ms ease, box-shadow 170ms ease;
+}
+
+.rapex-admin-group-title::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -65%;
+  width: 48%;
+  pointer-events: none;
+  transform: skewX(-24deg);
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.2), rgba(255, 255, 255, 0.2), transparent);
+}
+
+.rapex-admin-group-title:hover {
+  color: #a78bfa !important;
+  transform: translateX(3px) scale(1.012);
+  border-color: rgba(167, 139, 250, 0.22);
+  background-color: rgba(139, 92, 246, 0.055);
+  box-shadow: 0 7px 20px rgba(86, 48, 160, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.rapex-admin-group-title:hover::before {
+  animation: rapex-sidebar-neon-sweep 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.rapex-admin-group-title[data-expanded="true"] {
+  color: #a78bfa !important;
+}
+
+.rapex-admin-group-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  border-radius: 999px;
+  font-size: 16px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform 210ms cubic-bezier(0.22, 1, 0.36, 1), background-color 170ms ease;
+}
+
+.rapex-admin-group-title[data-expanded="false"] .rapex-admin-group-chevron {
+  transform: rotate(-90deg);
+}
+
+.rapex-admin-group-title:hover .rapex-admin-group-chevron {
+  background-color: rgba(139, 92, 246, 0.11);
+}
+
+.rapex-admin-nav-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: grid-template-rows 230ms cubic-bezier(0.22, 1, 0.36, 1), opacity 170ms ease, transform 230ms ease;
+}
+
+.rapex-admin-nav-collapse[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.rapex-admin-nav-items {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+@keyframes rapex-sidebar-neon-sweep {
+  from {
+    left: -65%;
+  }
+  to {
+    left: 125%;
+  }
+}
+
+.rapex-admin-search-result:hover {
+  background-color: rgba(139, 92, 246, 0.09) !important;
+}
+
+/* The navigation rail remains dark in both themes. Its translucent surface
+   floats over the shell background so the blur and reflections stay visible. */
+.rapex-admin-sidebar {
+  z-index: 30;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 22px;
+  background-color: rgba(8, 12, 29, 0.8);
+  background-image:
+    radial-gradient(circle at 18% 4%, rgba(124, 60, 255, 0.2), transparent 30%),
+    radial-gradient(circle at 92% 96%, rgba(255, 122, 24, 0.09), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.045));
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  box-shadow:
+    0 28px 72px rgba(4, 5, 18, 0.46),
+    0 12px 36px rgba(84, 38, 170, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 28px rgba(255, 255, 255, 0.025);
+  transition: width 260ms cubic-bezier(0.22, 1, 0.36, 1), padding 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+}
+
+.rapex-admin-sidebar::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -28%;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.025) 39%, rgba(255, 255, 255, 0.1) 46%, rgba(255, 255, 255, 0.028) 53%, transparent 62%);
+  transform: translateX(-12%) rotate(-4deg);
+  opacity: 0.74;
+}
+
+.rapex-admin-sidebar::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 9%;
+  left: 9%;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), rgba(185, 140, 255, 0.55), transparent);
+  filter: drop-shadow(0 0 7px rgba(165, 105, 255, 0.34));
+}
+
+.rapex-admin-sidebar > * {
+  position: relative;
+  z-index: 1;
+}
+
+.rapex-admin-sidebar-header {
+  padding: 3px 5px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rapex-admin-sidebar-brand {
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 7px;
+}
+
+.rapex-admin-sidebar-brand img {
+  max-width: 100%;
+  transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1), filter 180ms ease;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.24));
+}
+
+.rapex-admin-sidebar-caption {
+  display: block;
+  margin-top: 3px;
+  color: rgba(226, 232, 240, 0.62) !important;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  transition: opacity 150ms ease, transform 200ms ease;
+}
+
+.rapex-admin-sidebar-toggle {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035));
+  color: rgba(241, 245, 249, 0.86);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.35px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 7px 16px rgba(0, 0, 0, 0.16);
+  transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.rapex-admin-sidebar-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(167, 139, 250, 0.48);
+  color: #c4b5fd;
+  box-shadow: 0 9px 22px rgba(70, 35, 140, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.rapex-admin-sidebar-toggle:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.rapex-admin-sidebar-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition: opacity 160ms ease 80ms, transform 220ms cubic-bezier(0.22, 1, 0.36, 1) 60ms, visibility 0s linear 0s;
+}
+
+.rapex-admin-sidebar-content > div {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185, 162, 255, 0.42) transparent;
+}
+
+.rapex-admin-sidebar-content > div::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rapex-admin-sidebar-content > div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rapex-admin-sidebar-content > div::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(rgba(185, 162, 255, 0.52), rgba(255, 255, 255, 0.16));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-header {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-brand {
+  align-items: center;
+  padding: 0;
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-caption {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-toggle {
+  width: 100%;
+  padding: 0 3px;
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-content {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-10px);
+  pointer-events: none;
+  transition: opacity 110ms ease, transform 160ms ease, visibility 0s linear 160ms;
+}
+
+.rapex-admin-sidebar .rapex-admin-group-title {
+  color: rgba(203, 213, 225, 0.64) !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-group-title[data-expanded="true"],
+.rapex-admin-sidebar .rapex-admin-group-title:hover {
+  color: #b9a2ff !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-nav-item {
+  color: rgba(226, 232, 240, 0.76) !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-nav-item:hover {
+  color: #ffffff !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-nav-item.is-active {
+  color: #ffffff !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-logout {
+  color: rgba(226, 232, 240, 0.7) !important;
+}
+
+.rapex-admin-sidebar-toggle:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
 /* Used by the Admin login badge (LoginPage.tsx) to fade/slide the logo and
    wordmark in with a slight stagger instead of appearing instantly. */
 @keyframes rapex-fade-slide-in {
@@ -31,5 +529,187 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Shared desktop portal motion: navigation feels continuous, while keeping
+   motion restrained for operational work. Route content remounts by pathname. */
+.rapex-route-transition {
+  animation: rapex-route-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rapex-route-enter {
+  from {
+    opacity: 0;
+    transform: translateX(8px) translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
+  }
+}
+
+/* Invitation-only Admin setup uses the same single-card registration language
+   as Merchant, while preserving its separate internal-access workflow. */
+.admin-invite-page {
+  --admin-invite-cursor-x: 50vw;
+  --admin-invite-cursor-y: 50vh;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  padding: clamp(24px, 5vw, 72px) 18px;
+  display: grid;
+  place-items: start center;
+  overflow: hidden auto;
+  color: #f7f7fb;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(91, 62, 151, 0.2), transparent 42%),
+    linear-gradient(145deg, #04050b 0%, #090713 48%, #05060c 100%);
+}
+
+.admin-invite-page__mesh {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at center, black, transparent 78%);
+}
+
+.admin-invite-page__glow,
+.admin-invite-cursor {
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.admin-invite-page__glow {
+  width: min(42vw, 560px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(78px);
+  opacity: 0.22;
+  animation: admin-invite-neon 10s ease-in-out infinite alternate;
+}
+
+.admin-invite-page__glow.is-purple { top: -18%; left: -13%; background: #7c3aed; }
+.admin-invite-page__glow.is-orange { right: -15%; bottom: -24%; background: #f97316; animation-delay: -3.2s; animation-duration: 12s; }
+
+.admin-invite-cursor {
+  top: var(--admin-invite-cursor-y);
+  left: var(--admin-invite-cursor-x);
+  width: 220px;
+  height: 220px;
+  display: none;
+  place-items: center;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.72);
+  transition: opacity 220ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: top, left, opacity, transform;
+}
+
+.admin-invite-cursor::before {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: "";
+  background: radial-gradient(circle at 38% 38%, rgba(167, 139, 250, 0.68), transparent 42%), radial-gradient(circle at 68% 66%, rgba(249, 115, 22, 0.46), transparent 46%);
+  filter: blur(34px);
+}
+
+.admin-invite-cursor img { position: relative; width: 84px; height: auto; opacity: 0.58; filter: drop-shadow(0 0 18px rgba(167, 139, 250, 0.38)); }
+
+@media (hover: hover) and (pointer: fine) {
+  .admin-invite-cursor { display: grid; }
+  .admin-invite-page[data-cursor-active="true"] .admin-invite-cursor { opacity: 0.72; transform: translate(-50%, -50%) scale(1); }
+}
+
+.admin-invite-card {
+  position: relative;
+  z-index: 1;
+  width: min(820px, 100%);
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 30px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(220, 242, 255, 0.052), rgba(180, 220, 245, 0.035), rgba(255, 255, 255, 0.075));
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.46), 0 10px 28px rgba(32, 19, 62, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 1px 0 0 rgba(255, 255, 255, 0.2), inset -1px 0 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(22px) saturate(115%);
+  -webkit-backdrop-filter: blur(22px) saturate(115%);
+  animation: admin-invite-card-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.admin-invite-card__header { margin-bottom: 26px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 20px; }
+.admin-invite-card__logo { width: 104px; height: auto; }
+.admin-invite-card h1 { margin: 8px 0 5px; color: #fff; font-size: clamp(28px, 4vw, 42px); font-weight: 610; letter-spacing: -0.045em; }
+.admin-invite-card__header p { margin: 0; color: rgba(245, 245, 252, 0.62); font-size: 13px; line-height: 1.55; }
+.admin-invite-eyebrow { color: #c7a7ff; font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+
+.admin-invite-progress { margin: 0 0 22px; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; list-style: none; }
+.admin-invite-progress li { position: relative; display: grid; justify-items: center; gap: 5px; color: rgba(245, 245, 252, 0.35); text-align: center; }
+.admin-invite-progress li span { position: relative; z-index: 1; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 50%; background: #11101c; font-size: 10px; font-weight: 760; }
+.admin-invite-progress li:not(:last-child)::after { position: absolute; top: 14px; left: calc(50% + 20px); width: calc(100% - 40px); height: 1px; content: ""; background: rgba(255, 255, 255, 0.13); }
+.admin-invite-progress li small { font-size: 10px; }
+.admin-invite-progress li[data-state="current"], .admin-invite-progress li[data-state="complete"] { color: #d9c6ff; }
+.admin-invite-progress li[data-state="current"] span { border-color: rgba(199, 167, 255, 0.8); background: rgba(139, 92, 246, 0.3); box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12); }
+.admin-invite-progress li[data-state="complete"] span { border-color: rgba(141, 233, 176, 0.36); color: #8de9b0; }
+.admin-invite-progress li[data-state="complete"]::after { background: rgba(141, 233, 176, 0.32); }
+
+.admin-invite-form { display: grid; gap: 14px; }
+.admin-invite-field-row, .admin-invite-otp-grid, .admin-invite-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.admin-invite-field { display: grid; gap: 7px; color: rgba(245, 245, 252, 0.84); font-size: 11px; font-weight: 650; }
+.admin-invite-field input { width: 100%; min-height: 44px; padding: 0 13px; border: 1px solid rgba(255, 255, 255, 0.19); border-radius: 11px; outline: 0; color: #fff; background: rgba(255, 255, 255, 0.055); transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease; }
+.admin-invite-field input:focus { border-color: rgba(199, 167, 255, 0.72); background: rgba(255, 255, 255, 0.08); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15); }
+.admin-invite-field .admin-invite-file { padding: 10px 13px; color: rgba(245, 245, 252, 0.62); font-size: 10px; }
+.admin-invite-hint { margin: 0; color: rgba(245, 245, 252, 0.58); font-size: 10px; line-height: 1.5; }
+.admin-invite-primary, .admin-invite-secondary { min-height: 44px; border-radius: 11px; cursor: pointer; font-weight: 720; }
+.admin-invite-primary { border: 1px solid rgba(215, 189, 255, 0.5); color: #fff; background: linear-gradient(100deg, rgba(249, 115, 22, 0.88), rgba(213, 65, 162, 0.83), rgba(125, 60, 235, 0.91)); box-shadow: 0 8px 18px rgba(99, 52, 207, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.26); }
+.admin-invite-secondary { border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; background: rgba(255, 255, 255, 0.055); }
+.admin-invite-primary:active, .admin-invite-secondary:active { transform: scale(0.98); }
+.admin-invite-otp-grid section { padding: 18px; display: grid; gap: 12px; border: 1px solid rgba(255, 255, 255, 0.17); border-radius: 16px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(220, 242, 255, 0.04), rgba(255, 255, 255, 0.055)); }
+.admin-invite-otp { text-align: center; font-size: 20px; letter-spacing: 0.4em; font-variant-numeric: tabular-nums; }
+.admin-invite-notice { margin: 0 0 14px; padding: 10px 12px; border-left: 2px solid #d7bdff; color: rgba(255, 255, 255, 0.72); background: rgba(215, 189, 255, 0.07); font-size: 11px; line-height: 1.55; }
+.admin-invite-notice.is-api-required { margin-top: 14px; border: 1px solid rgba(255, 179, 107, 0.28); border-left-width: 1px; border-radius: 9px; color: rgba(255, 223, 191, 0.86); background: rgba(255, 136, 62, 0.07); }
+.admin-invite-login-link { width: 100%; margin-top: 16px; border: 0; color: rgba(255, 255, 255, 0.62); background: none; cursor: pointer; font-size: 11px; }
+
+@keyframes admin-invite-neon { from { opacity: 0.14; transform: translate3d(-3%, -2%, 0) scale(0.88); } to { opacity: 0.28; transform: translate3d(8%, 6%, 0) scale(1.08); } }
+@keyframes admin-invite-card-enter { from { opacity: 0; transform: translateY(18px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (max-width: 640px) {
+  .admin-invite-page { padding: 12px; }
+  .admin-invite-card { padding: 24px 16px; border-radius: 22px; }
+  .admin-invite-card__header { grid-template-columns: 1fr; gap: 14px; }
+  .admin-invite-card__logo { width: 88px; }
+  .admin-invite-field-row, .admin-invite-otp-grid, .admin-invite-actions { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rapex-route-transition,
+  .rapex-glass-button,
+  .rapex-primary-button,
+  .rapex-admin-nav-item,
+  .rapex-admin-group-title,
+  .rapex-admin-group-title::before,
+  .rapex-admin-group-chevron,
+  .rapex-admin-nav-collapse,
+  .rapex-admin-sidebar,
+  .rapex-admin-sidebar-brand img,
+  .rapex-admin-sidebar-caption,
+  .rapex-admin-sidebar-toggle,
+  .rapex-admin-sidebar-content,
+  .rapex-glass-input,
+  .admin-invite-page__glow,
+  .admin-invite-card,
+  .admin-invite-cursor {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .rapex-operations-rail {
+    display: none !important;
   }
 }
