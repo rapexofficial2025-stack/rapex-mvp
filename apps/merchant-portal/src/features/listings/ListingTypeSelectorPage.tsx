@@ -63,7 +63,7 @@ export function ListingTypeSelectorPage({ previewMode = false }: { previewMode?:
           <div><dt>Current state</dt><dd>{selectedType === "product" ? "Basic Xano product creation exists" : "MISSING CONTRACT"}</dd></div>
         </dl>
         {selectedType === "product" ? (
-          <button className="ecosystem-primary-action" type="button" onClick={() => navigate(previewMode ? "/login" : "/portal/store")}>{previewMode ? "Sign in to continue" : "Continue to existing store products"}</button>
+          <button className="ecosystem-primary-action" type="button" onClick={() => navigate(previewMode ? "/portal/preview/products/add" : "/portal/products/add")}>{previewMode ? "Preview Add Product" : "Add a product"}</button>
         ) : (
           <button className="ecosystem-primary-action" type="button" onClick={() => navigate(previewMode ? "/login" : "/portal/capabilities")}>Review required capability</button>
         )}
