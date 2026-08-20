@@ -58,10 +58,16 @@ export type ProductSummary = {
   productCategory: string;
 };
 
+export type ProductOption = { id: string; name: string; priceDelta: number };
+
 export type ProductDetail = ProductSummary & {
   description: string;
   storeName: string;
   stock: number;
+  /** e.g. "Solo" / "With Rice" / "Family Pack" -- at most one selected. */
+  variants?: ProductOption[];
+  /** e.g. "Extra Egg" / "Extra Rice" -- any number selected. */
+  addOns?: ProductOption[];
 };
 
 export type Review = {

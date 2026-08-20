@@ -77,14 +77,31 @@ export const MOCK_PRODUCTS: ProductSummary[] = [
   { id: "prod-7", storeId: "store-5", name: "Pork BBQ (6 sticks)", price: 150, imageLabel: "🍢", productCategory: "Grilled" },
 ];
 
+// Sample size/add-on options for Food-category products only -- a hardware
+// store's claw hammer doesn't get a "With Rice" variant. Illustrative mock
+// data (see ProductScreen.tsx), not sourced from any confirmed Xano contract.
+const FOOD_VARIANTS = [
+  { id: "solo", name: "Solo", priceDelta: 0 },
+  { id: "with-rice", name: "With Rice", priceDelta: 20 },
+  { id: "family-pack", name: "Family Pack (4pax)", priceDelta: 250 },
+];
+const FOOD_ADD_ONS = [
+  { id: "extra-rice", name: "Extra Rice", priceDelta: 20 },
+  { id: "extra-egg", name: "Extra Egg", priceDelta: 15 },
+  { id: "extra-sauce", name: "Extra Sauce", priceDelta: 10 },
+];
+
 export const MOCK_PRODUCT_DETAILS: Record<string, ProductDetail> = Object.fromEntries(
   MOCK_PRODUCTS.map((product) => {
     const store = MOCK_STORES.find((s) => s.id === product.storeId);
+    const isFood = store?.category === "Food";
     const detail: ProductDetail = {
       ...product,
       description: `${product.name}, freshly prepared and ready for delivery.`,
       storeName: store?.name ?? "Unknown Store",
       stock: 24,
+      variants: isFood ? FOOD_VARIANTS : undefined,
+      addOns: isFood ? FOOD_ADD_ONS : undefined,
     };
     return [product.id, detail];
   }),
