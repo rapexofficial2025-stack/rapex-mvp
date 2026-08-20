@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "@rapex/theme/tokens.css";
 @import "../../web-portal-ui/portal-dashboard.css";
+@import "../../web-portal-ui/ecosystem-foundation.css";
 
 /*
  * Tailwind is available for new UI work per the RAPEX design-system
@@ -633,13 +634,55 @@ button {
   min-height: 68px;
   padding: 10px 18px;
   display: grid;
-  grid-template-columns: minmax(150px, 0.55fr) minmax(260px, 1fr) auto;
+  grid-template-columns: minmax(130px, 0.42fr) minmax(220px, 0.7fr) minmax(220px, 1fr) auto;
   align-items: center;
   gap: 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(9, 10, 17, 0.78);
   backdrop-filter: blur(18px) saturate(115%);
   -webkit-backdrop-filter: blur(18px) saturate(115%);
+}
+
+.merchant-global-store {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 3px 9px;
+}
+
+.merchant-global-store > span {
+  grid-row: span 2;
+  color: rgba(245, 245, 252, 0.42);
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.merchant-global-store select {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 9px;
+  overflow: hidden;
+  border: 1px solid rgba(199, 167, 255, 0.28);
+  border-radius: 9px;
+  outline: 0;
+  color: rgba(245, 245, 252, 0.88);
+  background: rgba(139, 92, 246, 0.08);
+  text-overflow: ellipsis;
+}
+
+.merchant-global-store select option {
+  color: #111217;
+  background: #fff;
+}
+
+.merchant-global-store small {
+  overflow: hidden;
+  color: rgba(245, 245, 252, 0.36);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .merchant-topbar__title {
@@ -722,6 +765,12 @@ button {
   background: rgba(255, 255, 255, 0.035);
   cursor: pointer;
   font-size: 10px;
+}
+
+.merchant-topbar__actions > .merchant-theme-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .merchant-profile {
@@ -814,6 +863,18 @@ button {
   gap: 6px;
   color: var(--portal-muted);
   font-size: 10px;
+}
+
+.merchant-dashboard-store-lock {
+  min-height: 44px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--portal-border);
+  border-radius: 10px;
+  color: var(--portal-text);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 11px;
 }
 
 .merchant-store-selector select {
@@ -951,9 +1012,9 @@ button {
     grid-template-columns: 1fr auto;
   }
 
+  .merchant-global-store,
   .merchant-topbar__search {
     grid-column: 1 / -1;
-    grid-row: 2;
   }
 }
 

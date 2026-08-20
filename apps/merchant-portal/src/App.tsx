@@ -8,6 +8,8 @@ import { ForgotPasswordPage } from "./routes/ForgotPasswordPage";
 import { RequireMerchantAuth } from "./routes/RequireMerchantAuth";
 import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { StorePage } from "./features/store/StorePage";
+import { CapabilityCenterPage } from "./features/capabilities/CapabilityCenterPage";
+import { ListingTypeSelectorPage } from "./features/listings/ListingTypeSelectorPage";
 
 // GitHub Pages staging serves this app from a /<repo>/ or /<repo>/merchant/
 // subpath via VITE_BASE_PATH -- see vite.config.ts. Unlike admin-portal,
@@ -29,6 +31,8 @@ function App() {
           <Route path="/portal/preview" element={<PortalLayout previewMode />}>
             <Route index element={<Navigate to="/portal/preview/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage previewMode />} />
+            <Route path="capabilities" element={<CapabilityCenterPage previewMode />} />
+            <Route path="listings/new" element={<ListingTypeSelectorPage previewMode />} />
           </Route>
         ) : null}
         <Route
@@ -43,6 +47,8 @@ function App() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="store" element={<StorePage />} />
+          <Route path="capabilities" element={<CapabilityCenterPage />} />
+          <Route path="listings/new" element={<ListingTypeSelectorPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -9,8 +9,8 @@ const GROUPS: { label?: string; keys: string[] }[] = [
   { label: "USERS", keys: ["users", "registration", "age-engine", "locations", "communities"] },
   { label: "ORDERS", keys: ["orders", "order-financials"] },
   { label: "DELIVERY", keys: ["command-center", "delivery", "riders"] },
-  { label: "PRODUCTS", keys: ["products", "product-categories", "product-variants", "product-options", "product-images", "inventory"] },
-  { label: "MARKETPLACE OPERATIONS", keys: ["merchants", "verification"] },
+  { label: "CATALOG", keys: ["products", "product-categories", "service-categories", "product-variants", "product-options", "product-images", "inventory"] },
+  { label: "MARKETPLACE OPERATIONS", keys: ["merchants", "service-providers", "verification"] },
   { label: "SYSTEM", keys: ["engine-center", "integrations", "errors", "settings"] },
 ];
 

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ThemeToggle } from "@rapex/ui-web";
+import { useThemeMode } from "@rapex/ui-web";
 import { useRepositories, type AuthUser } from "@rapex/api-client";
+import { MerchantStoreProvider } from "../features/workspace/MerchantStoreProvider";
+import { useMerchantStoreWorkspace } from "../features/workspace/useMerchantStoreWorkspace";
 
 type NavItem = { key: string; label: string; path?: string; stage?: string };
 type NavGroup = { key: string; label: string; items: NavItem[] };
@@ -9,10 +11,10 @@ type NavGroup = { key: string; label: string; items: NavItem[] };
 const NAV_GROUPS: NavGroup[] = [
   { key: "overview", label: "Overview", items: [{ key: "dashboard", label: "Dashboard", path: "/portal/dashboard" }] },
   { key: "stores", label: "Store Management", items: [{ key: "stores", label: "My Stores", path: "/portal/store" }, { key: "branches", label: "Branches", stage: "Next module" }] },
-  { key: "catalog", label: "Catalog", items: [{ key: "products", label: "Products", stage: "Next module" }, { key: "variants", label: "Variants", stage: "Next module" }, { key: "inventory", label: "Inventory", stage: "Next module" }] },
+  { key: "catalog", label: "Listings", items: [{ key: "create-listing", label: "Create Listing", path: "/portal/listings/new" }, { key: "products", label: "Products", stage: "Product module" }, { key: "services", label: "Services", stage: "Capability required" }, { key: "auction", label: "Auction", stage: "Capability required" }, { key: "pre-loved", label: "Pre-Loved", stage: "Contract required" }, { key: "inventory", label: "Inventory", stage: "Inventory module" }] },
   { key: "operations", label: "Operations", items: [{ key: "orders", label: "Orders", stage: "After Module 1" }, { key: "delivery", label: "Delivery", stage: "Planned" }] },
   { key: "finance", label: "Finance & Growth", items: [{ key: "financials", label: "Financials", stage: "Planned" }, { key: "marketing", label: "Marketing", stage: "Planned" }, { key: "analytics", label: "Analytics", stage: "Planned" }] },
-  { key: "settings", label: "System", items: [{ key: "notifications", label: "Notifications", stage: "Planned" }, { key: "settings", label: "Settings", stage: "Planned" }, { key: "support", label: "Support", stage: "Planned" }] },
+  { key: "settings", label: "Account", items: [{ key: "capabilities", label: "My Capabilities", path: "/portal/capabilities" }, { key: "notifications", label: "Notifications", stage: "Contract required" }, { key: "profile", label: "Profile", stage: "Planned" }, { key: "support", label: "Support", stage: "Planned" }] },
 ];
 
 function NavMark({ active }: { active: boolean }) {
@@ -25,9 +27,15 @@ function NavMark({ active }: { active: boolean }) {
 }
 
 export function PortalLayout({ previewMode = false }: { previewMode?: boolean }) {
+  return <MerchantStoreProvider><PortalShell previewMode={previewMode} /></MerchantStoreProvider>;
+}
+
+function PortalShell({ previewMode }: { previewMode: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, toggleMode } = useThemeMode();
   const { auth } = useRepositories();
+  const { stores, currentStoreId, currentStore, loading: storesLoading, error: storesError, setCurrentStoreId } = useMerchantStoreWorkspace();
   const [collapsed, setCollapsed] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(() => new Set(["overview", "stores"]));
   const [query, setQuery] = useState("");
@@ -115,12 +123,20 @@ export function PortalLayout({ previewMode = false }: { previewMode?: boolean })
             );
           })}
         </nav>
-        <div className="merchant-sidebar__footer"><span>Module 1</span><small>Auth · Shell · Dashboard</small></div>
+        <div className="merchant-sidebar__footer"><span>RAPEX Ecosystem</span><small>One account · capability-aware</small></div>
       </aside>
 
       <div className="merchant-workspace">
         <header className="merchant-topbar">
           <div className="merchant-topbar__title"><small>Merchant / {activeItem?.label ?? "Workspace"}</small><strong>{activeItem?.label ?? "RAPEX Merchant"}</strong></div>
+          <label className="merchant-global-store">
+            <span>Current store</span>
+            <select value={currentStoreId ?? ""} disabled={storesLoading || stores.length === 0} onChange={(event) => setCurrentStoreId(event.target.value)}>
+              {stores.length === 0 ? <option value="">{storesLoading ? "Loading stores…" : "No store available"}</option> : null}
+              {stores.map((store) => <option key={store.id} value={store.id}>{store.name} · {store.status}</option>)}
+            </select>
+            <small>{storesError ?? currentStore?.address ?? "Store-specific requests follow this selection."}</small>
+          </label>
           <div className="merchant-topbar__search">
             <label><span className="sr-only">Search merchant navigation</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search merchant tools…" /></label>
             {query.trim() ? (
@@ -130,7 +146,7 @@ export function PortalLayout({ previewMode = false }: { previewMode?: boolean })
             ) : null}
           </div>
           <div className="merchant-topbar__actions">
-            <ThemeToggle />
+            <button className="merchant-theme-control" type="button" onClick={toggleMode} aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}><span aria-hidden="true">{mode === "dark" ? "D" : "L"}</span><span>{mode === "dark" ? "Dark" : "Light"}</span></button>
             <button type="button" onClick={() => setNotice("Notification API contract is required before this panel can show live records.")}>Notifications</button>
             <div className="merchant-profile">
               <button type="button" onClick={() => setProfileOpen((value) => !value)} aria-expanded={profileOpen}>
@@ -140,6 +156,7 @@ export function PortalLayout({ previewMode = false }: { previewMode?: boolean })
               {profileOpen ? (
                 <div className="merchant-profile__menu">
                   <span>{user?.email ?? "No account used in preview"}</span>
+                  <button type="button" onClick={() => { navigate(previewMode ? "/portal/preview/capabilities" : "/portal/capabilities"); setProfileOpen(false); }}>My capabilities</button>
                   {previewMode ? <button type="button" onClick={() => navigate("/login")}>Open real sign in</button> : <button type="button" onClick={logout}>Sign out</button>}
                 </div>
               ) : null}

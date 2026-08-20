@@ -1,31 +1,28 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, EmptyState, ErrorState, Loading } from "@rapex/ui-web";
 import { formatPeso } from "@rapex/utils";
-import { useMerchantStoreProducts, useMyMerchantAccount, useMyStores, useStoreInsights } from "@rapex/api-client";
+import { useMerchantStoreProducts, useMyMerchantAccount, useStoreInsights } from "@rapex/api-client";
 import { PortalDashboardFrame, PortalMetric, PortalPanel } from "../../../admin-portal/src/shared/portal-ui/PortalDashboardPrimitives";
 import { PortalInteractiveDonutChart, PortalInteractiveLineChart, type PortalDonutSlice } from "../../../admin-portal/src/shared/portal-ui/PortalInteractiveCharts";
+import { useMerchantStoreWorkspace } from "../features/workspace/useMerchantStoreWorkspace";
 
 const DONUT_TONES: PortalDonutSlice["tone"][] = ["lavender", "yellow", "mint"];
 
 export function DashboardPage({ previewMode = false }: { previewMode?: boolean }) {
   const navigate = useNavigate();
-  const [chosenStoreId, setChosenStoreId] = useState<string | null>(null);
   const accountState = useMyMerchantAccount();
-  const storesState = useMyStores();
-  const selectedStoreId = storesState.data?.some((store) => store.id === chosenStoreId) ? chosenStoreId : (storesState.data?.[0]?.id ?? null);
-  const selectedStore = storesState.data?.find((store) => store.id === selectedStoreId) ?? null;
+  const { currentStoreId: selectedStoreId, currentStore: selectedStore, loading: storesLoading, error: storesError, refetch: refetchStores } = useMerchantStoreWorkspace();
   const productsState = useMerchantStoreProducts(selectedStoreId);
   const insightsState = useStoreInsights(selectedStoreId);
 
-  if ((accountState.loading && !accountState.data) || (storesState.loading && !storesState.data)) {
+  if ((accountState.loading && !accountState.data) || storesLoading) {
     return <div className="merchant-state-page"><Loading label="Loading merchant workspace…" /></div>;
   }
   if (accountState.error) {
     return <div className="merchant-state-page"><ErrorState description={accountState.error} onRetry={accountState.refetch} /></div>;
   }
-  if (storesState.error) {
-    return <div className="merchant-state-page"><ErrorState description={storesState.error} onRetry={storesState.refetch} /></div>;
+  if (storesError) {
+    return <div className="merchant-state-page"><ErrorState description={storesError} onRetry={refetchStores} /></div>;
   }
   if (!accountState.data) {
     return <div className="merchant-state-page"><EmptyState title="Merchant account unavailable" description="A real authenticated merchant account is required." /></div>;
@@ -61,9 +58,7 @@ export function DashboardPage({ previewMode = false }: { previewMode?: boolean }
         <div className="merchant-store-selector">
           <label>
             <span>Store workspace</span>
-            <select value={selectedStoreId ?? ""} onChange={(event) => setChosenStoreId(event.target.value)}>
-              {(storesState.data ?? []).map((store) => <option value={store.id} key={store.id}>{store.name} · {store.category}</option>)}
-            </select>
+            <span className="merchant-dashboard-store-lock">{selectedStore?.name ?? "No store selected"} · controlled by the global header selector</span>
           </label>
           {selectedStore ? (
             <div className="merchant-store-identity">
@@ -71,7 +66,7 @@ export function DashboardPage({ previewMode = false }: { previewMode?: boolean }
               <span className="merchant-store-status" data-online={selectedStore.status === "online"}>{selectedStore.status === "online" ? "Online" : "Offline"} <small>legacy contract</small></span>
             </div>
           ) : null}
-          <button className="merchant-secondary-button" type="button" onClick={() => { accountState.refetch(); storesState.refetch(); productsState.refetch(); insightsState.refetch(); }}>Refresh view</button>
+          <button className="merchant-secondary-button" type="button" onClick={() => { accountState.refetch(); refetchStores(); productsState.refetch(); insightsState.refetch(); }}>Refresh view</button>
         </div>
         <p className="merchant-contract-note">Store status is read-only here. Xano must confirm the OPEN / CLOSED / BUSY / TEMPORARILY_UNAVAILABLE enum and update endpoint before controls are enabled.</p>
       </PortalPanel>
