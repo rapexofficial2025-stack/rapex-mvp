@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { View, Text } from "react-native";
+import { useMemo, useState } from "react";
+import { Pressable, ScrollView, View, Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Loading, ErrorState, Button, Badge, EmptyState } from "@rapex/ui-native";
 import { formatPeso } from "@rapex/utils";
@@ -10,6 +10,102 @@ import { useCartLines, clearCart } from "../services/cartStore";
 import { useDeliveryAddress } from "../services/addressStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Checkout">;
+
+type VehicleKey = "bicycle" | "motorcycle" | "car";
+
+/**
+ * Base delivery fee + detection radius + a mock nearby-rider count per
+ * vehicle type, per founder-supplied reference pricing (2026-08-20).
+ * Real per-vehicle-type rider availability has no confirmed Xano endpoint
+ * yet -- these counts are illustrative mock data, not a live lookup, same
+ * discipline as the rest of this screen's "Preview totals are a mock
+ * estimate" badge.
+ */
+const VEHICLE_OPTIONS: { key: VehicleKey; label: string; iconLabel: string; basePrice: number; radiusKm: number; nearbyRiders: number }[] = [
+  { key: "bicycle", label: "Bicycle", iconLabel: "🚲", basePrice: 40, radiusKm: 1, nearbyRiders: 2 },
+  { key: "motorcycle", label: "Motorcycle", iconLabel: "🏍️", basePrice: 50, radiusKm: 2, nearbyRiders: 1 },
+  { key: "car", label: "Car", iconLabel: "🚗", basePrice: 120, radiusKm: 3, nearbyRiders: 0 },
+];
+
+function VehicleSelector({
+  selectedKey,
+  deliveryTiming,
+  onSelectNow,
+  onSelectLater,
+}: {
+  selectedKey: VehicleKey | null;
+  deliveryTiming: "now" | "later" | null;
+  onSelectNow: (key: VehicleKey) => void;
+  onSelectLater: () => void;
+}) {
+  const theme = useAppTheme();
+  return (
+    <View style={{ gap: theme.spacing.xs }}>
+      <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>Delivery Vehicle</Text>
+      {VEHICLE_OPTIONS.map((vehicle) => {
+        const active = selectedKey === vehicle.key && deliveryTiming === "now";
+        const available = vehicle.nearbyRiders > 0;
+        return (
+          <Pressable
+            key={vehicle.key}
+            disabled={!available}
+            onPress={() => onSelectNow(vehicle.key)}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: theme.spacing.sm,
+              padding: theme.spacing.md,
+              borderRadius: theme.radius.md,
+              borderWidth: active ? 2 : 1,
+              borderColor: active ? theme.colors.brandPrimary : theme.colors.border,
+              backgroundColor: active ? theme.colors.surfaceAlt : "transparent",
+              opacity: available ? 1 : 0.5,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: theme.radius.sm,
+                backgroundColor: theme.colors.brandPrimary,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: theme.typography.fontSize.lg }}>{vehicle.iconLabel}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.colors.textPrimary, fontWeight: "700", fontSize: theme.typography.fontSize.sm }}>{vehicle.label}</Text>
+              <Text style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.xs }}>
+                {available ? `${vehicle.nearbyRiders} rider${vehicle.nearbyRiders > 1 ? "s" : ""} available nearby` : "No rider available nearby"}
+              </Text>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={{ color: theme.colors.accent, fontWeight: "800", fontSize: theme.typography.fontSize.sm }}>{formatPeso(vehicle.basePrice)}</Text>
+              {active ? <Badge label="Order Now" tone="success" /> : !available ? <Badge label="Unavailable" tone="neutral" /> : null}
+            </View>
+          </Pressable>
+        );
+      })}
+      <Pressable
+        onPress={onSelectLater}
+        style={{
+          padding: theme.spacing.md,
+          borderRadius: theme.radius.md,
+          borderWidth: deliveryTiming === "later" ? 2 : 1,
+          borderColor: deliveryTiming === "later" ? theme.colors.brandPrimary : theme.colors.border,
+          backgroundColor: deliveryTiming === "later" ? theme.colors.surfaceAlt : "transparent",
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ color: theme.colors.textPrimary, fontWeight: "700", fontSize: theme.typography.fontSize.sm }}>Order Later</Text>
+        <Text style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.xs, marginTop: 2 }}>
+          Standard delivery within 24 hours -- no need to wait for a rider now
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
 
 function Row({ label, value }: { label: string; value: string }) {
   const theme = useAppTheme();
@@ -87,6 +183,8 @@ export function CheckoutScreen({ navigation, route }: Props) {
 
   const cartLines = useCartLines();
   const address = useDeliveryAddress();
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleKey | null>(null);
+  const [deliveryTiming, setDeliveryTiming] = useState<"now" | "later" | null>(null);
 
   const { data: walletSummary, loading: walletLoading } = useAsync(() => wallet.getWalletSummary(), []);
 
@@ -116,8 +214,13 @@ export function CheckoutScreen({ navigation, route }: Props) {
   if (lines.length === 0) return <EmptyState title="Nothing to check out" description="Your cart is empty." />;
   if (!summary) return null;
 
+  const selectedVehicleOption = VEHICLE_OPTIONS.find((v) => v.key === selectedVehicle) ?? null;
+  const effectiveDeliveryFee = deliveryTiming === "now" && selectedVehicleOption ? selectedVehicleOption.basePrice : summary.deliveryFee;
+  const effectiveTotal = summary.subtotal + effectiveDeliveryFee + summary.platformFee;
+  const canPlaceOrder = !!address && !!deliveryTiming;
+
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background, padding: theme.spacing.lg, gap: theme.spacing.md }}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.colors.background }} contentContainerStyle={{ padding: theme.spacing.lg, gap: theme.spacing.md }}>
       <Text style={{ fontSize: theme.typography.fontSize.xl, fontWeight: "700", color: theme.colors.textPrimary }}>
         Order Summary
       </Text>
@@ -139,37 +242,49 @@ export function CheckoutScreen({ navigation, route }: Props) {
       ))}
       <View style={{ height: 1, backgroundColor: theme.colors.border }} />
       <Row label="Product Total" value={formatPeso(summary.subtotal)} />
-      <Row label="Delivery Fee" value={formatPeso(summary.deliveryFee)} />
+      <Row label="Delivery Fee" value={formatPeso(effectiveDeliveryFee)} />
       {summary.platformFee > 0 ? <Row label="Platform Fee" value={formatPeso(summary.platformFee)} /> : null}
       <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-      <Row label="Final Total" value={formatPeso(summary.total)} />
+      <Row label="Final Total" value={formatPeso(effectiveTotal)} />
 
       <View style={{ height: 1, backgroundColor: theme.colors.border }} />
       <Row label="Wallet Balance" value={walletLoading || !walletSummary ? "…" : formatPeso(walletSummary.balance)} />
       {walletSummary ? (
         <>
-          <Row label="Remaining Wallet (after this order)" value={formatPeso(walletSummary.balance - summary.total)} />
-          {walletSummary.balance < summary.total ? (
+          <Row label="Remaining Wallet (after this order)" value={formatPeso(walletSummary.balance - effectiveTotal)} />
+          {walletSummary.balance < effectiveTotal ? (
             <Badge label="Insufficient wallet balance" tone="error" />
           ) : null}
         </>
       ) : null}
+
+      <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+      <VehicleSelector
+        selectedKey={selectedVehicle}
+        deliveryTiming={deliveryTiming}
+        onSelectNow={(key) => {
+          setSelectedVehicle(key);
+          setDeliveryTiming("now");
+        }}
+        onSelectLater={() => setDeliveryTiming("later")}
+      />
 
       {placeOrder.error ? <ErrorState description={placeOrder.error} /> : null}
 
       <PaymentMethodSelector />
       <Badge label="Place Order calls the real Xano backend — response shape unverified live" tone="info" />
       {!address ? <ErrorState description="Set a delivery address before placing your order." /> : null}
+      {!deliveryTiming ? <ErrorState description="Choose a delivery vehicle (or Order Later) before placing your order." /> : null}
       <Button
         label="Place Order"
         loading={placeOrder.loading}
-        disabled={!address}
+        disabled={!canPlaceOrder}
         onPress={async () => {
           await placeOrder.execute(lines);
           if (isCartCheckout) clearCart();
           navigation.replace("Orders");
         }}
       />
-    </View>
+    </ScrollView>
   );
 }
