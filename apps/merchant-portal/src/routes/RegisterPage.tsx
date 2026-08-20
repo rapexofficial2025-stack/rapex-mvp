@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { MerchantAuthShell } from "./MerchantAuthShell";
+import { MerchantRegistrationShell } from "./MerchantRegistrationShell";
 
 type PasswordStrength = "Weak" | "Normal" | "Strong";
 const STEPS = ["Create account", "Verify", "Basic identity", "Main store", "Identity verification"] as const;
@@ -55,7 +55,7 @@ export function RegisterPage() {
     setApiNotice("Submission stopped safely. Xano needs one authenticated Merchant onboarding transaction that verifies both OTP channels, creates the Merchant profile and Main Store, links identity assets, and returns UNDER_REVIEW with an application ID.");
   }
 
-  return <MerchantAuthShell wide eyebrow={`Merchant registration · Step ${step} of ${STEPS.length}`} title={STEPS[step - 1]} description="Simple Alpha onboarding for one merchant owner and their first store. Business permits remain conditional.">
+  return <MerchantRegistrationShell eyebrow={`Merchant registration · Step ${step} of ${STEPS.length}`} title={STEPS[step - 1]} description="Simple Alpha onboarding for one merchant owner and their first store. Business permits remain conditional.">
     <ol className="merchant-registration-progress" aria-label="Merchant registration progress">
       {STEPS.map((label, index) => <li key={label} data-state={index + 1 === step ? "current" : index + 1 < step ? "complete" : "upcoming"}><span>{index + 1}</span><small>{label}</small></li>)}
     </ol>
@@ -112,5 +112,5 @@ export function RegisterPage() {
         {step < STEPS.length ? <button className="merchant-primary-button" type="button" onClick={() => continueTo(step + 1)}>{step === 2 ? "Continue UI preview" : "Next"}</button> : null}
       </div>
     </form>
-  </MerchantAuthShell>;
+  </MerchantRegistrationShell>;
 }

@@ -162,8 +162,111 @@ button {
   animation: merchant-card-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.merchant-auth__form-card.is-wide {
-  width: min(600px, 100%);
+.merchant-registration-page {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  padding: clamp(24px, 5vw, 72px) 18px;
+  display: grid;
+  place-items: start center;
+  overflow: hidden auto;
+  color: #f7f7fb;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(91, 62, 151, 0.2), transparent 42%),
+    linear-gradient(145deg, #04050b 0%, #090713 48%, #05060c 100%);
+}
+
+.merchant-registration-page__mesh {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.026) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at center, black, transparent 78%);
+}
+
+.merchant-registration-page__glow {
+  position: fixed;
+  z-index: 0;
+  width: min(42vw, 560px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(78px);
+  opacity: 0.24;
+  animation: merchant-registration-neon 9s ease-in-out infinite alternate;
+}
+
+.merchant-registration-page__glow.is-purple {
+  top: -18%;
+  left: -13%;
+  background: #7c3aed;
+}
+
+.merchant-registration-page__glow.is-orange {
+  right: -15%;
+  bottom: -24%;
+  background: #f97316;
+  animation-delay: -3.2s;
+  animation-duration: 11s;
+}
+
+.merchant-registration-page__glow.is-blue {
+  top: 34%;
+  right: -23%;
+  width: min(34vw, 440px);
+  background: #2563eb;
+  animation-delay: -6.1s;
+  animation-duration: 13s;
+}
+
+.merchant-registration-card {
+  position: relative;
+  z-index: 1;
+  width: min(900px, 100%);
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(220, 242, 255, 0.052), rgba(180, 220, 245, 0.035), rgba(255, 255, 255, 0.075));
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.46),
+    0 10px 28px rgba(32, 19, 62, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset -1px 0 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(22px) saturate(115%);
+  -webkit-backdrop-filter: blur(22px) saturate(115%);
+  animation: merchant-card-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.merchant-registration-card__header {
+  margin-bottom: 26px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 20px;
+}
+
+.merchant-registration-card__logo {
+  width: 104px;
+  height: auto;
+}
+
+.merchant-registration-card h1 {
+  margin: 8px 0 5px;
+  color: #fff;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 610;
+  letter-spacing: -0.045em;
+}
+
+.merchant-registration-card .merchant-auth__description {
+  margin-bottom: 0;
 }
 
 .merchant-registration-progress {
@@ -176,12 +279,27 @@ button {
 }
 
 .merchant-registration-progress li {
+  position: relative;
   min-width: 0;
   display: grid;
   justify-items: center;
   gap: 5px;
   color: rgba(245, 245, 252, 0.35);
   text-align: center;
+}
+
+.merchant-registration-progress li:not(:last-child)::after {
+  position: absolute;
+  top: 13px;
+  left: calc(50% + 18px);
+  width: calc(100% - 36px);
+  height: 1px;
+  content: "";
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.merchant-registration-progress li[data-state="complete"]::after {
+  background: rgba(141, 233, 176, 0.32);
 }
 
 .merchant-registration-progress li span {
@@ -197,11 +315,25 @@ button {
 }
 
 .merchant-registration-progress li small {
-  max-width: 62px;
+  max-width: 110px;
   overflow: hidden;
-  font-size: 8px;
+  font-size: 9px;
   line-height: 1.2;
   text-overflow: ellipsis;
+}
+
+@keyframes merchant-registration-neon {
+  0% {
+    opacity: 0.14;
+    transform: translate3d(-3%, -2%, 0) scale(0.88);
+  }
+  52% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.2;
+    transform: translate3d(8%, 6%, 0) scale(1.08);
+  }
 }
 
 .merchant-registration-progress li[data-state="current"],
@@ -1210,6 +1342,15 @@ button {
 @media (max-width: 760px) {
   .merchant-registration-progress small { display: none; }
 
+  .merchant-registration-card__header {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .merchant-registration-card__logo {
+    width: 88px;
+  }
+
   .merchant-file-grid,
   .merchant-verification-grid,
   .merchant-store-hours-card,
@@ -1295,6 +1436,15 @@ button {
     padding: 22px 16px;
   }
 
+  .merchant-registration-page {
+    padding: 12px;
+  }
+
+  .merchant-registration-card {
+    padding: 24px 16px;
+    border-radius: 22px;
+  }
+
   .merchant-store-details {
     grid-template-columns: 1fr;
   }
@@ -1318,7 +1468,9 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rapex-route-transition {
+  .rapex-route-transition,
+  .merchant-registration-card,
+  .merchant-registration-page__glow {
     animation: none;
   }
 }
