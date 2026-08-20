@@ -11,6 +11,7 @@ import { MarketplaceScreen } from "../screens/MarketplaceScreen";
 import { ServicesScreen } from "../screens/ServicesScreen";
 import { ProfileScreen, type ProfileScreenProps } from "../screens/ProfileScreen";
 import { addNotificationResponseListener, registerForPushNotificationsAsync } from "../services/notifications";
+import { SupportChatWidget } from "../components/SupportChatWidget";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -119,13 +120,16 @@ export function MainTabNavigator() {
   }, []);
 
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <CustomTabBar {...props} />}>
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Wishlist" component={WishlistScreen} />
-      <Tab.Screen name="Marketplace" component={MarketplaceScreen} />
-      <Tab.Screen name="Services" component={ServicesScreen} />
-      <Tab.Screen name="Profile" component={ProfileTabScreen} />
-    </Tab.Navigator>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <CustomTabBar {...props} />}>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Wishlist" component={WishlistScreen} />
+        <Tab.Screen name="Marketplace" component={MarketplaceScreen} />
+        <Tab.Screen name="Services" component={ServicesScreen} />
+        <Tab.Screen name="Profile" component={ProfileTabScreen} />
+      </Tab.Navigator>
+      <SupportChatWidget />
+    </View>
   );
 }
 
