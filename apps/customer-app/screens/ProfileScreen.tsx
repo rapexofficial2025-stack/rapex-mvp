@@ -12,7 +12,8 @@ import { LANGUAGE_OPTIONS, updateRegistrationDraft, useRegistrationDraft, type R
 import { useDeliveryAddress } from "../services/addressStore";
 import { useProfilePhotoUri, setProfilePhotoUri } from "../services/profilePhotoStore";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Profile">;
+export type ProfileScreenProps = NativeStackScreenProps<RootStackParamList, "Profile">;
+type Props = ProfileScreenProps;
 
 function Row({ label, value }: { label: string; value: string }) {
   const theme = useAppTheme();
@@ -306,6 +307,8 @@ export function ProfileScreen({ navigation }: Props) {
       </GlassCard>
 
       <Button label="Wallet" onPress={() => navigation.navigate("Wallet")} />
+      <Button label="My Orders" variant="secondary" onPress={() => navigation.navigate("Orders")} />
+      <Button label="Earn & Rewards" variant="secondary" onPress={() => navigation.navigate("Earn")} />
       <Button label="Child Accounts" variant="secondary" onPress={() => navigation.navigate("ChildAccounts")} />
       <Button
         label="Log Out"

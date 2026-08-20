@@ -167,7 +167,7 @@ export function CheckoutScreen({ navigation, route }: Props) {
         onPress={async () => {
           await placeOrder.execute(lines);
           if (isCartCheckout) clearCart();
-          navigation.replace("MainTabs", { screen: "Orders" });
+          navigation.replace("Orders");
         }}
       />
     </View>
