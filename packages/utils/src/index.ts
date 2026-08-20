@@ -7,3 +7,4 @@ export * from "./role";
 export * from "./permissions";
 export * from "./riderEngine";
 export * from "./deliveryFeeEngine";
+export * from "./escpos";
