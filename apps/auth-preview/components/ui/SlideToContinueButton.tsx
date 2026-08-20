@@ -45,7 +45,7 @@ export function SlideToContinueButton({ label, onComplete }: Props) {
         const next = Math.min(Math.max(gesture.dx, 0), maxTranslateRef.current);
         if (next >= maxTranslateRef.current * COMPLETE_THRESHOLD) {
           completed.current = true;
-          Animated.timing(translateX, { toValue: maxTranslateRef.current, duration: 150, useNativeDriver: true }).start(() => {
+          Animated.timing(translateX, { toValue: maxTranslateRef.current, duration: 50, useNativeDriver: true }).start(() => {
             onComplete();
           });
         } else {
@@ -65,7 +65,7 @@ export function SlideToContinueButton({ label, onComplete }: Props) {
 
   return (
     <View style={styles.track} onLayout={handleLayout}>
-      <LinearGradient colors={["#FF7A00", "#B100FF"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={["#FF7A00", "#B100FF"]} start={{ x: 1, y: 1 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
 
       {/* Embossed groove: darker top inner edge, lighter bottom inner edge. */}
       <View pointerEvents="none" style={styles.grooveTop} />
@@ -73,7 +73,7 @@ export function SlideToContinueButton({ label, onComplete }: Props) {
 
       {/* Glowing fill trail behind the thumb, grows as it slides right. */}
       <Animated.View pointerEvents="none" style={[styles.fillTrail, { width: fillWidth }]}>
-        <LinearGradient colors={["rgba(255,255,255,0.55)", "rgba(255,255,255,0.05)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={["rgba(255,255,255,0.55)", "rgba(255,255,255,0.05)"]} start={{ x: 1, y: 1 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       </Animated.View>
 
       <Text style={styles.label} pointerEvents="none">

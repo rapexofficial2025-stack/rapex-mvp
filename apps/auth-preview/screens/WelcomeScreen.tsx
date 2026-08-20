@@ -1,15 +1,14 @@
-import { useState } from "react";
-import { Image, ImageBackground, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+﻿import { useState } from "react";
+import { Image, ImageBackground, ImageSourcePropType, Linking, Modal, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { Bell, HelpCircle, Link2, Menu, MessageCircle, Phone } from "lucide-react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../App";
-import { SlideToContinueButton } from "../components/ui/SlideToContinueButton";
+import { DeliverySlider } from "../components/ui/DeliverySlider";
 import { FeaturePreviewModal } from "../components/ui/FeaturePreviewModal";
-import { GlassCard } from "../components/cards/GlassCard";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
-
 // Reusing the existing login background until a dedicated hero image exists --
 // swap this path once one is ready.
 const HERO_BACKGROUND = require("../assets/backgrounds/login-dark-1.png");
@@ -18,41 +17,84 @@ const RAPEX_WORDMARK = require("../assets/logo/rapex-name-only.png");
 
 type FeatureKey = "stores" | "community" | "food" | "serviceProvider" | "auction";
 
+const FAQ_ITEMS = [
+  ["What is RAPEX?", "RAPEX Marketplace PH is a local marketplace that connects communities, products, and services."],
+  ["What is RAPEX's mission?", "To make everyday commerce more accessible, trusted, and useful for every Filipino community."],
+  ["What is RAPEX's vision?", "A connected marketplace where local opportunities can reach everyone, anywhere."],
+  ["How is my privacy protected?", "RAPEX respects your personal information and uses it only to provide and improve the marketplace experience."],
+  ["Where can I get help?", "Open Support from the top bar for available assistance channels and contact details."],
+] as const;
+
 // icon: reusing your existing icon pack (same files LoginScreen used to
 // reference). preview: TEMPORARY, reusing the same icon image as a
 // stand-in for the real floating info-graphic -- no dedicated preview
 // images exist yet. Swap `preview` to a real assets/previews/*.png once
 // you have one; `icon` doesn't need to change.
-const FEATURES: { key: FeatureKey; label: string; icon: ImageSourcePropType; preview: ImageSourcePropType }[] = [
+const FEATURES: {
+  key: FeatureKey;
+  label: string;
+  icon: ImageSourcePropType;
+  previews: ImageSourcePropType[];
+}[] = [
   {
     key: "stores",
-    label: "STORES",
-    icon: require("../assets/icons/store-icon.png"),
-    preview: require("../assets/icons/store-icon.png"),
-  },
-  {
-    key: "community",
-    label: "COMMUNITY",
-    icon: require("../assets/icons/community-icon.png"),
-    preview: require("../assets/icons/community-icon.png"),
+    label: "STORES\n",
+    icon: require("../assets/categories/store.png"),
+    previews: [
+      require("../assets/marketing poster/store-poster.png"),
+      require("../assets/marketing poster/hardware-poster.png"),
+      require("../assets/marketing poster/a1.png"),
+      require("../assets/marketing poster/a2.png"),
+      require("../assets/marketing poster/a3.png"),
+    ],
   },
   {
     key: "food",
     label: "FOOD",
-    icon: require("../assets/icons/cook-food-icon.png"),
-    preview: require("../assets/icons/cook-food-icon.png"),
-  },
-  {
-    key: "serviceProvider",
-    label: "SERVICE\nPROVIDER",
-    icon: require("../assets/icons/services-icon.png"),
-    preview: require("../assets/icons/services-icon.png"),
+    icon: require("../assets/categories/food.png"),
+    previews: [
+      require("../assets/marketing poster/localfood-poster.png"),
+      require("../assets/marketing poster/food-poster.png"),
+      require("../assets/marketing poster/b1.png"),
+      require("../assets/marketing poster/b2.png"),
+      require("../assets/marketing poster/b3.png"),
+    ],
   },
   {
     key: "auction",
     label: "AUCTION",
-    icon: require("../assets/icons/auction-icon.png"),
-    preview: require("../assets/icons/auction-icon.png"),
+    icon: require("../assets/categories/auction.png"),
+    previews: [
+      require("../assets/marketing poster/auction-poster.png"),
+      require("../assets/marketing poster/c1.png"),
+      require("../assets/marketing poster/c2.png"),
+      require("../assets/marketing poster/c3.png"),
+      require("../assets/marketing poster/c4.png"),
+    ],
+  },
+  {
+    key: "serviceProvider",
+    label: "SERVICES",
+    icon: require("../assets/categories/service.png"),
+    previews: [
+      require("../assets/marketing poster/service-poster.png"),
+      require("../assets/marketing poster/d1.png"),
+      require("../assets/marketing poster/d2.png"),
+      require("../assets/marketing poster/d3.png"),
+      require("../assets/marketing poster/d4.png"),
+    ],
+  },
+  {
+    key: "community",
+    label: "MARKET\n",
+    icon: require("../assets/categories/market.png"),
+    previews: [
+      require("../assets/marketing poster/wetmarket-poster.png"),
+      require("../assets/marketing poster/agrifarm-poster.png"),
+      require("../assets/marketing poster/e1.png"),
+      require("../assets/marketing poster/e2.jpg"),
+      require("../assets/marketing poster/e3.png"),
+    ],
   },
 ];
 
@@ -63,51 +105,52 @@ const FEATURES: { key: FeatureKey; label: string; icon: ImageSourcePropType; pre
  * decorative only for now (not a swipeable multi-page carousel yet).
  */
 export function WelcomeScreen({ navigation }: Props) {
-  const [activePreview, setActivePreview] = useState<ImageSourcePropType | null>(null);
+  const [activePreview, setActivePreview] = useState<ImageSourcePropType[] | null>(null);
+  const [showFaq, setShowFaq] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
 
   return (
-    <View style={styles.page}>
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+    <ImageBackground
+  source={HERO_BACKGROUND}
+  resizeMode="cover"
+  style={styles.page}
+>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <View style={styles.content}>
         <SafeAreaView edges={["top"]} style={styles.headerSafe}>
           <View style={styles.header}>
             <Pressable hitSlop={10}>
-              <Menu color="#FFFFFF" size={24} />
+              <Menu color="#000000" size={24} />
             </Pressable>
             <Text style={styles.headerTitle}>RAPEX Marketplace PH</Text>
             <Pressable hitSlop={10}>
-              <Bell color="#FFFFFF" size={22} />
+              <Bell color="#000000" size={22} />
             </Pressable>
           </View>
 
           <View style={styles.quickRow}>
-            {/* Support contacts -- left of the divider, own group so this row
-                isn't a single centered cluster anymore. */}
             <View style={styles.quickGroup}>
-              <View style={styles.quickPill}>
-                <MessageCircle color="#FFFFFF" size={16} />
-                <Text style={styles.quickPillText}>Chat Support</Text>
-              </View>
-              <View style={styles.quickPill}>
-                <Phone color="#FFFFFF" size={16} />
-                <Text style={styles.quickPillText}>WhatsApp/Viber</Text>
-              </View>
-            </View>
-
-            <View style={styles.quickDividerTall} />
-
-            {/* Page/FAQ -- right of the divider, icon-only to fit both groups on one row. */}
-            <View style={styles.quickGroup}>
-              <Pressable hitSlop={8} style={styles.quickIconOnly}>
-                <Link2 color="#FFFFFF" size={16} />
+              <Pressable hitSlop={8} style={styles.quickPill} onPress={() => setShowFaq(true)}>
+                <HelpCircle color="#000000" size={16} />
+                <Text style={styles.quickPillText}>FAQ</Text>
               </Pressable>
-              <Pressable hitSlop={8} style={styles.quickIconOnly}>
-                <HelpCircle color="#FFFFFF" size={16} />
+              <Pressable
+                hitSlop={8}
+                style={styles.quickPill}
+                onPress={() => void Linking.openURL("https://www.facebook.com/Rapexmarketplaceph")}
+              >
+                <Link2 color="#000000" size={16} />
+                <Text style={styles.quickPillText}>Facebook</Text>
+              </Pressable>
+              <Pressable hitSlop={8} style={styles.quickPill} onPress={() => setShowSupport(true)}>
+                <MessageCircle color="#000000" size={16} />
+                <Text style={styles.quickPillText}>Support</Text>
               </Pressable>
             </View>
           </View>
         </SafeAreaView>
 
-        <ImageBackground source={HERO_BACKGROUND} resizeMode="cover" style={styles.hero}>
+        <View style={styles.hero}>
           <View style={styles.heroOverlay}>
             <Image source={RAPEX_LOGO} style={styles.heroLogo} resizeMode="contain" />
             <Image source={RAPEX_WORDMARK} style={styles.heroWordmark} resizeMode="contain" />
@@ -116,34 +159,59 @@ export function WelcomeScreen({ navigation }: Props) {
             </Text>
 
             <Text style={styles.heroHeadline}>
-              ANG BAGONG <Text style={styles.heroHeadlineAccent}>APP</Text>
+              GAWANG <Text style={styles.heroHeadlineAccent}>LOKAL</Text>
               {"\n"}
-              NA PARA SA <Text style={styles.heroHeadlineAccent}>MASA</Text>
+              PARA SA <Text style={styles.heroHeadlineAccent}>MASA</Text>
             </Text>
             <View style={styles.heroDivider} />
           </View>
-        </ImageBackground>
+        </View>
 
         <View style={styles.featureRow}>
-          {FEATURES.map((feature) => (
-            <Pressable
-              key={feature.key}
-              style={styles.featureButton}
-              onPress={() => setActivePreview(feature.preview)}
-            >
-              {({ pressed }) => (
-                <>
-                  <View style={[styles.featureHex, pressed && styles.featureHexPressed]}>
-                    {/* Looks like a static graphic, but this glow only exists while pressed --
-                        the tap feedback the button was missing. */}
-                    {pressed ? <View style={styles.featureGlow} pointerEvents="none" /> : null}
-                    <Image source={feature.icon} style={styles.featureIcon} resizeMode="contain" />
-                  </View>
-                  <Text style={styles.featureLabel}>{feature.label}</Text>
-                </>
-              )}
-            </Pressable>
-          ))}
+  {FEATURES.map((feature) => (
+    <Pressable
+      key={feature.key}
+      style={styles.featureButton}
+      onPress={() => setActivePreview(feature.previews)}
+    >
+      {({ pressed }) => (
+        <>
+          <View
+            style={[
+              styles.featureHex,
+              pressed && styles.featureHexPressed,
+            ]}
+          >
+            {pressed ? (
+              <LinearGradient
+                colors={["rgba(139,92,246,0.35)", "rgba(249,115,22,0.58)", "rgba(139,92,246,0.49)"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.featurePressedGlow}
+                pointerEvents="none"
+              />
+            ) : null}
+            <Image
+              source={feature.icon}
+              style={styles.featureIcon}
+              resizeMode="contain"
+            />
+          </View>
+
+          <Text style={styles.featureLabel}>
+            {feature.label}
+          </Text>
+        </>
+      )}
+    </Pressable>
+  ))}
+</View>
+
+        <View style={styles.ctaArea}>
+          <DeliverySlider
+            label="SWIPE TO BEGIN"
+            onComplete={() => navigation.navigate("AgeGate")}
+          />
         </View>
 
         <View style={styles.footerBox}>
@@ -160,124 +228,197 @@ export function WelcomeScreen({ navigation }: Props) {
           <View style={styles.dot} />
         </View>
 
-        {/* CTA slider -- moved to the very bottom, below the carousel dots. */}
-        <View style={styles.ctaArea}>
-          <GlassCard style={styles.ctaCard}>
-            <SlideToContinueButton label="Let's get Started" onComplete={() => navigation.navigate("AgeGate")} />
-          </GlassCard>
-        </View>
-      </ScrollView>
+      </View>
 
-      <FeaturePreviewModal visible={activePreview !== null} image={activePreview} onClose={() => setActivePreview(null)} />
-    </View>
+      <FeaturePreviewModal visible={activePreview !== null} images={activePreview ?? []} onClose={() => setActivePreview(null)} />
+
+      <Modal visible={showFaq} transparent animationType="slide" onRequestClose={() => setShowFaq(false)}>
+        <View style={styles.infoBackdrop}>
+          <SafeAreaView style={styles.infoSafe}>
+            <View style={styles.infoCard}>
+              <Pressable style={styles.infoClose} onPress={() => setShowFaq(false)}>
+                <Text style={styles.infoCloseText}>×</Text>
+              </Pressable>
+              <Text style={styles.infoTitle}>RAPEX FAQ</Text>
+              {FAQ_ITEMS.map(([question, answer]) => (
+                <View key={question} style={styles.faqItem}>
+                  <Text style={styles.faqQuestion}>{question}</Text>
+                  <Text style={styles.faqAnswer}>{answer}</Text>
+                </View>
+              ))}
+            </View>
+          </SafeAreaView>
+        </View>
+      </Modal>
+
+      <Modal visible={showSupport} transparent animationType="fade" onRequestClose={() => setShowSupport(false)}>
+        <View style={styles.infoBackdrop}>
+          <SafeAreaView style={styles.infoSafe}>
+            <View style={styles.infoCard}>
+              <Pressable style={styles.infoClose} onPress={() => setShowSupport(false)}>
+                <Text style={styles.infoCloseText}>×</Text>
+              </Pressable>
+              <Text style={styles.infoTitle}>RAPEX Support</Text>
+              <View style={styles.supportItem}>
+                <Text style={styles.supportLabel}>REX Support</Text>
+                <Text style={styles.supportText}>AI chat assistance</Text>
+              </View>
+              <View style={styles.supportItem}>
+                <Text style={styles.supportLabel}>Chat Support</Text>
+                <Text style={styles.supportText}>Real admin support</Text>
+              </View>
+              <View style={styles.supportItem}>
+                <Text style={styles.supportLabel}>Messenger Chat</Text>
+                <Text style={styles.supportText}>Offline chat</Text>
+              </View>
+              <Pressable style={styles.supportItem} onPress={() => void Linking.openURL("mailto:rapexofficial2025@gmail.com")}>
+                <Text style={styles.supportLabel}>Email</Text>
+                <Text style={styles.supportText}>rapexofficial2025@gmail.com</Text>
+              </Pressable>
+              <View style={styles.supportItem}>
+                <Text style={styles.supportLabel}>Emergency Support</Text>
+                <Text style={styles.supportText}>Redirect to real admin</Text>
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
+      </Modal>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: "#0B0713" },
-  scrollContent: { paddingBottom: 32 },
-  headerSafe: { backgroundColor: "#0B0713" },
+  page: { flex: 1, backgroundColor: "#000000" },
+  content: { flex: 1, minHeight: 0 },
+  headerSafe: { backgroundColor: "transparent" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 14,
+    paddingTop: 0,
+    paddingBottom: 20,
   },
-  headerTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "700" },
+  headerTitle: { color: "#000000", fontSize: 17, fontWeight: "700" },
   quickRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginHorizontal: 20,
     marginBottom: 16,
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
-    backgroundColor: "rgba(255,255,255,0.04)",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.28)",
+    backgroundColor: "rgba(245,255,255,0.15)",
   },
-  quickGroup: { flexDirection: "row", alignItems: "center", gap: 12 },
+  quickGroup: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" },
   quickPill: { flexDirection: "row", alignItems: "center", gap: 5 },
-  quickPillText: { color: "#FFFFFF", fontSize: 11, fontWeight: "600" },
+  quickPillText: { color: "#000000", fontSize: 14, fontWeight: "600" },
   quickIconOnly: { padding: 4 },
-  quickDividerTall: { width: 1, height: 22, backgroundColor: "rgba(255,255,255,0.25)", marginHorizontal: 4 },
-  hero: { width: "100%", aspectRatio: 0.82, justifyContent: "flex-end" },
-  heroOverlay: { alignItems: "center", paddingHorizontal: 24, paddingBottom: 20 },
-  heroLogo: { width: 130, height: 90 },
-  heroWordmark: { width: 220, height: 60, marginTop: 4 },
-  heroTagline: { color: "#FFFFFF", fontSize: 12, fontWeight: "700", letterSpacing: 1, marginTop: 6 },
-  heroTaglineAccent: { color: "#F97316" },
+  quickDividerTall: { width: 5, height: 21, backgroundColor: "rgba(255,255,255,0.25)", marginHorizontal: 4 },
+  hero: { width: "100%", aspectRatio: 0.966, justifyContent: "flex-end" },
+  heroOverlay: { position: "absolute", paddingHorizontal: 20, paddingBottom: 1 },
+  heroLogo: { width: 280, height: 210,top:25, right: 80, transform: [{ rotate: "-3deg" }] },
+  heroWordmark: { width: 380, height: 300, marginTop:-150, marginBottom:-15 },
+  heroTagline: { color: "#000000", fontSize: 16, fontWeight: "800", letterSpacing: 2, 
+    bottom:84,marginBottom:15,marginTop: -20, textAlign: "center", lineHeight: 18 },
+  heroTaglineAccent: { color: "#FF5E3D" },
   heroHeadline: {
-    color: "#FFFFFF",
-    fontSize: 24,
+    color: "#000000",
+    fontSize: 29,
     fontWeight: "900",
+    top: -55,
     textAlign: "center",
-    marginTop: 16,
-    lineHeight: 30,
+    marginTop: -4,
+    lineHeight: 32,
+    letterSpacing: 1.5, 
   },
-  heroHeadlineAccent: { color: "#F97316" },
-  heroDivider: { width: 90, height: 4, borderRadius: 2, backgroundColor: "#F97316", marginTop: 12 },
+  heroHeadlineAccent: { color: "#FF5E3D" },
+  heroDivider: { width: 100, height: 4,top: -45,left:145, borderRadius: 2, backgroundColor: "#F97316", marginBottom: 50},
   featureRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 24,
+    top: -80,
+    marginTop: 1,
+    marginBottom: -15,
   },
-  featureButton: { alignItems: "center", width: 62 },
+  featureButton: { alignItems: "center", width: 66, marginHorizontal: -8 },
   featureHex: {
-    width: 58,
-    height: 58,
-    borderRadius: 18,
-    backgroundColor: "rgba(139, 92, 246, 0.25)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
+    width: 55,
+    height: 55,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
   },
   featureHexPressed: {
-    borderColor: "rgba(249,115,22,0.8)",
-    backgroundColor: "rgba(249,115,22,0.22)",
-    transform: [{ scale: 0.94 }],
+    transform: [{ scale: 0.90 }],
   },
-  featureGlow: {
+  featurePressedGlow: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(249,115,22,0.35)",
+    borderRadius: 39,
+    borderWidth: 0,
+    borderColor: "rgba(889,115,22,0.5)",
+    shadowColor: "#8B5CF6",
+    shadowOpacity: 0.9,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 0 },
   },
-  featureIcon: { width: 30, height: 30 },
+  featureIcon: { width: 59, height: 59 },
+  featureEmoji: { fontSize: 45 },
   featureLabel: {
-    marginTop: 6,
-    color: "#FFFFFF",
-    fontSize: 9,
+    marginTop: 10,
+    color: "#000000",
+    fontSize: 13,
     fontWeight: "800",
     textAlign: "center",
     letterSpacing: 0.5,
+    marginBottom: -30,
   },
-  ctaArea: { paddingHorizontal: 20, marginBottom: 20 },
-  ctaCard: { marginTop: 0 },
+  ctaArea: { paddingHorizontal: 20, marginBottom: 65 },
+  ctaCard: { marginTop: 5 },
   footerBox: {
-    marginHorizontal: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
+    marginHorizontal: 15,
+    borderWidth: 2.5,
+    borderColor: "rgba(255, 225, 255, 0.30)",
+    backgroundColor: "rgba(255, 255, 255, 0.50)",
     borderRadius: 18,
     paddingVertical: 14,
     alignItems: "center",
     gap: 2,
   },
-  footerText: { color: "rgba(255,255,255,0.7)", fontSize: 11 },
+  footerText: { color: "#000000", fontSize: 14, },
   footerTagline: {
     textAlign: "center",
-    color: "#C4B5FD",
+    color: "#000000",
     fontSize: 12,
     fontWeight: "700",
-    letterSpacing: 1,
-    marginTop: 14,
+    letterSpacing: 2.5,
+    marginTop: 29,
   },
-  dotsRow: { flexDirection: "row", justifyContent: "center", gap: 6, marginTop: 14 },
+  dotsRow: { flexDirection: "row", justifyContent: "center", gap: 6, marginTop: 8 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.3)" },
   dotActive: { width: 20, backgroundColor: "#FFFFFF" },
+  infoBackdrop: { flex: 1, backgroundColor: "rgba(4, 2, 12, 0.55)" },
+  infoSafe: { flex: 1, justifyContent: "center", paddingHorizontal: 20 },
+  infoCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.24)",
+    backgroundColor: "rgba(20, 12, 42, 0.96)",
+    padding: 20,
+    gap: 12,
+  },
+  infoClose: { alignSelf: "flex-end", width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.12)" },
+  infoCloseText: { color: "#FFFFFF", fontSize: 26, lineHeight: 28 },
+  infoTitle: { color: "#FFFFFF", fontSize: 20, fontWeight: "800", textAlign: "center" },
+  faqItem: { gap: 3 },
+  faqQuestion: { color: "#C4B5FD", fontSize: 13, fontWeight: "700" },
+  faqAnswer: { color: "rgba(255,255,255,0.78)", fontSize: 12, lineHeight: 17 },
+  supportItem: { borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", borderRadius: 14, padding: 12, gap: 2 },
+  supportLabel: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
+  supportText: { color: "rgba(255,255,255,0.68)", fontSize: 12 },
 });
+
+

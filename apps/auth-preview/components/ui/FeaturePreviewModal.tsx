@@ -1,11 +1,12 @@
-import { useEffect, useRef } from "react";
-import { Animated, ImageSourcePropType, Modal, PanResponder, Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Animated, ImageSourcePropType, LayoutChangeEvent, Modal, PanResponder, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
+import { BlurView } from "expo-blur";
 
 type Props = {
   visible: boolean;
-  image: ImageSourcePropType | null;
+  images: ImageSourcePropType[];
   onClose: () => void;
 };
 
@@ -15,15 +16,21 @@ type Props = {
  * extra gesture library) to keep this project's zero-native-dependency
  * promise -- see README. X (top-right) closes and resets zoom/pan.
  */
-export function FeaturePreviewModal({ visible, image, onClose }: Props) {
+export function FeaturePreviewModal({ visible, images, onClose }: Props) {
+  const [activeIndex, setActiveIndex] = useState(0);
   const scale = useRef(new Animated.Value(1)).current;
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
+  const pageTranslateX = useRef(new Animated.Value(0)).current;
 
   const currentScale = useRef(1);
   const startDistance = useRef<number | null>(null);
   const startScale = useRef(1);
   const baseTranslate = useRef({ x: 0, y: 0 });
+  const imagesRef = useRef(images);
+  const imageWidthRef = useRef(0);
+  const isPagingRef = useRef(false);
+  imagesRef.current = images;
 
   useEffect(() => {
     const id = scale.addListener(({ value }) => {
@@ -31,6 +38,13 @@ export function FeaturePreviewModal({ visible, image, onClose }: Props) {
     });
     return () => scale.removeListener(id);
   }, [scale]);
+
+  useEffect(() => {
+    if (visible) {
+      setActiveIndex(0);
+      resetTransform();
+    }
+  }, [visible, images]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -59,6 +73,9 @@ export function FeaturePreviewModal({ visible, image, onClose }: Props) {
       onPanResponderRelease: (_evt, gesture) => {
         startDistance.current = null;
         if (currentScale.current <= 1) {
+          if (Math.abs(gesture.dx) > 40 && imagesRef.current.length > 1) {
+            showAdjacentImage(gesture.dx < 0 ? 1 : -1);
+          }
           baseTranslate.current = { x: 0, y: 0 };
           Animated.parallel([
             Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
@@ -75,48 +92,86 @@ export function FeaturePreviewModal({ visible, image, onClose }: Props) {
     })
   ).current;
 
-  function handleClose() {
+  function showAdjacentImage(direction: 1 | -1) {
+    if (isPagingRef.current) return;
+    isPagingRef.current = true;
+    const distance = Math.max(imageWidthRef.current, 1);
+    const exitTo = direction === 1 ? -distance : distance;
+
+    Animated.timing(pageTranslateX, { toValue: exitTo, duration: 180, useNativeDriver: true }).start(() => {
+      setActiveIndex((index) => (index + direction + imagesRef.current.length) % imagesRef.current.length);
+      pageTranslateX.setValue(-exitTo);
+      Animated.timing(pageTranslateX, { toValue: 0, duration: 220, useNativeDriver: true }).start(() => {
+        isPagingRef.current = false;
+      });
+    });
+  }
+
+  function resetTransform() {
     scale.setValue(1);
     translateX.setValue(0);
     translateY.setValue(0);
+    pageTranslateX.setValue(0);
     baseTranslate.current = { x: 0, y: 0 };
+  }
+
+  function handleClose() {
+    resetTransform();
     onClose();
+  }
+
+  function handleImageLayout(event: LayoutChangeEvent) {
+    imageWidthRef.current = event.nativeEvent.layout.width;
   }
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
       <View style={styles.backdrop}>
+        <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} pointerEvents="none" />
         <SafeAreaView style={styles.safe}>
-          <Pressable style={styles.closeButton} onPress={handleClose} hitSlop={12}>
-            <X color="#FFFFFF" size={22} />
-          </Pressable>
-        </SafeAreaView>
+          <View style={styles.previewFrame}>
+            <Pressable style={styles.closeButton} onPress={handleClose} hitSlop={12}>
+              <X color="#FFFFFF" size={22} />
+            </Pressable>
 
-        <View style={styles.imageWrap} {...panResponder.panHandlers}>
-          {image ? (
-            <Animated.Image
-              source={image}
-              resizeMode="contain"
-              style={[styles.image, { transform: [{ scale }, { translateX }, { translateY }] }]}
-            />
-          ) : null}
-        </View>
+            <View style={styles.imageWrap} onLayout={handleImageLayout} {...panResponder.panHandlers}>
+              {images[activeIndex] ? (
+                <Animated.Image
+                  source={images[activeIndex]}
+                  resizeMode="contain"
+                  style={[styles.image, { transform: [{ translateX: pageTranslateX }, { scale }, { translateX }, { translateY }] }]}
+                />
+              ) : null}
+            </View>
+          </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: "rgba(6, 3, 16, 0.96)" },
-  safe: { alignItems: "flex-end", paddingHorizontal: 16 },
+  backdrop: { flex: 1, backgroundColor: "rgba(6, 3, 16, 0.2)" },
+  safe: { flex: 1, paddingTop: 10, paddingHorizontal: 5, paddingBottom: 5 },
+  previewFrame: {
+    flex: 1,
+    borderRadius: 24,
+    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.3)",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.6)",
+  },
   closeButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 1,
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.12)",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
   },
   imageWrap: { flex: 1, alignItems: "center", justifyContent: "center" },
   image: { width: "100%", height: "100%" },
