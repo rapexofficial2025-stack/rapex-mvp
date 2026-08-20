@@ -1,6 +1,8 @@
 import { Badge, Button, useTheme } from "@rapex/ui-web";
+import { formatPeso } from "@rapex/utils";
 import { useNavigate } from "react-router-dom";
 import { PortalDashboardFrame, PortalMetric, PortalPanel } from "../../../admin-portal/src/shared/portal-ui/PortalDashboardPrimitives";
+import { PortalInteractiveDonutChart, PortalInteractiveLineChart } from "../../../admin-portal/src/shared/portal-ui/PortalInteractiveCharts";
 
 // Placeholder-only dashboard content. Claude will replace these values with
 // the Merchant/Xano dashboard response when that endpoint is finalized.
@@ -15,6 +17,24 @@ const PLACEHOLDER_ORDERS = [
   { id: "RPX-1041", customer: "Joel R.", status: "Ready for pickup" },
   { id: "RPX-1040", customer: "Ana C.", status: "Completed" },
 ];
+
+const PLACEHOLDER_REVENUE = [
+  { label: "Mon", value: 8400 },
+  { label: "Tue", value: 11200 },
+  { label: "Wed", value: 9600 },
+  { label: "Thu", value: 13800 },
+  { label: "Fri", value: 15400 },
+  { label: "Sat", value: 17600 },
+  { label: "Sun", value: 14900 },
+];
+
+const PLACEHOLDER_ORDER_MIX = [
+  { label: "Completed", value: 8, tone: "mint" as const },
+  { label: "Preparing", value: 3, tone: "yellow" as const },
+  { label: "New", value: 1, tone: "lavender" as const },
+];
+
+const formatOrderCount = (value: number) => String(value);
 
 export function DashboardPage() {
   const theme = useTheme();
@@ -45,6 +65,25 @@ export function DashboardPage() {
           />
         ))}
       </section>
+
+      <div className="rapex-dashboard-grid">
+        <PortalPanel className="is-wide" title="Revenue movement" subtitle="Placeholder weekly store performance">
+          <PortalInteractiveLineChart
+            ariaLabel="Merchant placeholder weekly revenue"
+            points={PLACEHOLDER_REVENUE}
+            formatValue={formatPeso}
+          />
+        </PortalPanel>
+
+        <PortalPanel title="Order mix" subtitle="Placeholder order status distribution">
+          <PortalInteractiveDonutChart
+            ariaLabel="Merchant placeholder order mix"
+            slices={PLACEHOLDER_ORDER_MIX}
+            totalLabel="Orders"
+            formatValue={formatOrderCount}
+          />
+        </PortalPanel>
+      </div>
 
       <div className="rapex-dashboard-grid">
         <PortalPanel
