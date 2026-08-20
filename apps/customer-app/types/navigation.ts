@@ -33,6 +33,7 @@ export type RootStackParamList = {
   Wallet: undefined;
   Profile: undefined;
   Orders: undefined;
+  OrderTracking: { orderId: string };
   Earn: undefined;
   ChildAccounts: undefined;
   ChildBasicInfo: undefined;
