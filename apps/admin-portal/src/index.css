@@ -316,6 +316,207 @@ html[data-theme="light"] {
   background-color: rgba(139, 92, 246, 0.09) !important;
 }
 
+/* The navigation rail remains dark in both themes. Its translucent surface
+   floats over the shell background so the blur and reflections stay visible. */
+.rapex-admin-sidebar {
+  z-index: 30;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 22px;
+  background-color: rgba(8, 12, 29, 0.8);
+  background-image:
+    radial-gradient(circle at 18% 4%, rgba(124, 60, 255, 0.2), transparent 30%),
+    radial-gradient(circle at 92% 96%, rgba(255, 122, 24, 0.09), transparent 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.045));
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  box-shadow:
+    0 28px 72px rgba(4, 5, 18, 0.46),
+    0 12px 36px rgba(84, 38, 170, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 28px rgba(255, 255, 255, 0.025);
+  transition: width 260ms cubic-bezier(0.22, 1, 0.36, 1), padding 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+}
+
+.rapex-admin-sidebar::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -28%;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.025) 39%, rgba(255, 255, 255, 0.1) 46%, rgba(255, 255, 255, 0.028) 53%, transparent 62%);
+  transform: translateX(-12%) rotate(-4deg);
+  opacity: 0.74;
+}
+
+.rapex-admin-sidebar::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 9%;
+  left: 9%;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), rgba(185, 140, 255, 0.55), transparent);
+  filter: drop-shadow(0 0 7px rgba(165, 105, 255, 0.34));
+}
+
+.rapex-admin-sidebar > * {
+  position: relative;
+  z-index: 1;
+}
+
+.rapex-admin-sidebar-header {
+  padding: 3px 5px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rapex-admin-sidebar-brand {
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 7px;
+}
+
+.rapex-admin-sidebar-brand img {
+  max-width: 100%;
+  transition: width 240ms cubic-bezier(0.22, 1, 0.36, 1), filter 180ms ease;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.24));
+}
+
+.rapex-admin-sidebar-caption {
+  display: block;
+  margin-top: 3px;
+  color: rgba(226, 232, 240, 0.62) !important;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  transition: opacity 150ms ease, transform 200ms ease;
+}
+
+.rapex-admin-sidebar-toggle {
+  min-height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.17);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035));
+  color: rgba(241, 245, 249, 0.86);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.35px;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 7px 16px rgba(0, 0, 0, 0.16);
+  transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.rapex-admin-sidebar-toggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(167, 139, 250, 0.48);
+  color: #c4b5fd;
+  box-shadow: 0 9px 22px rgba(70, 35, 140, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.rapex-admin-sidebar-toggle:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.rapex-admin-sidebar-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  transition: opacity 160ms ease 80ms, transform 220ms cubic-bezier(0.22, 1, 0.36, 1) 60ms, visibility 0s linear 0s;
+}
+
+.rapex-admin-sidebar-content > div {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(185, 162, 255, 0.42) transparent;
+}
+
+.rapex-admin-sidebar-content > div::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rapex-admin-sidebar-content > div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rapex-admin-sidebar-content > div::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(rgba(185, 162, 255, 0.52), rgba(255, 255, 255, 0.16));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-header {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-brand {
+  align-items: center;
+  padding: 0;
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-caption {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-toggle {
+  width: 100%;
+  padding: 0 3px;
+}
+
+.rapex-admin-sidebar[data-collapsed="true"] .rapex-admin-sidebar-content {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-10px);
+  pointer-events: none;
+  transition: opacity 110ms ease, transform 160ms ease, visibility 0s linear 160ms;
+}
+
+.rapex-admin-sidebar .rapex-admin-group-title {
+  color: rgba(203, 213, 225, 0.64) !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-group-title[data-expanded="true"],
+.rapex-admin-sidebar .rapex-admin-group-title:hover {
+  color: #b9a2ff !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-nav-item {
+  color: rgba(226, 232, 240, 0.76) !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-nav-item:hover {
+  color: #ffffff !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-nav-item.is-active {
+  color: #ffffff !important;
+}
+
+.rapex-admin-sidebar .rapex-admin-logout {
+  color: rgba(226, 232, 240, 0.7) !important;
+}
+
+.rapex-admin-sidebar-toggle:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
 /* Used by the Admin login badge (LoginPage.tsx) to fade/slide the logo and
    wordmark in with a slight stagger instead of appearing instantly. */
 @keyframes rapex-fade-slide-in {
@@ -355,6 +556,11 @@ html[data-theme="light"] {
   .rapex-admin-group-title::before,
   .rapex-admin-group-chevron,
   .rapex-admin-nav-collapse,
+  .rapex-admin-sidebar,
+  .rapex-admin-sidebar-brand img,
+  .rapex-admin-sidebar-caption,
+  .rapex-admin-sidebar-toggle,
+  .rapex-admin-sidebar-content,
   .rapex-glass-input {
     animation: none;
     transition: none;
