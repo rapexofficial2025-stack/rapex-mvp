@@ -760,6 +760,32 @@ export type MerchantOrderFinancials = {
   merchantReceives: number;
 };
 
+export type VoucherDiscountType = "percent" | "fixed" | "free_delivery";
+
+export type MerchantVoucher = {
+  id: ID;
+  storeId: ID;
+  code: string;
+  discountType: VoucherDiscountType;
+  /** Percent (0-100) for "percent", peso amount for "fixed", ignored for "free_delivery". */
+  discountValue: number;
+  minOrderAmount: number;
+  usageLimit: number | null;
+  usedCount: number;
+  expiresAt: ISODateString | null;
+  active: boolean;
+  createdAt: ISODateString;
+};
+
+export type CreateVoucherInput = {
+  code: string;
+  discountType: VoucherDiscountType;
+  discountValue: number;
+  minOrderAmount: number;
+  usageLimit: number | null;
+  expiresAt: ISODateString | null;
+};
+
 export type { Paginated };
 
 // ---- Child Accounts / Baon ----

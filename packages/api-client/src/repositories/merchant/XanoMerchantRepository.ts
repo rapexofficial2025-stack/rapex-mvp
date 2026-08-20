@@ -13,12 +13,14 @@ import type {
   UpdateVariantInput,
 } from "./MerchantRepository";
 import type {
+  CreateVoucherInput,
   MerchantAccount,
   MerchantOrder,
   MerchantOrderFinancials,
   MerchantProduct,
   MerchantRegistrationDraft,
   MerchantStore,
+  MerchantVoucher,
   NearbyRider,
   ProductImportResult,
   ProductImportRow,
@@ -199,5 +201,14 @@ export class XanoMerchantRepository implements MerchantRepository {
   }
   getOrderFinancials(storeId: string): Promise<MerchantOrderFinancials[]> {
     return this.fallback.getOrderFinancials(storeId);
+  }
+  getMyVouchers(storeId: string): Promise<MerchantVoucher[]> {
+    return this.fallback.getMyVouchers(storeId);
+  }
+  createVoucher(storeId: string, input: CreateVoucherInput): Promise<MerchantVoucher> {
+    return this.fallback.createVoucher(storeId, input);
+  }
+  deactivateVoucher(voucherId: string): Promise<MerchantVoucher> {
+    return this.fallback.deactivateVoucher(voucherId);
   }
 }

@@ -1,10 +1,12 @@
 import type {
+  CreateVoucherInput,
   MerchantAccount,
   MerchantOrder,
   MerchantOrderFinancials,
   MerchantProduct,
   MerchantRegistrationDraft,
   MerchantStore,
+  MerchantVoucher,
   NearbyRider,
   ProductImportResult,
   ProductImportRow,
@@ -87,4 +89,8 @@ export interface MerchantRepository {
 
   /** Delivery Fee Engine settlements for this store -- Distance, Delivery Fee, Customer Payment, Merchant Receives. */
   getOrderFinancials(storeId: string): Promise<MerchantOrderFinancials[]>;
+
+  getMyVouchers(storeId: string): Promise<MerchantVoucher[]>;
+  createVoucher(storeId: string, input: CreateVoucherInput): Promise<MerchantVoucher>;
+  deactivateVoucher(voucherId: string): Promise<MerchantVoucher>;
 }

@@ -13,6 +13,7 @@ import { ListingTypeSelectorPage } from "./features/listings/ListingTypeSelector
 import { ReceiptHistoryPage } from "./features/receipts/ReceiptHistoryPage";
 import { MerchantWalletPage } from "./features/wallet/MerchantWalletPage";
 import { AddProductPage } from "./features/products/AddProductPage";
+import { CreateVoucherPage } from "./features/vouchers/CreateVoucherPage";
 
 // GitHub Pages staging serves this app from a /<repo>/ or /<repo>/merchant/
 // subpath via VITE_BASE_PATH -- see vite.config.ts. Unlike admin-portal,
@@ -39,6 +40,7 @@ function App() {
             <Route path="receipts" element={<ReceiptHistoryPage />} />
             <Route path="wallet" element={<MerchantWalletPage />} />
             <Route path="products/add" element={<AddProductPage />} />
+            <Route path="vouchers" element={<CreateVoucherPage />} />
           </Route>
         ) : null}
         <Route
@@ -58,6 +60,7 @@ function App() {
           <Route path="receipts" element={<ReceiptHistoryPage />} />
           <Route path="wallet" element={<MerchantWalletPage />} />
           <Route path="products/add" element={<AddProductPage />} />
+          <Route path="vouchers" element={<CreateVoucherPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
