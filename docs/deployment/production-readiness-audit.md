@@ -26,6 +26,32 @@ doesn't have yet.
 
 ---
 
+## Per-app status snapshot (2026-08-19, updated 2026-08-20 vs. Sept 1 target)
+
+**12 days to Sept 1.** These %s measure real, verified production
+readiness per app — not UI completeness, which is generally much
+higher across the board. Same discipline as the rest of this doc:
+grounded in what's actually verified, not optimistic extrapolation from
+self-reports.
+
+| App | Est. readiness | Status |
+|---|---|---|
+| **Customer App** | **~55–60%** | Furthest along. Real 7-step registration, real `Xano*Repository` auth wiring for `buyer` role already exists, cart→checkout wiring fixed, wallet/earn/child-account screens built. Xano's newly-reported endpoints (`auth/me`, `checkout`, `community-master`, `submit-kyc`) map directly onto what this app already needs. Still blocked on: `22P02` confirmation, real field schemas, live Maps key, zero automated tests. |
+| **Rider App** | **~30–35%** | Strong UI (Home rebuild, wallet, earnings, incentives, day/night map, nav bar) but auth is **100% Mock** — the one specific blocker (`X-RAPEX-App` header value for `rider`) has no confirmed answer yet, and none of Xano's "READY" endpoints in the report are rider-specific. Great frontend, zero confirmed real backend connection. |
+| **Merchant Portal** | **~40–45%** | Codex's fresh work (Dashboard, Store HQ, Capability/Listing foundations) is typecheck/lint/build-clean and well-scoped. Auth "prepared against `rapex-auth`" but `VITE_API_BASE_URL` isn't set locally and no real schema is wired yet. |
+| **Admin Portal** | **~40–45%** | Broadest UI surface (Command Center, Engine Center, Verification Queue, Financials, Integrations) with good "preview only" labeling discipline. Same gap as Merchant: `VITE_ADMIN_API_BASE_URL` unset, auth prepared but unconnected. |
+| **Provider Portal** | **~15–20%** | Effectively untouched this cycle — has crash reporting/ErrorBoundary from the shared pass across all 5 apps, but no active screen-building has been reported by anyone (explicitly out of Codex's current checklist scope). |
+
+**Overall system**: still the ~30% from the main audit above as of
+writing — Xano's report is encouraging but **reported, not verified**,
+and the specific unknowns (22P02 status, real field schemas beyond 6
+endpoints, rider header, idempotency) are exactly the kind of thing that
+either resolves in a day or drags for two weeks. Sept 1 is **at real
+risk** unless those specific Xano items land within the next 3–4 days,
+leaving enough runway for integration + the manual verification this
+project has relied on all along (no automated test safety net exists
+yet — see A5).
+
 ## A. MUST BUILD NOW — required before first real pilot users
 
 ### A1. Xano `22P02` signup/seed error
