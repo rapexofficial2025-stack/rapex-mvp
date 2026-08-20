@@ -52,6 +52,66 @@ leaving enough runway for integration + the manual verification this
 project has relied on all along (no automated test safety net exists
 yet — see A5).
 
+## Alpha scope lock (2026-08-20, via GPT reconciliation)
+
+In response to Xano's "MVP Feature Complete" report, the founder locked
+the Alpha scope via a GPT-reconciled decision rather than treating every
+reported/planned feature as a Sept 1 requirement. Full rationale in
+`docs/business/Orders.md` §24a and `docs/business/Wallet.md`'s Baon
+section — summarized here for the audit:
+
+**MUST HAVE for Alpha**: real auth, registration, KYC where required,
+product/store system, core Food ordering, core Non-Food ordering,
+checkout, order state machine, merchant acceptance, rider assignment,
+delivery, whichever wallet/payment path is actually selected for Alpha,
+commission/markup calculation, settlement, basic notifications,
+security/RLS, error/audit logging, frontend↔Xano integration, real E2E
+testing, production deployment.
+
+**CONDITIONAL for Alpha** (build/enable only if explicitly kept in
+scope, otherwise defer): COD (only if the full remittance/reconciliation
+cycle is implemented and tested — recommended default is wallet-only,
+no COD, for Alpha); Food cart 5-hour expiration and Standard Delivery
+24h/₱5 late-fee reduction (both need Xano's background-task plan
+upgrade — if not approved, disable/defer in the UI rather than promise
+behavior the backend can't run).
+
+**BETA, not Alpha**: Baon (parent→child wallet funding), advanced
+VIP/Subscription, Partnership, Industrial Wholesale, advanced
+freelancer ecosystem, Auction expansion, advanced gamification, advanced
+POS integrations.
+
+### Reclassified backend status (Xano's report vs. this audit)
+
+Xano's report moves several items from "missing" to "backend reportedly
+complete, integration/verification still required" — **it does not
+retire them as launch blockers**, it changes what kind of work remains:
+
+| Item | Before Xano report | After (reported, not verified) |
+|---|---|---|
+| Order backend | MISSING | Reportedly complete |
+| Formula/Commission engine backend | MISSING | Reportedly complete |
+| Wallet backend | MISSING | Reportedly complete |
+| Auth backend | PARTIAL (Mock) | Reportedly complete |
+| KYC backend | MISSING | Reportedly ready |
+| Identity architecture (`rapid_code`) | MISSING | Reportedly complete |
+| Order state machine | MISSING | Reportedly complete |
+| Audit/error/auth logs | MISSING | Reportedly implemented |
+| Food expiration / late-fee workers | MISSING | PARTIAL — implemented, pending plan upgrade |
+| Firebase push | MISSING | PARTIAL — table ready, integration pending |
+| RN (mobile) ↔ Xano real integration | MISSING | Still MISSING — unchanged |
+| Web (Admin/Merchant) ↔ Xano real integration | MISSING | Still MISSING — unchanged |
+| Live Google Maps | MISSING | Still MISSING — unchanged (see A8) |
+| Payment E2E | MISSING | Still MISSING — unchanged |
+| Full E2E testing | MISSING | Still MISSING — unchanged (see A5) |
+| Production deployment | MISSING | Still MISSING — unchanged (see A7) |
+| Load/stress testing | MISSING | Still MISSING — unchanged |
+
+**Operating principle for the remaining runway**: connect → test → fix
+→ deploy. Not "build another engine/feature/tab" — the backend is
+reportedly ready; the work left is proving the existing apps can use it
+end-to-end.
+
 ## A. MUST BUILD NOW — required before first real pilot users
 
 ### A1. Xano `22P02` signup/seed error

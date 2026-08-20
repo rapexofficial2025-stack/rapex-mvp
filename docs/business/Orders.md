@@ -204,6 +204,48 @@ Confirmed → On the Way to Merchant → Picked Up → Out for Delivery →
 Delivered/Completed`, with `Cancelled`, `Failed Delivery`, `Expired` as
 terminal/exception states.
 
+## 24a. Alpha launch scope lock (2026-08-20, via GPT reconciliation)
+
+Decided in response to Xano's "MVP Feature Complete" report, to keep
+Sept 1 realistic instead of treating every reported/planned feature as a
+launch requirement.
+
+**Rider COD remittance — conditional, resolve before launch if in
+scope.** `RiderRemittanceRecord` (see `Wallet.md`) means the data model
+already anticipates cash handling, but Xano's report does **not**
+confirm the full remittance workflow is production-ready. Decision:
+- If Alpha supports COD: **must** have the complete cycle working and
+  tested — `Customer pays Rider → Rider receives cash → Rider
+  remittance record → Rider submits cash → Admin verifies → Wallet/
+  account reconciliation → Remittance complete`. Do not launch COD with
+  only the order engine and no verified cash reconciliation.
+- **Recommended default**: Alpha launches wallet/e-wallet-only (no
+  COD), deferring the remittance workflow to Beta — lower operational
+  risk. Treat COD as off unless the full cycle above is explicitly
+  confirmed built and tested.
+
+**Background-worker-dependent rules — conditional on the Xano plan
+upgrade.** Xano reports the Food cart expiration (§4, 3h/5h) and
+Standard Delivery late-fee reduction (§15, 24h/₱5-per-20min) logic is
+implemented but requires a paid background-task tier to actually run.
+Decision: if these rules are part of the Alpha promise, approve the
+upgrade. If not approved by launch, **explicitly disable/defer them in
+the UI** — never ship an interface that promises automated behavior the
+backend can't yet execute.
+
+**What Xano's report does and doesn't retire from the production
+readiness audit**: it moves Order/Formula/Wallet/Auth/KYC/Identity/
+Order-state-machine/Audit-logs backend work from "missing" to "backend
+reportedly complete, integration/verification still required" — it does
+**not** retire frontend↔Xano integration, live Maps, payment E2E, full
+E2E testing, production deployment, or load/stress testing as launch
+blockers. See `docs/deployment/production-readiness-audit.md`.
+
+**Operating principle for the remaining runway**: connect → test → fix
+→ deploy, not build another engine/feature/tab. The backend is
+reportedly ready; the next milestone is proving the existing RAPEX apps
+can actually use it end-to-end, not expanding scope further.
+
 ## 25. Order data integrity
 Every child merchant order has its own Order ID; Master Order groups
 child orders for one checkout. Historical product name/variant/price

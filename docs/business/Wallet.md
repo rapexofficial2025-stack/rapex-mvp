@@ -148,6 +148,18 @@ the purchasing account's role is `CHILD`, the system is claimed to:
   which is a reasonable extension but needs the same "not independently
   verified" caveat as everything else in this update).
 
+### Scope decision (2026-08-20, via GPT reconciliation)
+**Baon is Beta, not an Alpha requirement.** Backend foundation is
+reportedly present (`green`), but not part of the previously established
+core Alpha order flow. Do not build/wire Baon into any app for the
+Sept 1 target. For Beta, the proposed (not yet finalized) default
+direction: parent pre-authorizes a spending budget → child can spend
+within that budget → parent can view transaction history. The exact caps
+(per-order/daily/weekly/monthly, approval-per-purchase vs. pre-authorized
+budget, spending categories, allocation expiry) are explicitly **not**
+decided yet — do not invent these when Beta work starts, get them
+confirmed first.
+
 ## Update (2026-08-19) — Xano "MVP Feature Complete" report (reported, not verified)
 
 A report titled "FINAL MVP PROGRESS REPORT (Ready for Launch)" claims the
