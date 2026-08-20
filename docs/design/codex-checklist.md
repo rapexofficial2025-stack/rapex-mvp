@@ -142,16 +142,32 @@ as a picture, not a patch:
 
 ## Checklist — Merchant Portal (`apps/merchant-portal`)
 
-- [ ] `LoginPage` — already has a reference design ported; only touch
-      for a specific improvement, not a rebuild.
+- [x] `LoginPage` — Alpha auth architecture applied (5-stage registration
+      shell, cursor-following glow). Verified by Claude: typecheck/lint/
+      build clean, merged `918ae8c..1a5311f`.
 - [x] `DashboardPage` — store overview, key stats, recent orders.
       Verified by Claude: typecheck/lint/build clean (commit `94ff396`).
-- [ ] `OrdersPage` — order list/detail, status updates.
+- [~] `OrdersPage` — order list/detail, status updates, now includes
+      receipt history/preview integration. Verified typecheck/build
+      clean; not yet checked against real Xano order-status schema.
 - [ ] `StorePage` — store profile/settings management.
+- [x] (new, not on original list) `RegisterPage` — 5-stage Merchant
+      onboarding (Account → OTP → Basic Identity → Main Store →
+      Identity Verification), matches `docs/business/Merchant.md`'s
+      13-step spec collapsed to Alpha scope. Verified.
+- [x] (new) Receipt history + printable preview, "Request Official
+      Receipt" UI that stops before any real request — correctly no
+      fake export/QR/receipt-number generated. Verified.
 
 ## Checklist — Admin Portal (`apps/admin-portal`)
 
-- [ ] `LoginPage` / `RegisterPage` — admin auth screens.
+- [x] `LoginPage` / `RegisterPage` — admin auth screens. Now
+      invitation-only: public `/admin/register` redirects to login (no
+      "Create Account" button), real account creation only via
+      `/admin/invite/:token`. Verified by Claude directly in code
+      (confirmed the redirect + route gating), matches
+      `docs/business/Admin.md`. Super Admin confirmed still inactive/
+      backend-gated.
 - [~] `DashboardPage` / `CommandCenterPage` — top-level admin overview.
       `DashboardPage` done (icon-only approve/reject replaced with labeled
       buttons, actions capped at 1 primary + 3 secondary) and verified by
