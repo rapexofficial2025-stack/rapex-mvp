@@ -9,6 +9,9 @@ type PickerFieldProps = {
   options: string[];
   onSelect: (value: string) => void;
   disabled?: boolean;
+  /** Shown below the field, e.g. a load error with a retry hint. Distinct from `disabled` -- a field can be enabled but still failing to load its options. */
+  errorText?: string | null;
+  onRetry?: () => void;
 };
 
 /**
@@ -19,7 +22,7 @@ type PickerFieldProps = {
  * Android and needs no native linking. Used for DOB (month/day/year),
  * Gender, ID type, and the Step 7 cascading address selects.
  */
-export function PickerField({ label, value, placeholder = "Select", options, onSelect, disabled }: PickerFieldProps) {
+export function PickerField({ label, value, placeholder = "Select", options, onSelect, disabled, errorText, onRetry }: PickerFieldProps) {
   const theme = useAppTheme();
   const [open, setOpen] = useState(false);
 
@@ -47,6 +50,19 @@ export function PickerField({ label, value, placeholder = "Select", options, onS
           {value ?? placeholder}
         </Text>
       </Pressable>
+
+      {errorText ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
+          <Text style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.error, flex: 1 }}>{errorText}</Text>
+          {onRetry ? (
+            <Pressable onPress={onRetry}>
+              <Text style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.brandPrimary, fontWeight: "700" }}>
+                Retry
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
