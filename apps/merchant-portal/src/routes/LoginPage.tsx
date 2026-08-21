@@ -22,7 +22,10 @@ export function LoginPage() {
   const googleLogin = useAsyncAction((profile: GoogleProfileInput) => auth.loginWithGoogle(profile));
 
   async function completeGoogleSignIn(result: UserCredential) {
-    const { uid, email, displayName } = result.user;
+    const { uid, email: topLevelEmail, displayName } = result.user;
+    // Some accounts don't populate the top-level `email` even with the
+    // scope granted -- it's still on providerData in that case.
+    const email = topLevelEmail ?? result.user.providerData.find((p) => p.email)?.email ?? null;
     if (!email) throw new Error("Google didn't share an email for this account -- try a different Google account.");
     const [firstName, ...rest] = (displayName ?? "").split(" ").filter(Boolean);
     const profile: GoogleProfileInput = { googleId: uid, email, firstName, lastName: rest.join(" ") || undefined };

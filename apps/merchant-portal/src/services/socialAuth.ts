@@ -23,13 +23,27 @@ function requireFirebaseAuth() {
 }
 
 /**
+ * Firebase's GoogleAuthProvider doesn't reliably request the `email` scope
+ * on its own -- observed: the Google consent screen only listed "Name and
+ * profile picture", and the returned credential's user.email came back
+ * null. Requesting it explicitly makes it show up on the consent screen
+ * and guarantees it's present on the result.
+ */
+function googleProvider() {
+  const provider = new GoogleAuthProvider();
+  provider.addScope("email");
+  provider.addScope("profile");
+  return provider;
+}
+
+/**
  * Popup-based sign-in (desktop). Reliable there, but mobile browsers
  * routinely block or silently kill OAuth popups (observed: the popup
  * closes on its own after ~10s with no result on mobile Chrome/Edge) --
  * use signInWithGoogleRedirect() instead on mobile, see isMobileWebView().
  */
 export async function signInWithGoogle(): Promise<UserCredential> {
-  return signInWithPopup(requireFirebaseAuth(), new GoogleAuthProvider());
+  return signInWithPopup(requireFirebaseAuth(), googleProvider());
 }
 
 /**
@@ -39,7 +53,7 @@ export async function signInWithGoogle(): Promise<UserCredential> {
  * after the page reloads.
  */
 export async function signInWithGoogleRedirect(): Promise<never> {
-  await signInWithRedirect(requireFirebaseAuth(), new GoogleAuthProvider());
+  await signInWithRedirect(requireFirebaseAuth(), googleProvider());
   return new Promise<never>(() => {});
 }
 
