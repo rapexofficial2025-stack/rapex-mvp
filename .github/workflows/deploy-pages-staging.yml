@@ -132,6 +132,10 @@ jobs:
         run: cd apps/rider-app && npx expo export -p web
         env:
           EXPO_WEB_BASE_PATH: /rider
+          # Same OAuth web client as customer-app -- only the client_id,
+          # never the client_secret. See docs/deployment note in
+          # customer-app's build step above.
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: 560808522151-kvmq0pe1joa1t0turj768pldlo7ul8a6.apps.googleusercontent.com
           EXPO_PUBLIC_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
           EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
           EXPO_PUBLIC_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
