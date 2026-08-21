@@ -12,6 +12,9 @@ import { ServicesScreen } from "../screens/ServicesScreen";
 import { ProfileScreen, type ProfileScreenProps } from "../screens/ProfileScreen";
 import { addNotificationResponseListener, registerForPushNotificationsAsync } from "../services/notifications";
 import { SupportChatWidget } from "../components/SupportChatWidget";
+import { FlashCardIntro } from "@rapex/ui-native";
+import { consumePreviewIntro } from "../services/previewIntro";
+import { FLASHCARD_INTRO_IMAGES } from "../services/flashcardAssets";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -119,6 +122,11 @@ export function MainTabNavigator() {
     });
   }, []);
 
+  // Set once by LoginScreen's "Preview App" button -- read exactly once
+  // here (MainTabNavigator remounts fresh each time Login replaces into
+  // MainTabs), never re-triggered by normal tab navigation afterward.
+  const [showFlashIntro, setShowFlashIntro] = useState(() => consumePreviewIntro());
+
   return (
     <View style={{ flex: 1 }}>
       <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <CustomTabBar {...props} />}>
@@ -129,6 +137,7 @@ export function MainTabNavigator() {
         <Tab.Screen name="Profile" component={ProfileTabScreen} />
       </Tab.Navigator>
       <SupportChatWidget />
+      {showFlashIntro ? <FlashCardIntro images={FLASHCARD_INTRO_IMAGES} onFinish={() => setShowFlashIntro(false)} /> : null}
     </View>
   );
 }

@@ -19,6 +19,7 @@ import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { Hotspot, useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
 import { CATEGORY_HOTSPOTS, TOP_ICON_HOTSPOTS, FloatingReferenceModal, type FloatingKey } from "../components/LoginReferenceOverlays";
+import { markPreviewIntro } from "../services/previewIntro";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -149,6 +150,16 @@ export function LoginScreen({ navigation }: Props) {
                   >
                     <Text style={styles.primaryButtonText}>Create an Account</Text>
                   </LinearGradient>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    markPreviewIntro();
+                    navigation.replace("MainTabs");
+                  }}
+                  style={styles.forgotRow}
+                >
+                  <Text style={styles.forgotText}>Preview App — No Sign In</Text>
                 </Pressable>
               </ScrollView>
             </View>

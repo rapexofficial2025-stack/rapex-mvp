@@ -28,6 +28,7 @@ import {
   isGoogleSignInConfigured,
 } from "../services/googleAuthConfig";
 import type { GoogleProfileInput } from "@rapex/api-client";
+import { markPreviewIntro } from "../services/previewIntro";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -213,6 +214,16 @@ export function LoginScreen({ navigation }: Props) {
                   >
                     <Text style={styles.primaryButtonText}>Create an Account</Text>
                   </LinearGradient>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    markPreviewIntro();
+                    navigation.replace("MainTabs");
+                  }}
+                  style={styles.forgotRow}
+                >
+                  <Text style={styles.forgotText}>Preview App — No Sign In</Text>
                 </Pressable>
 
                 <Text style={styles.footerText}>SEC & BIR Registered. Official Launch: 2026. All Rights Reserved.</Text>
