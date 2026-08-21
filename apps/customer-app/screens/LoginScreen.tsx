@@ -24,8 +24,10 @@ import {
   GOOGLE_ANDROID_CLIENT_ID_OR_PLACEHOLDER,
   GOOGLE_IOS_CLIENT_ID_OR_PLACEHOLDER,
   GOOGLE_WEB_CLIENT_ID_OR_PLACEHOLDER,
+  decodeGoogleIdToken,
   isGoogleSignInConfigured,
 } from "../services/googleAuthConfig";
+import type { GoogleProfileInput } from "@rapex/api-client";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -58,7 +60,7 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
   const [activeFloating, setActiveFloating] = useState<FloatingKey | null>(null);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
-  const googleLogin = useAsyncAction((idToken: string) => auth.loginWithGoogle(idToken));
+  const googleLogin = useAsyncAction((profile: GoogleProfileInput) => auth.loginWithGoogle(profile));
   const [, googleResponse, promptGoogleSignIn] = Google.useIdTokenAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID_OR_PLACEHOLDER,
     iosClientId: GOOGLE_IOS_CLIENT_ID_OR_PLACEHOLDER,
@@ -89,7 +91,12 @@ export function LoginScreen({ navigation }: Props) {
     if (googleResponse?.type !== "success") return;
     const idToken = googleResponse.params.id_token;
     if (!idToken) return;
-    googleLogin.execute(idToken).then(routeByNextStep);
+    try {
+      const profile = decodeGoogleIdToken(idToken);
+      googleLogin.execute(profile).then(routeByNextStep);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Could not read your Google account details.", "error");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleResponse]);
 

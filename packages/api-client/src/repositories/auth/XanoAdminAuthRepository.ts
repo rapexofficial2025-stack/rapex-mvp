@@ -1,7 +1,7 @@
 import type { HttpClient } from "../../core/httpClient";
 import type { UserCache } from "../../core/userCache";
 import type { TokenStorage } from "../../core/tokenStorage";
-import type { AuthMeResponse, AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
+import type { AuthMeResponse, AuthRepository, GoogleProfileInput, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 /**
@@ -108,7 +108,7 @@ export class XanoAdminAuthRepository implements AuthRepository {
     throw new Error("No OTP flow exists for admin login -- there is no confirmed Xano endpoint for it.");
   }
 
-  async loginWithGoogle(_idToken: string): Promise<AuthSession> {
+  async loginWithGoogle(_profile: GoogleProfileInput): Promise<AuthSession> {
     throw new Error("Google sign-in is not offered for Admin -- Admin is an internal Command Center account, not self-registered via Google.");
   }
 

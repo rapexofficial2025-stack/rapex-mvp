@@ -1,7 +1,7 @@
 import type { HttpClient } from "../../core/httpClient";
 import type { UserCache } from "../../core/userCache";
 import type { TokenStorage } from "../../core/tokenStorage";
-import type { AuthMeResponse, AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
+import type { AuthMeResponse, AuthRepository, GoogleProfileInput, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 /**
@@ -125,20 +125,23 @@ export class XanoAuthRepository implements AuthRepository {
   }
 
   /**
-   * POST /auth/google { id_token } -- single-phase, real session
-   * immediately (Google already verified the email). Response shape
-   * assumed to mirror verify-otp's ({ authToken }, optionally { user }) --
-   * not explicitly confirmed by Xano; flag for confirmation once real
-   * Google credentials exist and this can be tested end-to-end.
+   * POST /auth/google { google_id, email, first_name?, last_name? } --
+   * single-phase, real session immediately (Google already verified the
+   * email). Contract per the 2026-08-21 Xano build: checks for an existing
+   * user by google_id, falls back to matching by email to link the
+   * account, and creates a new one (account_status: active) if neither
+   * matches. Response shape assumed to mirror verify-otp's ({ authToken },
+   * optionally { user }) -- not explicitly confirmed by Xano; flag for
+   * confirmation once this can be tested end-to-end.
    */
-  async loginWithGoogle(idToken: string): Promise<AuthSession> {
+  async loginWithGoogle(profile: GoogleProfileInput): Promise<AuthSession> {
     const result = await this.client.request<{
       authToken?: string;
       user?: { id?: number | string; rapex_id?: string; first_name?: string; last_name?: string; email?: string; mobile?: string };
     }>({
       path: "/auth/google",
       method: "POST",
-      body: { id_token: idToken },
+      body: { google_id: profile.googleId, email: profile.email, first_name: profile.firstName, last_name: profile.lastName },
     });
 
     if (!result?.authToken) {
@@ -148,11 +151,13 @@ export class XanoAuthRepository implements AuthRepository {
 
     const remoteUser = result.user;
     const previouslyCached = await this.userCache.getUser();
-    const email = remoteUser?.email ?? previouslyCached?.email ?? "";
+    const email = remoteUser?.email ?? profile.email;
     const user: AuthUser = {
       id: String(remoteUser?.id ?? previouslyCached?.id ?? ""),
       rapexId: remoteUser?.rapex_id ?? previouslyCached?.rapexId,
-      name: remoteUser ? `${remoteUser.first_name ?? ""} ${remoteUser.last_name ?? ""}`.trim() : previouslyCached?.name ?? "",
+      name: remoteUser
+        ? `${remoteUser.first_name ?? ""} ${remoteUser.last_name ?? ""}`.trim()
+        : `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim(),
       email,
       phone: remoteUser?.mobile ?? previouslyCached?.phone ?? "",
       role: this.role,

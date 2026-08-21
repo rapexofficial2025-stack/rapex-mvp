@@ -15,6 +15,13 @@ import type { AuthSession, AuthUser } from "../types";
  * `LoginResult` models both shapes honestly instead of forcing Admin
  * through a fake OTP step it doesn't have.
  */
+export type GoogleProfileInput = {
+  googleId: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+};
+
 export type RegisterInput = {
   email: string;
   password: string;
@@ -78,12 +85,14 @@ export interface AuthRepository {
   /** Completes a login that returned `otp_required`. */
   verifyOtp(code: string): Promise<AuthSession>;
   /**
-   * Exchanges a real Google ID token for a RAPEX session -- single-phase,
-   * no OTP (Google already verified the email). New accounts are created
+   * Exchanges a Google identity for a RAPEX session -- single-phase, no OTP
+   * (Google already verified the email). New accounts are created
    * automatically; call `getNextStep()` after this to find out whether
-   * profile setup is still required.
+   * profile setup is still required. Takes pre-parsed profile fields
+   * (decoded from the Google ID token client-side), not the raw token --
+   * matches Xano's real `/auth/google` contract (2026-08-21 build).
    */
-  loginWithGoogle(idToken: string): Promise<AuthSession>;
+  loginWithGoogle(profile: GoogleProfileInput): Promise<AuthSession>;
   requestPasswordReset(identifier: string): Promise<void>;
   getCurrentUser(): Promise<AuthUser | null>;
   /** The onboarding "navigation brain". Null when there's no authenticated session to ask about. Untouched by the addition of getAuthMe()/acknowledgeWelcome() below -- same 3 existing callers, same behavior. */
