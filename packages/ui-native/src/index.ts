@@ -8,6 +8,7 @@ export * from "./Badge";
 export * from "./Avatar";
 export * from "./GlassCard";
 export * from "./RapexGlassCard";
+export * from "./NeonGlassCard";
 export * from "./Loading";
 export * from "./Skeleton";
 export * from "./EmptyState";
