@@ -121,6 +121,10 @@ export function LoginPage() {
           <p className="merchant-auth-switch">
             New to RAPEX? <button type="button" onClick={() => navigate("/register")}>Create merchant account</button>
           </p>
+
+          <button className="merchant-text-button" type="button" onClick={() => navigate("/portal/preview/dashboard")}>
+            Preview Merchant UI — no sign-in
+          </button>
         </>
       ) : (
         <form className="merchant-auth-form" onSubmit={handleVerify}>

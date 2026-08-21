@@ -31,18 +31,16 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/xano-test" element={<XanoLiveTestPage />} />
-        {import.meta.env.DEV ? (
-          <Route path="/portal/preview" element={<PortalLayout previewMode />}>
-            <Route index element={<Navigate to="/portal/preview/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage previewMode />} />
-            <Route path="capabilities" element={<CapabilityCenterPage previewMode />} />
-            <Route path="listings/new" element={<ListingTypeSelectorPage previewMode />} />
-            <Route path="receipts" element={<ReceiptHistoryPage />} />
-            <Route path="wallet" element={<MerchantWalletPage />} />
-            <Route path="products/add" element={<AddProductPage />} />
-            <Route path="vouchers" element={<CreateVoucherPage />} />
-          </Route>
-        ) : null}
+        <Route path="/portal/preview" element={<PortalLayout previewMode />}>
+          <Route index element={<Navigate to="/portal/preview/dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage previewMode />} />
+          <Route path="capabilities" element={<CapabilityCenterPage previewMode />} />
+          <Route path="listings/new" element={<ListingTypeSelectorPage previewMode />} />
+          <Route path="receipts" element={<ReceiptHistoryPage />} />
+          <Route path="wallet" element={<MerchantWalletPage />} />
+          <Route path="products/add" element={<AddProductPage />} />
+          <Route path="vouchers" element={<CreateVoucherPage />} />
+        </Route>
         <Route
           path="/portal"
           element={
