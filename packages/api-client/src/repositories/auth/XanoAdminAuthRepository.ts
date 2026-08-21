@@ -1,7 +1,7 @@
 import type { HttpClient } from "../../core/httpClient";
 import type { UserCache } from "../../core/userCache";
 import type { TokenStorage } from "../../core/tokenStorage";
-import type { AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
+import type { AuthMeResponse, AuthRepository, GoogleProfileInput, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 /**
@@ -106,5 +106,19 @@ export class XanoAdminAuthRepository implements AuthRepository {
 
   async verifyOtp(_code: string): Promise<AuthSession> {
     throw new Error("No OTP flow exists for admin login -- there is no confirmed Xano endpoint for it.");
+  }
+
+  async loginWithGoogle(_profile: GoogleProfileInput): Promise<AuthSession> {
+    throw new Error("Google sign-in is not offered for Admin -- Admin is an internal Command Center account, not self-registered via Google.");
+  }
+
+  /** Admin has no confirmed `/auth/me`-equivalent contract and never goes through the Welcome/REX flow this backs -- unsupported, same as verifyOtp/register above. */
+  async getAuthMe(): Promise<AuthMeResponse | null> {
+    throw new Error("No richer auth/me contract exists for Admin -- Admin's own /login is single-phase with no Welcome/REX step to back.");
+  }
+
+  /** Admin never reaches a Welcome/REX screen (single-phase login straight to HOME) -- unsupported, same as verifyOtp/register above. */
+  async acknowledgeWelcome(): Promise<NextStep | null> {
+    throw new Error("No welcome-acknowledgment flow exists for Admin -- there is no Welcome/REX step in the Admin login flow.");
   }
 }

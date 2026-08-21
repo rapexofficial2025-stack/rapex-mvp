@@ -17,3 +17,21 @@ export const MAP_MARKER_COLORS = {
 } as const;
 
 export type MapMarkerRole = keyof typeof MAP_MARKER_COLORS;
+
+/**
+ * A rider's live map status, collapsed from their real availabilityStatus +
+ * active delivery status (see DeliveryOrderStatus in @rapex/api-client) into
+ * 5 map-relevant buckets. Deliberately NOT importing DeliveryOrderStatus
+ * here -- constants stays a dependency-free leaf package; callers that
+ * already depend on @rapex/api-client do that mapping themselves (e.g.
+ * "picked-up" -> "to-merchant", "on-the-way" -> "delivering").
+ */
+export type RiderMapStatus = "offline" | "idle" | "to-merchant" | "delivering" | "problem";
+
+export const RIDER_STATUS_COLORS: Record<RiderMapStatus, string> = {
+  offline: "#9CA3AF", // gray -- rider is offline
+  idle: "#EAB308", // yellow -- online, no active delivery
+  "to-merchant": "#F97316", // orange -- heading to / at the merchant
+  delivering: "#22C55E", // green -- picked up, heading to / at the customer
+  problem: "#EF4444", // red -- failed delivery / cancelled
+};

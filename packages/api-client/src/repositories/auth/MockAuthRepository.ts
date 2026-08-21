@@ -1,4 +1,4 @@
-import type { AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
+import type { AuthMeResponse, AuthRepository, GoogleProfileInput, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 const MOCK_DELAY_MS = 400;
@@ -42,6 +42,11 @@ export class MockAuthRepository implements AuthRepository {
     return delay({ user, token: "mock-token" });
   }
 
+  async loginWithGoogle(_profile: GoogleProfileInput): Promise<AuthSession> {
+    currentUser = MOCK_USER;
+    return delay({ user: MOCK_USER, token: "mock-google-token" });
+  }
+
   async requestPasswordReset(_identifier: string): Promise<void> {
     return delay(undefined);
   }
@@ -51,6 +56,21 @@ export class MockAuthRepository implements AuthRepository {
   }
 
   async getNextStep(): Promise<NextStep | null> {
+    return delay(currentUser ? "HOME" : null);
+  }
+
+  async getAuthMe(): Promise<AuthMeResponse | null> {
+    if (!currentUser) return delay(null);
+    return delay({
+      nextStep: "HOME",
+      welcomeSeen: true,
+      registrationProgress: 100,
+      profileChecklist: [],
+      branding: null,
+    });
+  }
+
+  async acknowledgeWelcome(): Promise<NextStep | null> {
     return delay(currentUser ? "HOME" : null);
   }
 

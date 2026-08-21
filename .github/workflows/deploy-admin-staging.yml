@@ -48,16 +48,17 @@ jobs:
       - name: Lint admin-portal
         run: pnpm --filter admin-portal lint
 
-      # Base = repo name only (no "/admin" segment) because the app's own
-      # routes already assume an "/admin/..." prefix (App.tsx) -- that
-      # prefix reflects the real production URL shape (admin lives under the
-      # main domain's /admin path), not something the deploy step should add
-      # again. Building at the repo-name root here means the deployed URL
-      # ends up at /<repo>/admin/... with no double "/admin/admin/".
+      # Base is unset (defaults to "/") because this site is served from a
+      # custom domain root (staging.rapexmarketplace.store, see the CNAME
+      # step below), not a default github.io/<repo>/ project-page URL -- no
+      # repo-name prefix needed. The app's own routes already assume an
+      # "/admin/..." prefix (App.tsx), which reflects the real production
+      # URL shape (admin lives under the main domain's /admin path), so
+      # nothing else needs to be added here. If the custom domain is ever
+      # removed, this needs VITE_BASE_PATH: /rapex-mvp/ again (repo-name
+      # only, no "/admin" -- see App.tsx's basename comment for why).
       - name: Build admin-portal
         run: pnpm --filter admin-portal build
-        env:
-          VITE_BASE_PATH: /rapex-mvp/
 
       # SPA fallback: GitHub Pages has no server-side rewrites, so a direct
       # load of a deep link (e.g. /rapex-mvp/admin/dashboard) would 404 on a
@@ -68,6 +69,13 @@ jobs:
       # the whole site for now -- revisit once other portals share it.
       - name: Add SPA fallback (404.html)
         run: cp apps/admin-portal/dist/index.html apps/admin-portal/dist/404.html
+
+      # Same custom-domain CNAME as deploy-pages-staging.yml -- written here
+      # too since both workflows share the same "github-pages" Pages
+      # environment and whichever runs last wins; without this, running
+      # Admin-only after the combined deploy would drop the custom domain.
+      - name: Set custom domain
+        run: echo "staging.rapexmarketplace.store" > apps/admin-portal/dist/CNAME
 
       - uses: actions/configure-pages@v5
 

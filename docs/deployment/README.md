@@ -18,7 +18,7 @@ Nothing below can be done from an automated sandbox -- each needs a human with t
 |---|---|---|---|
 | 1 | Fix the Xano `22P02` signup/seed error (rider-table column type/index) | All real signup/login testing, the entire live order lifecycle | Whoever has Xano workspace access |
 | 2 | Confirm the rider `X-RAPEX-App` header value (see `docs/api/README.md`) | Rider App auth -- currently 100% Mock | Whoever owns the Xano backend contract |
-| 3 | Repo **Settings → Pages → Source → GitHub Actions**, then manually run "Deploy Admin staging" (Admin only) or "Deploy staging" (all 3 portals) | The staging URL(s) for the web portals | Repo admin |
+| 3 | Repo **Settings → Pages → Source → GitHub Actions**; at the registrar (Namecheap) for `rapexmarketplace.store`, add a `CNAME` record for the `staging` subdomain pointing at `<org>.github.io`; then manually run "Deploy Admin staging" (Admin only) or "Deploy staging" (all 3 portals) | The staging URL at `https://staging.rapexmarketplace.store/` for the web portals | Repo admin + whoever manages the Namecheap DNS |
 | 4 | `npx eas login` + `npx eas init` (per app) -- links a real EAS project, writes `extra.eas.projectId` | Any real mobile build | Someone with an Expo account |
 | 5 | Create a Google Cloud project, enable Maps SDK for Android/iOS + Maps JavaScript API + Directions/Distance Matrix as needed, generate an API key, enable billing | Any map actually rendering (web or native) | Whoever manages RAPEX's Google Cloud billing |
 | 6 | Decide production hosting for the 3 web portals (GitHub Pages staging is a stopgap, not launch-ready) | Real production URLs | Product/eng decision |
@@ -28,28 +28,32 @@ Nothing below can be done from an automated sandbox -- each needs a human with t
 
 **Status: UNVERIFIED — REQUIRES LIVE TESTING.** Nothing is hosted anywhere yet.
 
+Both are served on the custom domain `staging.rapexmarketplace.store` (a Namecheap-purchased domain, subdomain used here so the apex stays free for a real production decision later) rather than the default `<org>.github.io/<repo>/` project-page URL — each workflow writes a `CNAME` file into its build output, which `actions/deploy-pages` reads to configure the custom domain on every deploy.
+
 Two staging deploy workflows exist, both manual-trigger only (`workflow_dispatch`), both targeting the same repo `github-pages` Pages environment (so whichever one runs most recently is what's actually live):
 
-- **`.github/workflows/deploy-admin-staging.yml`** — Admin Portal only, deployed at the site root. Use this now, per the "deploy admin only" decision. Typechecks, lints, then builds with `VITE_BASE_PATH=/rapex-mvp/` (repo-name prefix only — see "Admin subpath fixes" below for why it's not `/admin/`), adds a root `404.html` (copy of `index.html`) as a GitHub Pages SPA-fallback so deep links like `/admin/dashboard` don't 404 on direct load/refresh, then deploys.
-- **`.github/workflows/deploy-pages-staging.yml`** — all three portals together, each under its own `/admin/`, `/merchant/`, `/provider/` subpath via `VITE_BASE_PATH`. Not run yet; running it later will overwrite the admin-only deploy above and move Admin from the site root to a `/admin/` subfolder (a different URL) — expected, not a bug, when that's actually prioritized.
+- **`.github/workflows/deploy-admin-staging.yml`** — Admin Portal only, deployed at the site root (`https://staging.rapexmarketplace.store/admin/...`). Typechecks, lints, then builds with no `VITE_BASE_PATH` (defaults to `/`, since the custom domain serves from its own root — see "Admin subpath fixes" below for why it's not `/admin/`), adds a root `404.html` (copy of `index.html`) as a GitHub Pages SPA-fallback so deep links like `/admin/dashboard` don't 404 on direct load/refresh, then deploys.
+- **`.github/workflows/deploy-pages-staging.yml`** — all five apps together (admin/merchant/provider portals + customer/rider web exports), each under its own `/admin/`, `/merchant/`, `/provider/`, `/customer/`, `/rider/` subpath via `VITE_BASE_PATH`/`EXPO_WEB_BASE_PATH`. Running this after the admin-only workflow moves Admin from the site root to `/admin/` (a different URL) — expected, not a bug.
 
-Both fail until a repo admin does this one-time manual step:
+Both fail until a repo admin does this one-time manual step, and the DNS record below is added:
 
-1. Repo **Settings → Pages → Source → GitHub Actions**.
-2. Run the relevant workflow manually (Actions tab → Run workflow).
-3. Confirm it loads at the URL reported after the run (Admin-only: `https://<org>.github.io/<repo>/admin/`; combined: same plus `/merchant/`, `/provider/`).
+1. At the registrar (Namecheap, for `rapexmarketplace.store`): add a `CNAME` record — host `staging`, value `<org>.github.io` (the GitHub org/user this repo lives under). DNS propagation can take up to a few hours.
+2. Repo **Settings → Pages → Source → GitHub Actions**.
+3. Run the relevant workflow manually (Actions tab → Run workflow).
+4. Repo **Settings → Pages**: confirm `staging.rapexmarketplace.store` shows as the custom domain (GitHub picks this up automatically from the `CNAME` file in the deployed artifact, but it's worth confirming HTTPS has provisioned — can take a few minutes on the very first deploy).
+5. Confirm it loads at `https://staging.rapexmarketplace.store/admin/` (admin-only) or that plus `/merchant/`, `/provider/`, `/customer/`, `/rider/` (combined).
 
-This is explicitly a **temporary Alpha staging URL**, matching the existing code comment in `admin-portal/src/services/apiConfig.ts` ("Alpha: temporary GitHub deployment URL, until the production admin domain is ready") — not a production deployment. Production hosting (custom domain, real CDN/hosting provider) is a separate decision not made yet.
+This is explicitly a **temporary Alpha staging URL**, matching the existing code comment in `admin-portal/src/services/apiConfig.ts` ("Alpha: temporary GitHub deployment URL, until the production admin domain is ready") — not a production deployment. A real production hosting decision (which subdomain or the apex domain itself, real CDN/hosting provider) is still separate and not made yet.
 
 ### Admin subpath fixes (found while wiring the admin-only deploy)
 
 Admin's own routes (`App.tsx`) are hardcoded as `/admin/...` — that's intentional, matching the real production URL shape (admin living under the main domain's `/admin` path), not something introduced for staging. That meant three real bugs surfaced when actually checking GitHub Pages subpath behavior, all now fixed:
 
-1. **Missing React Router `basename`.** `BrowserRouter` had none, so once GitHub Pages' repo-name prefix (`/rapex-mvp/`) is in the URL, none of the app's `/admin/...` routes would match. Fixed: `basename` is now derived from `import.meta.env.BASE_URL` (Vite's own base config, stripped of its trailing slash) — so it only strips the repo-name segment Pages adds, leaving the app's own `/admin` routes untouched. Also why the admin-only workflow builds with `VITE_BASE_PATH=/rapex-mvp/` and not `/admin/` — the app's routes already supply "admin"; adding it again in the base would produce `/admin/admin/...`.
+1. **Missing React Router `basename`.** `BrowserRouter` had none, so once a base-path prefix is in the URL, none of the app's `/admin/...` routes would match. Fixed: `basename` is now derived from `import.meta.env.BASE_URL` (Vite's own base config, stripped of its trailing slash), and strips a trailing `/admin` segment specifically if present — so the combined deploy's `VITE_BASE_PATH=/admin/` and the admin-only deploy's unset (`/`) default both resolve to the same effective basename, and the app's own `/admin` routes are never doubled up.
 2. **Two hardcoded absolute image paths.** `LoginPage.tsx` and `PortalLayout.tsx` both referenced `src="/brand/wordmark-logo-v3.png"` directly — Vite's `%BASE_URL%` templating only rewrites paths inside `index.html`, not string literals in component code, so these would 404 under any subpath. Fixed to `` `${import.meta.env.BASE_URL}brand/wordmark-logo-v3.png` ``.
 3. **Missing favicon file.** `index.html` already referenced `%BASE_URL%favicon.png` (fixed in an earlier pass) but `apps/admin-portal/public/favicon.png` never actually existed — a pre-existing 404 regardless of base path. Copied the real icon in from `assets/brand/tabIcons/favicon.png`. Merchant/provider portals have the same gap; not fixed here since they're out of scope for this pass.
 
-Verified locally (not just written): `pnpm --filter admin-portal typecheck`/`lint` clean, default build (no `VITE_BASE_PATH`) unaffected (`/favicon.png`, `/brand/...`, basename `"/"`), staging build (`VITE_BASE_PATH=/rapex-mvp/`) confirmed byte-inspected to emit `/rapex-mvp/assets/...`, `/rapex-mvp/favicon.png`, and `/rapex-mvp/brand/wordmark-logo-v3.png` correctly. **Still unverified**: this has never actually been served by GitHub Pages, so CORS behavior calling Xano from a `github.io` origin, and the SPA-fallback 404.html trick, are unproven until the workflow actually runs.
+Verified locally (not just written): `pnpm --filter admin-portal typecheck`/`lint` clean, default build (no `VITE_BASE_PATH`) confirmed byte-inspected to emit `/assets/...` (root, matching the custom domain), combined build (`VITE_BASE_PATH=/admin/`) confirmed to emit `/admin/assets/...` correctly; same check done for merchant-portal (`/merchant/`), provider-portal (`/provider/`), and both Expo web exports (`/customer/`, `/rider/`). **Still unverified**: this has never actually been served by GitHub Pages, so DNS/HTTPS provisioning for the custom domain, CORS behavior calling Xano from that origin, and the SPA-fallback 404.html trick are all unproven until a workflow actually runs and the DNS record resolves.
 
 ### Env vars / secrets
 

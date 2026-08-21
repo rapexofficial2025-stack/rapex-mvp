@@ -8,15 +8,13 @@ import { useRegistrationDraft } from "../../services/registrationStore";
 type Props = NativeStackScreenProps<RootStackParamList, "RegisterSuccess">;
 
 /**
- * Shown once, immediately after the real Xano account-creation call
- * succeeds (fired at the end of the wizard -- see RegisterLocationScreen/
- * AddressScreen -- since the Master Authentication Suite's /auth/signup
- * needs the full address, not just the Account step's fields). Tap-
- * anywhere-to-continue per spec, not an auto-timed screen -- this is a
- * deliberate confirmation beat, not a loading screen. The account is
- * `pending_verification` at this point (needs Admin approval before
- * login works) -- the REX welcome animation next is purely a local
- * onboarding beat, not a claim that the account is fully active yet.
+ * Shown once, immediately after RegisterAccountScreen's real Xano
+ * account-creation call succeeds. Tap-anywhere-to-continue per spec, not an
+ * auto-timed screen -- this is a deliberate confirmation beat, not a
+ * loading screen. The account is `pending_verification` at this point
+ * (needs Admin approval before login works) -- the REX welcome animation
+ * next is purely a local onboarding beat, not a claim the account is fully
+ * active yet.
  */
 export function RegisterSuccessScreen({ navigation }: Props) {
   const theme = useAppTheme();

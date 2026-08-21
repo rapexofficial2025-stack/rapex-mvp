@@ -2,6 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Restores the real path GitHub Pages' root 404.html redirected here
+         with (see the combined-deploy workflow) -- runs before the app
+         mounts so a direct load/refresh on a deep link resolves correctly
+         instead of dead-ending at GitHub's 404. -->
+    <script>
+      (function () {
+        var redirect = new URLSearchParams(window.location.search).get("redirect");
+        if (redirect) window.history.replaceState(null, "", redirect);
+      })();
+    </script>
     <link rel="icon" type="image/png" href="%BASE_URL%favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RAPEX Provider Portal</title>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   ImageBackground,
@@ -14,11 +14,21 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Google from "expo-auth-session/providers/google";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import type { GoogleProfileInput } from "@rapex/api-client";
 import { Hotspot, useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
 import { CATEGORY_HOTSPOTS, TOP_ICON_HOTSPOTS, FloatingReferenceModal, type FloatingKey } from "../components/LoginReferenceOverlays";
+import { markPreviewIntro } from "../services/previewIntro";
+import {
+  GOOGLE_ANDROID_CLIENT_ID_OR_PLACEHOLDER,
+  GOOGLE_IOS_CLIENT_ID_OR_PLACEHOLDER,
+  GOOGLE_WEB_CLIENT_ID_OR_PLACEHOLDER,
+  decodeGoogleIdToken,
+  isGoogleSignInConfigured,
+} from "../services/googleAuthConfig";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -40,6 +50,25 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
   const [activeFloating, setActiveFloating] = useState<FloatingKey | null>(null);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
+  const googleLogin = useAsyncAction((profile: GoogleProfileInput) => auth.loginWithGoogle(profile));
+  const [, googleResponse, promptGoogleSignIn] = Google.useIdTokenAuthRequest({
+    webClientId: GOOGLE_WEB_CLIENT_ID_OR_PLACEHOLDER,
+    iosClientId: GOOGLE_IOS_CLIENT_ID_OR_PLACEHOLDER,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID_OR_PLACEHOLDER,
+  });
+
+  useEffect(() => {
+    if (googleResponse?.type !== "success") return;
+    const idToken = googleResponse.params.id_token;
+    if (!idToken) return;
+    try {
+      const profile = decodeGoogleIdToken(idToken);
+      googleLogin.execute(profile).then(() => navigation.replace("MainTabs"));
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Could not read your Google account details.", "error");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleResponse]);
 
   return (
     <View style={styles.flex}>
@@ -117,10 +146,17 @@ export function LoginScreen({ navigation }: Props) {
                 <View style={styles.socialRow}>
                   <Pressable
                     style={[styles.socialButton, styles.googleButton]}
-                    onPress={() => showToast("Google sign-in requires Firebase configuration -- not connected yet", "neutral")}
+                    disabled={googleLogin.loading}
+                    onPress={() => {
+                      if (!isGoogleSignInConfigured) {
+                        showToast("Google sign-in isn't configured yet.", "neutral");
+                        return;
+                      }
+                      promptGoogleSignIn();
+                    }}
                   >
                     <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
-                    <Text style={styles.googleText}>Google</Text>
+                    <Text style={styles.googleText}>{googleLogin.loading ? "Signing in…" : "Google"}</Text>
                   </Pressable>
                   <Pressable
                     style={[styles.socialButton, styles.facebookButton]}
@@ -149,6 +185,16 @@ export function LoginScreen({ navigation }: Props) {
                   >
                     <Text style={styles.primaryButtonText}>Create an Account</Text>
                   </LinearGradient>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    markPreviewIntro();
+                    navigation.replace("MainTabs");
+                  }}
+                  style={styles.forgotRow}
+                >
+                  <Text style={styles.forgotText}>Preview App — No Sign In</Text>
                 </Pressable>
               </ScrollView>
             </View>

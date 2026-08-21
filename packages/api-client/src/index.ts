@@ -12,7 +12,7 @@ export * from "./createMockRepositories";
 
 // Repository interfaces + DTOs
 export * from "./repositories/types";
-export type { AuthRepository, RegisterInput, LoginInput, LoginResult, RegisterResult, NextStep } from "./repositories/auth/AuthRepository";
+export type { AuthRepository, RegisterInput, LoginInput, LoginResult, RegisterResult, NextStep, AuthMeResponse, GoogleProfileInput } from "./repositories/auth/AuthRepository";
 export { XanoAuthRepository } from "./repositories/auth/XanoAuthRepository";
 export { XanoAdminAuthRepository } from "./repositories/auth/XanoAdminAuthRepository";
 export type { MarketplaceRepository } from "./repositories/marketplace/MarketplaceRepository";
@@ -31,6 +31,8 @@ export type {
   CreateExpansionRequestInput,
   SaveRegistrationDraftInput,
   AddDraftProductInput,
+  CompleteMerchantOnboardingInput,
+  CompleteMerchantOnboardingResult,
 } from "./repositories/merchant/MerchantRepository";
 export { XanoMerchantRepository } from "./repositories/merchant/XanoMerchantRepository";
 export type {
@@ -43,6 +45,23 @@ export type { RiderRepository, UpdateRiderProfileInput } from "./repositories/ri
 export type { RiderEconomyRepository } from "./repositories/rider/RiderEconomyRepository";
 export type { DeliveryRepository } from "./repositories/delivery/DeliveryRepository";
 export type { RiderWalletRepository } from "./repositories/wallet/RiderWalletRepository";
+export type { ReferenceDataRepository, LocationOption, Community } from "./repositories/reference/ReferenceDataRepository";
+export { XanoReferenceDataRepository } from "./repositories/reference/XanoReferenceDataRepository";
+export type { KycRepository, SubmitKycInput, SubmitKycResult } from "./repositories/kyc/KycRepository";
+export { XanoKycRepository } from "./repositories/kyc/XanoKycRepository";
+export type { ChildAccountRepository } from "./repositories/childAccount/ChildAccountRepository";
+export { MockChildAccountRepository } from "./repositories/childAccount/MockChildAccountRepository";
+export type { PaymentsRepository, PaymentMethodType, PaymentCheckout, PaymentCheckoutStatus } from "./repositories/payments/PaymentsRepository";
+export { XanoPaymentsRepository } from "./repositories/payments/XanoPaymentsRepository";
+export { MockPaymentsRepository, mockSimulatePaymentOutcome } from "./repositories/payments/MockPaymentsRepository";
+export type {
+  ChildAccountStatus,
+  ChildAccountSummary,
+  CreateChildAccountInput,
+  ChildBaonSummary,
+  ChildPurchaseHistoryEntry,
+  UnallocatedBalanceSummary,
+} from "./repositories/types";
 
 // Hooks
 export * from "./hooks/useAsync";
@@ -54,4 +73,5 @@ export * from "./hooks/useMerchant";
 export * from "./hooks/useAdmin";
 export * from "./hooks/useRider";
 export * from "./hooks/useDelivery";
+export * from "./hooks/useChildAccount";
 export * from "./hooks/useRiderWallet";

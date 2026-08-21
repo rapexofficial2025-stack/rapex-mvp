@@ -17,3 +17,5 @@ export * from "./DataTable";
 export * from "./Modal";
 export * from "./GoogleMapView";
 export * from "./Hotspot";
+export * from "./ErrorBoundary";
+export * from "./useBluetoothPrinter";

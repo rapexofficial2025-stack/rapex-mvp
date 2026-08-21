@@ -6,9 +6,18 @@ import {
   XanoAuthRepository,
   XanoOrdersRepository,
   XanoWalletRepository,
+  XanoReferenceDataRepository,
+  XanoKycRepository,
+  XanoPaymentsRepository,
 } from "@rapex/api-client";
 import { ThemeProvider, ToastProvider } from "@rapex/ui-native";
-import { rapexAuthHttpClient, rapexOrdersHttpClient, rapexFinanceHttpClient } from "../services/apiConfig";
+import {
+  rapexAuthHttpClient,
+  rapexOrdersHttpClient,
+  rapexFinanceHttpClient,
+  rapexSuperAppHttpClient,
+  rapexCoreHttpClient,
+} from "../services/apiConfig";
 import { secureTokenStorage } from "../services/secureTokenStorage";
 import { secureUserCache } from "../services/userCache";
 
@@ -28,6 +37,13 @@ const repositories = {
   auth: new XanoAuthRepository(rapexAuthHttpClient, secureTokenStorage, secureUserCache, "customer"),
   orders: new XanoOrdersRepository(rapexOrdersHttpClient, mocks.orders),
   wallet: new XanoWalletRepository(rapexFinanceHttpClient),
+  // Real Xano super_app + rapex-core groups (2026-08-14 handover) --
+  // location cascading picker, Culture/Community list, KYC upload+submit.
+  referenceData: new XanoReferenceDataRepository(rapexSuperAppHttpClient, rapexCoreHttpClient),
+  kyc: new XanoKycRepository(rapexSuperAppHttpClient, rapexAuthHttpClient),
+  // Not wired to a real Xano endpoint yet -- delegates to Mock internally.
+  // See XanoPaymentsRepository's doc comment for the exact contract needed.
+  payments: new XanoPaymentsRepository(),
 };
 
 /**

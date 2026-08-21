@@ -2,12 +2,15 @@ import { useMemo, useState } from "react";
 import { Badge, useTheme } from "@rapex/ui-web";
 import { KpiBar } from "./KpiBar";
 import { FilterPanel } from "./FilterPanel";
-import { MapPlaceholder } from "./MapPlaceholder";
+import { LiveMapView } from "./LiveMapView";
 import { ActivityFeed } from "./ActivityFeed";
 import { MerchantInfoCard } from "./MerchantInfoCard";
 import { RiderInfoCard } from "./RiderInfoCard";
+import { MapAccessPanel } from "./MapAccessPanel";
 import { MOCK_RIDERS, MOCK_MERCHANTS, MOCK_ACTIVITY } from "./mockData";
 import type { MapFilter, Merchant, MerchantCategory, Rider } from "./types";
+
+const MAPS_CONFIGURED = Boolean(import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
 const CATEGORY_FILTER_VALUES: MerchantCategory[] = ["Food", "Marketplace", "Hardware", "Industrial", "Services", "Auction", "Provider"];
 
@@ -16,6 +19,8 @@ export function OperationsCommandCenter() {
   const [activeFilters, setActiveFilters] = useState<Set<MapFilter>>(new Set());
   const [selectedRider, setSelectedRider] = useState<Rider | null>(null);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
+  const [showMapSettings, setShowMapSettings] = useState(false);
+  const [showGeoFencePanel, setShowGeoFencePanel] = useState(false);
 
   const toggleFilter = (filter: MapFilter) => {
     setActiveFilters((current) => {
@@ -58,16 +63,25 @@ export function OperationsCommandCenter() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", backgroundColor: theme.colors.background, position: "relative" }}>
-      <div style={{ position: "absolute", top: theme.spacing.sm, right: theme.spacing.sm, zIndex: 1 }}>
-        <Badge label="Mock data — backend endpoint required" tone="warning" />
+      <div style={{ position: "absolute", top: theme.spacing.sm, right: theme.spacing.sm, zIndex: 3, display: "flex", gap: theme.spacing.sm, alignItems: "center" }}>
+        <Badge
+          label={MAPS_CONFIGURED ? "Live map tiles — rider/merchant positions are still placeholder data" : "Placeholder map data — Xano endpoint + Maps key required"}
+          tone="warning"
+        />
+        {MAPS_CONFIGURED ? (
+          <button type="button" onClick={() => setShowGeoFencePanel(true)} style={{ border: `1px solid ${theme.colors.border}`, borderRadius: theme.radius.sm, padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`, background: theme.colors.surface, color: theme.colors.textPrimary, font: "inherit", fontSize: theme.typography.fontSize.sm, fontWeight: 700, cursor: "pointer" }}>Geo-fencing</button>
+        ) : null}
+        <button type="button" onClick={() => setShowMapSettings(true)} style={{ border: `1px solid ${theme.colors.border}`, borderRadius: theme.radius.sm, padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`, background: theme.colors.surface, color: theme.colors.textPrimary, font: "inherit", fontSize: theme.typography.fontSize.sm, fontWeight: 700, cursor: "pointer" }}>Map access settings</button>
       </div>
       <KpiBar riders={MOCK_RIDERS} merchants={MOCK_MERCHANTS} />
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         <FilterPanel activeFilters={activeFilters} onToggle={toggleFilter} />
         <div style={{ flex: 1, position: "relative", display: "flex" }}>
-          <MapPlaceholder
+          <LiveMapView
             riders={visibleRiders}
             merchants={visibleMerchants}
+            showGeoFencePanel={showGeoFencePanel}
+            onCloseGeoFencePanel={() => setShowGeoFencePanel(false)}
             onSelectRider={(rider) => {
               setSelectedMerchant(null);
               setSelectedRider(rider);
@@ -81,6 +95,7 @@ export function OperationsCommandCenter() {
             <MerchantInfoCard merchant={selectedMerchant} onClose={() => setSelectedMerchant(null)} />
           ) : null}
           {selectedRider ? <RiderInfoCard rider={selectedRider} onClose={() => setSelectedRider(null)} /> : null}
+          {showMapSettings ? <MapAccessPanel onClose={() => setShowMapSettings(false)} /> : null}
         </div>
         <ActivityFeed events={MOCK_ACTIVITY} />
       </div>

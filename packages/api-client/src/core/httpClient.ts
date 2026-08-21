@@ -56,14 +56,18 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
 
     const staticHeaders =
       typeof config.staticHeaders === "function" ? config.staticHeaders() : (config.staticHeaders ?? {});
-    const headers: Record<string, string> = { "Content-Type": "application/json", ...staticHeaders };
+    // FormData (file uploads) must NOT get a JSON Content-Type or be
+    // stringified -- fetch sets the correct multipart boundary itself only
+    // when it sees a real FormData body untouched.
+    const isFormData = typeof FormData !== "undefined" && requestConfig.body instanceof FormData;
+    const headers: Record<string, string> = { ...(isFormData ? {} : { "Content-Type": "application/json" }), ...staticHeaders };
     const token = config.getAuthToken ? await config.getAuthToken() : null;
     if (token) headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(url.toString(), {
       method: requestConfig.method ?? "GET",
       headers,
-      body: requestConfig.body !== undefined ? JSON.stringify(requestConfig.body) : undefined,
+      body: requestConfig.body === undefined ? undefined : isFormData ? (requestConfig.body as FormData) : JSON.stringify(requestConfig.body),
     });
 
     let payload: unknown = null;

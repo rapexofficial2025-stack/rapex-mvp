@@ -45,7 +45,7 @@ export function WelcomeScreen({ navigation }: Props) {
 
           <View style={styles.ctaWrap}>
             <Pressable
-              onPress={() => navigation.navigate("Login")}
+              onPress={() => navigation.navigate("AgeGate")}
               style={({ pressed }) => [styles.ctaPressable, { opacity: pressed ? 0.9 : 1 }]}
               accessibilityRole="button"
               accessibilityLabel="Let's get Started"

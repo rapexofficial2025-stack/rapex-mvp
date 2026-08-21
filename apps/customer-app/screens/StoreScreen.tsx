@@ -12,6 +12,7 @@ import { ProductCardCompact } from "../components/ProductCardCompact";
 import { SectionHeader } from "../components/SectionHeader";
 import { isFavoriteStore, toggleFavoriteStore, useFavoriteStoreIds } from "../services/favoriteStoresStore";
 import { GradientScreenBackground } from "../components/GradientScreenBackground";
+import { getStoreTheme } from "../utils/storeTheme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Store">;
 
@@ -71,6 +72,7 @@ export function StoreScreen({ navigation, route }: Props) {
   if (!store) return <EmptyState title="Store not found" />;
 
   const isFavorite = favoriteIds.has(store.id) || isFavoriteStore(store.id);
+  const storeTheme = getStoreTheme(store.category);
 
   return (
     <View style={{ flex: 1 }}>
@@ -78,15 +80,16 @@ export function StoreScreen({ navigation, route }: Props) {
       <FlatList
         data={visibleProducts}
         keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={{ gap: theme.spacing.sm, paddingHorizontal: theme.spacing.lg }}
         contentContainerStyle={{ gap: theme.spacing.sm, paddingBottom: theme.spacing.xl }}
-        ItemSeparatorComponent={() => <View style={{ height: theme.spacing.sm }} />}
         ListHeaderComponent={
           <View>
-            {/* Hero */}
+            {/* Hero -- category-tinted per founder's store-theming reference (2026-08-20) */}
             <View
               style={{
                 height: 120,
-                backgroundColor: theme.colors.surfaceAlt,
+                backgroundColor: storeTheme.accentSoft,
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -101,7 +104,7 @@ export function StoreScreen({ navigation, route }: Props) {
                   borderRadius: 32,
                   backgroundColor: theme.colors.surface,
                   borderWidth: 3,
-                  borderColor: theme.colors.background,
+                  borderColor: storeTheme.accent,
                   alignItems: "center",
                   justifyContent: "center",
                   ...theme.shadows.md.native,
@@ -123,6 +126,25 @@ export function StoreScreen({ navigation, route }: Props) {
               </Text>
 
               <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textPrimary }}>{store.description}</Text>
+
+              {store.deliveryFee === 0 ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: theme.spacing.xs,
+                    backgroundColor: storeTheme.accentSoft,
+                    borderRadius: theme.radius.md,
+                    padding: theme.spacing.sm,
+                    marginTop: theme.spacing.xs,
+                  }}
+                >
+                  <Text style={{ fontSize: theme.typography.fontSize.base }}>🛵</Text>
+                  <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: storeTheme.accent }}>
+                    Free Delivery Today! Min. order {formatPeso(store.minimumOrder)}
+                  </Text>
+                </View>
+              ) : null}
 
               <View
                 style={{
@@ -212,9 +234,7 @@ export function StoreScreen({ navigation, route }: Props) {
           )
         }
         renderItem={({ item }) => (
-          <View style={{ paddingHorizontal: theme.spacing.lg }}>
-            <ProductCard product={item} onPress={() => navigation.navigate("Product", { productId: item.id })} />
-          </View>
+          <ProductCard product={item} storeName={store.name} onPress={() => navigation.navigate("Product", { productId: item.id })} />
         )}
         ListFooterComponent={
           store.reviews.length > 0 ? (

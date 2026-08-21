@@ -1,73 +1,94 @@
-import { useEffect, useState } from "react";
-import { Badge, DataTable, ErrorState, Loading, useTheme, type DataTableColumn } from "@rapex/ui-web";
-import { useMerchantOrderFinancials, useMyStores, type MerchantOrderFinancials } from "@rapex/api-client";
+import { useState } from "react";
+import { Badge, Button, DataTable, Modal, useTheme, type DataTableColumn } from "@rapex/ui-web";
 import { formatPeso } from "@rapex/utils";
+import { ReceiptPreview, type ReceiptOrder } from "../features/receipts/ReceiptPreview";
 
-const COLUMNS: DataTableColumn<MerchantOrderFinancials>[] = [
-  { key: "orderId", header: "Order", render: (o) => `#${o.orderId}`, sortValue: (o) => o.orderId },
-  { key: "distanceKm", header: "Distance", render: (o) => `${o.distanceKm.toFixed(1)} km`, sortValue: (o) => o.distanceKm },
-  { key: "deliveryFee", header: "Delivery Fee", render: (o) => formatPeso(o.deliveryFee), sortValue: (o) => o.deliveryFee },
-  { key: "customerPayment", header: "Customer Payment", render: (o) => formatPeso(o.customerPayment), sortValue: (o) => o.customerPayment },
-  { key: "merchantReceives", header: "Merchant Receives", render: (o) => formatPeso(o.merchantReceives), sortValue: (o) => o.merchantReceives },
+type PlaceholderOrder = {
+  id: string;
+  customer: string;
+  itemSummary: string;
+  total: number;
+  status: "New" | "Preparing" | "Ready for pickup";
+};
+
+// Placeholder-only order list. Claude will replace this with the confirmed
+// Xano order list and status-transition actions when those contracts are ready.
+const PLACEHOLDER_ORDERS: PlaceholderOrder[] = [
+  { id: "RPX-1042", customer: "Maria S.", itemSummary: "2 items", total: 345, status: "New" },
+  { id: "RPX-1041", customer: "Joel R.", itemSummary: "3 items", total: 580, status: "Preparing" },
+  { id: "RPX-1040", customer: "Ana C.", itemSummary: "1 item", total: 190, status: "Ready for pickup" },
+];
+
+const COLUMNS: DataTableColumn<PlaceholderOrder>[] = [
+  { key: "id", header: "Order", render: (order) => order.id, sortValue: (order) => order.id },
+  { key: "customer", header: "Customer", render: (order) => order.customer, sortValue: (order) => order.customer },
+  { key: "items", header: "Items", render: (order) => order.itemSummary },
+  { key: "total", header: "Total", render: (order) => formatPeso(order.total), sortValue: (order) => order.total },
+  { key: "status", header: "Status", render: (order) => <Badge label={order.status} tone={order.status === "New" ? "warning" : "info"} /> },
 ];
 
 export function OrdersPage() {
   const theme = useTheme();
-  const { data: stores, loading: storesLoading } = useMyStores();
-  const [storeId, setStoreId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!storeId && stores && stores.length > 0) setStoreId(stores[0]!.id);
-  }, [stores, storeId]);
-
-  const { data: orderFinancials, loading, error, refetch } = useMerchantOrderFinancials(storeId);
-
-  if (storesLoading) return <Loading />;
+  const [selectedOrder, setSelectedOrder] = useState<PlaceholderOrder | null>(null);
+  const [statusEditorOpen, setStatusEditorOpen] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState<ReceiptOrder | null>(null);
 
   return (
-    <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: theme.spacing.md }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+    <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: theme.spacing.md }}>
         <div>
           <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Orders</h2>
-          <p style={{ margin: 0, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
-            Delivery Fee Engine settlements for this store -- Distance, Delivery Fee, Customer Payment, Merchant Receives.
+          <p style={{ margin: `${theme.spacing.xs}px 0 0`, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
+            Select an order to review its details and next preparation step.
           </p>
         </div>
-        <Badge label="Mock data — backend endpoint required" tone="warning" />
+        <Badge label="Placeholder data — Xano order endpoint pending" tone="warning" />
       </div>
 
-      {stores && stores.length > 1 ? (
-        <select
-          value={storeId ?? ""}
-          onChange={(e) => setStoreId(e.target.value)}
-          style={{
-            alignSelf: "flex-start",
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: theme.radius.md,
-            padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
-            fontSize: theme.typography.fontSize.sm,
-          }}
-        >
-          {stores.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+      <DataTable
+        columns={COLUMNS}
+        rows={PLACEHOLDER_ORDERS}
+        rowKey={(order) => order.id}
+        searchPlaceholder="Search orders…"
+        searchFn={(order, query) => `${order.id} ${order.customer}`.toLowerCase().includes(query.toLowerCase())}
+        onRowClick={setSelectedOrder}
+        emptyMessage="No orders to show"
+      />
+
+      {selectedOrder ? (
+        <Modal title={`Order ${selectedOrder.id}`} onClose={() => setSelectedOrder(null)} footer={<div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}><Button label="Preview receipt" variant="secondary" onClick={() => setReceiptOrder(selectedOrder)} /><Button label="Update order status" onClick={() => setStatusEditorOpen(true)} /></div>}>
+          <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.sm }}>
+            <Detail label="Customer" value={selectedOrder.customer} />
+            <Detail label="Items" value={selectedOrder.itemSummary} />
+            <Detail label="Order total" value={formatPeso(selectedOrder.total)} />
+            <Detail label="Current status" value={selectedOrder.status} />
+            <Badge label="Placeholder detail — live order data not connected" tone="warning" />
+          </div>
+        </Modal>
       ) : null}
 
-      {loading ? (
-        <Loading />
-      ) : error ? (
-        <ErrorState description={error} onRetry={refetch} />
-      ) : (
-        <DataTable
-          columns={COLUMNS}
-          rows={orderFinancials ?? []}
-          rowKey={(o) => o.orderId}
-          emptyMessage="No settled orders for this store yet"
-        />
-      )}
+      {receiptOrder ? <ReceiptPreview order={receiptOrder} onClose={() => setReceiptOrder(null)} /> : null}
+
+      {statusEditorOpen && selectedOrder ? (
+        <Modal title="Update order status" onClose={() => setStatusEditorOpen(false)} footer={<Button label="Close" variant="secondary" onClick={() => setStatusEditorOpen(false)} />}>
+          <p style={{ margin: 0, color: theme.colors.textSecondary }}>
+            Status updates will be connected to the confirmed Xano order transition endpoint. No order has been changed from this skeleton.
+          </p>
+          <div style={{ marginTop: theme.spacing.md }}>
+            <Badge label={`Current placeholder status: ${selectedOrder.status}`} tone="info" />
+          </div>
+        </Modal>
+      ) : null}
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  const theme = useTheme();
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", gap: theme.spacing.md }}>
+      <span style={{ color: theme.colors.textSecondary }}>{label}</span>
+      <span style={{ color: theme.colors.textPrimary, fontWeight: 600 }}>{value}</span>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Image, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import { Button, Badge, ErrorState } from "@rapex/ui-native";
+import { useRepositories } from "@rapex/api-client";
 import type { RootStackParamList } from "../../types/navigation";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { PickerField } from "../../components/PickerField";
@@ -26,16 +27,23 @@ const CAPTURES: { key: CaptureKey; label: string; helper: string }[] = [
  * instruction (no gallery/file upload) -- launchCameraAsync opens the
  * device camera directly, never a photo library picker.
  *
- * GAP: there is no confirmed Xano endpoint to upload these images to.
- * Captured URIs are kept locally in registrationStore and shown in
- * ProfileScreen as "captured, not yet submitted" -- exactly like every
- * other unconfirmed-contract field in this codebase, nothing here silently
- * pretends the ID was actually verified server-side.
+ * Real submission (2026-08-14 Xano handover): each image is uploaded via
+ * `POST /super_app/assets/upload` to get an asset_id, then all three
+ * asset_ids go to `POST /rapex-auth/submit-kyc`. Requires an authenticated
+ * session -- this screen is only reachable from Profile's setup checklist
+ * (post-login), so a session always exists by the time a user gets here.
+ * Real backend behavior on success: identity_status becomes `pending`,
+ * registration_progress becomes 60 -- this is a submission for review, not
+ * an instant verification, and nothing here claims otherwise.
  */
 export function RegisterIdentityScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const draft = useRegistrationDraft();
+  const { kyc } = useRepositories();
   const [permissionError, setPermissionError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   async function capture(key: CaptureKey) {
     setPermissionError(null);
@@ -55,6 +63,25 @@ export function RegisterIdentityScreen({ navigation }: Props) {
 
   const allCaptured = draft.idFrontUri && draft.idBackUri && draft.selfieUri;
   const canSubmit = draft.idType !== null && allCaptured;
+
+  async function submitKyc() {
+    if (!draft.idType || !draft.idFrontUri || !draft.idBackUri || !draft.selfieUri) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const [idFrontAssetId, idBackAssetId, selfieAssetId] = await Promise.all([
+        kyc!.uploadAsset({ uri: draft.idFrontUri, fileName: "id-front.jpg", mimeType: "image/jpeg" }),
+        kyc!.uploadAsset({ uri: draft.idBackUri, fileName: "id-back.jpg", mimeType: "image/jpeg" }),
+        kyc!.uploadAsset({ uri: draft.selfieUri, fileName: "selfie.jpg", mimeType: "image/jpeg" }),
+      ]);
+      await kyc!.submitIdentity({ idType: draft.idType, idFrontAssetId, idBackAssetId, selfieAssetId });
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Couldn't submit your identity documents. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <ScreenContainer title="Verify Your Identity" subtitle="Step 4 of 7 -- Camera capture only">
@@ -78,9 +105,18 @@ export function RegisterIdentityScreen({ navigation }: Props) {
         </View>
       ))}
 
-      <Badge label="Captured images are not yet submitted to a verification backend -- endpoint not confirmed" tone="warning" />
+      {submitted ? (
+        <Badge label="Submitted -- under review (identity_status: pending)" tone="success" />
+      ) : (
+        <Badge label="Not yet submitted for verification" tone="warning" />
+      )}
+      {submitError ? <ErrorState description={submitError} onRetry={submitKyc} /> : null}
 
-      <Button label="Continue" disabled={!canSubmit} onPress={() => navigation.navigate("RegisterContact")} />
+      {submitted ? (
+        <Button label="Continue" onPress={() => navigation.navigate("RegisterContact")} />
+      ) : (
+        <Button label="Submit for Verification" loading={submitting} disabled={!canSubmit} onPress={submitKyc} />
+      )}
     </ScreenContainer>
   );
 }

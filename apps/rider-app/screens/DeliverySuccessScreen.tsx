@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Button, ErrorState, GlassCard, Loading } from "@rapex/ui-native";
+import { Badge, Button, ErrorState, GlassCard, Loading } from "@rapex/ui-native";
 import { useRepositories, type OrderFinancials } from "@rapex/api-client";
 import { formatPeso } from "@rapex/utils";
 import type { RootStackParamList } from "../types/navigation";
@@ -68,6 +68,19 @@ export function DeliverySuccessScreen({ navigation, route }: Props) {
       ) : (
         <ErrorState description="Settlement record not found for this order." />
       )}
+
+      <GlassCard>
+        <Text style={{ color: theme.colors.textPrimary, fontWeight: "700", marginBottom: theme.spacing.xs }}>
+          🖨️ Print Receipt
+        </Text>
+        <Badge label="Bluetooth printing isn't wired in the app yet" tone="warning" />
+        <Text style={{ color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.xs, marginTop: theme.spacing.xs }}>
+          Connecting a real thermal printer here needs a native Bluetooth module (e.g. react-native-ble-plx) plus a
+          new custom development build via EAS — this is a bigger change than a normal screen update, so it's
+          queued pending founder confirmation rather than added silently. The merchant and admin web portals
+          already support Bluetooth ESC/POS printing today via the browser's Web Bluetooth API.
+        </Text>
+      </GlassCard>
 
       <Button label="Back to Home" onPress={() => navigation.replace("MainTabs")} />
     </ScreenContainer>

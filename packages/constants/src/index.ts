@@ -1,6 +1,7 @@
 export * from "./roles";
 export * from "./pilotAreas";
 export * from "./mapMarkers";
+export * from "./mapStyles";
 export * from "./geography";
 
 // Business-rule-dependent enums (order status, auction status, wallet transaction

@@ -1,10 +1,19 @@
 name: Deploy staging (GitHub Pages)
 
-# Manual only, on purpose: this will fail until GitHub Pages is enabled for
-# this repo (Settings -> Pages -> Source: GitHub Actions), which only a repo
-# admin can do. Auto-running this on every push would just spam failures
-# until that one-time manual step happens. See docs/deployment/README.md.
+# Auto-deploys on every push to the active dev branch -- Irvin monitors
+# staging.rapexmarketplace.store from his phone during work hours (field
+# job, no laptop access) and wants it to reflect whatever was just pushed,
+# without a separate manual trigger step each time. workflow_dispatch is
+# kept too, for an on-demand re-run (e.g. after a Pages/DNS config change
+# with no code change). This will fail until GitHub Pages is enabled for
+# this repo (Settings -> Pages -> Source: GitHub Actions), which only a
+# repo admin can do -- see docs/deployment/README.md. That one-time step
+# hasn't happened yet as of this change, so pushes will keep failing until
+# it does; not a regression, just still-pending per the manual-actions
+# table there.
 on:
+  push:
+    branches: [claude/rapex-deployment-summary-f2nraq]
   workflow_dispatch:
 
 permissions:
@@ -34,29 +43,59 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Base includes the /rapex-mvp/ repo-name prefix GitHub Pages project
-      # sites always add (https://<org>.github.io/rapex-mvp/...) -- omitting
-      # it is a real bug that was caught and fixed this session (see
+      # Base paths are root-relative (/merchant/, not /rapex-mvp/merchant/)
+      # because this site is served from a custom domain
+      # (staging.rapexmarketplace.store, see the CNAME step below), which
+      # serves from its own root -- unlike a default project-page URL
+      # (https://<org>.github.io/rapex-mvp/...), which needs the repo-name
+      # prefix (a real bug caught and fixed earlier this session, see
       # apps/admin-portal/src/App.tsx's basename comment for the related
-      # router fix). Each web portal is verified to typecheck/build clean
-      # under both this shape and site-root-only before being wired in here.
+      # router fix). If the custom domain is ever removed and this needs to
+      # fall back to the default github.io project-page URL, these 5
+      # VITE_BASE_PATH/EXPO_WEB_BASE_PATH values need the /rapex-mvp/ prefix
+      # added back. Each web portal is verified to typecheck/build clean
+      # under this shape before being wired in here.
       - name: Typecheck all apps
         run: pnpm -r --if-present typecheck
 
+      # Firebase web config (studio-9520309954-bfd24) is public client
+      # config, not a secret (Google's own guidance -- protected by
+      # Firebase's authorized-domains + Security Rules, not by hiding this),
+      # so it's fine committed directly here rather than needing a repo
+      # secret. Same six values across every app below; only the var name
+      # prefix changes (VITE_ for the Vite portals, EXPO_PUBLIC_ for Expo).
       - name: Build admin-portal (/admin/)
         run: pnpm --filter admin-portal build
         env:
-          VITE_BASE_PATH: /rapex-mvp/admin/
+          VITE_BASE_PATH: /admin/
+          # Reusing the same key the founder gave us for Firebase -- Firebase
+          # web keys and Google Maps API keys are the same Google Cloud key
+          # type, so this either just works or Google's own SDK will report
+          # a specific "this key isn't enabled for Maps" error, which is a
+          # more useful signal than staying on the placeholder forever.
+          VITE_GOOGLE_MAPS_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          VITE_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          VITE_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
+          VITE_FIREBASE_STORAGE_BUCKET: studio-9520309954-bfd24.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "828240163154"
+          VITE_FIREBASE_APP_ID: "1:828240163154:web:3438bd54ec04859ff84a8b"
 
       - name: Build merchant-portal (/merchant/)
         run: pnpm --filter merchant-portal build
         env:
-          VITE_BASE_PATH: /rapex-mvp/merchant/
+          VITE_BASE_PATH: /merchant/
+          VITE_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          VITE_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
+          VITE_FIREBASE_STORAGE_BUCKET: studio-9520309954-bfd24.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "828240163154"
+          VITE_FIREBASE_APP_ID: "1:828240163154:web:3438bd54ec04859ff84a8b"
 
       - name: Build provider-portal (/provider/)
         run: pnpm --filter provider-portal build
         env:
-          VITE_BASE_PATH: /rapex-mvp/provider/
+          VITE_BASE_PATH: /provider/
 
       # customer-app and rider-app are Expo/React Native apps -- exported
       # for web via `expo export -p web` (uses react-native-web, already a
@@ -70,12 +109,39 @@ jobs:
       - name: Build customer-app (/customer/)
         run: cd apps/customer-app && npx expo export -p web
         env:
-          EXPO_WEB_BASE_PATH: /rapex-mvp/customer
+          EXPO_WEB_BASE_PATH: /customer
+          EXPO_PUBLIC_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
+          EXPO_PUBLIC_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
+          EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: studio-9520309954-bfd24.firebasestorage.app
+          EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "828240163154"
+          EXPO_PUBLIC_FIREBASE_APP_ID: "1:828240163154:web:3438bd54ec04859ff84a8b"
+          # PayMongo public key (test mode) -- safe client-side, see
+          # docs/business/PayMongoIntegration.md for why the secret key
+          # never appears here or anywhere else in this repo.
+          EXPO_PUBLIC_PAYMONGO_PUBLIC_KEY: pk_test_cXvtZE7XUdz8xheF7dLPnEZo
+          # Web OAuth client_id from the "rapex-marketplace-maps" Google
+          # Cloud project (founder-uploaded client_secret_...json,
+          # 2026-08-21) -- only the client_id, which Google does not treat
+          # as secret. The matching client_secret is never committed or
+          # used anywhere in this repo: expo-auth-session's
+          # Google.useIdTokenAuthRequest only ever needs a client_id.
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: 560808522151-kvmq0pe1joa1t0turj768pldlo7ul8a6.apps.googleusercontent.com
 
       - name: Build rider-app (/rider/)
         run: cd apps/rider-app && npx expo export -p web
         env:
-          EXPO_WEB_BASE_PATH: /rapex-mvp/rider
+          EXPO_WEB_BASE_PATH: /rider
+          # Same OAuth web client as customer-app -- only the client_id,
+          # never the client_secret. See docs/deployment note in
+          # customer-app's build step above.
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: 560808522151-kvmq0pe1joa1t0turj768pldlo7ul8a6.apps.googleusercontent.com
+          EXPO_PUBLIC_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
+          EXPO_PUBLIC_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
+          EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: studio-9520309954-bfd24.firebasestorage.app
+          EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "828240163154"
+          EXPO_PUBLIC_FIREBASE_APP_ID: "1:828240163154:web:3438bd54ec04859ff84a8b"
 
       - name: Assemble combined Pages site
         run: |
@@ -85,6 +151,13 @@ jobs:
           cp -r apps/provider-portal/dist site/provider
           cp -r apps/customer-app/dist site/customer
           cp -r apps/rider-app/dist site/rider
+          # Tells GitHub Pages to serve this deployment on the custom domain
+          # instead of only the default <org>.github.io/rapex-mvp/ URL. DNS
+          # for staging.rapexmarketplace.store must point at GitHub Pages
+          # (a CNAME record to <org>.github.io, set at the registrar --
+          # see docs/deployment/README.md) before this actually resolves;
+          # this file alone only configures the GitHub side.
+          echo "staging.rapexmarketplace.store" > site/CNAME
           cat > site/index.html <<'HTML'
           <!doctype html>
           <html><head><meta charset="utf-8"><title>RAPEX Staging</title></head>
@@ -101,16 +174,38 @@ jobs:
           </body></html>
           HTML
 
-      # KNOWN LIMITATION, documented rather than half-fixed: GitHub Pages
-      # only ever consults ONE site-root 404.html for the whole site, never
-      # a per-subfolder one -- so a direct load/refresh on a deep link (e.g.
-      # /admin/dashboard) will hit GitHub's generic 404, not this app. This
-      # doesn't affect normal use: navigating there via in-app links from
-      # each app's own /<name>/ root works fine (client-side routing, no
-      # full page load). A real fix (a root 404.html that redirects based on
-      # path prefix, the "spa-github-pages" pattern) is out of scope for
-      # this pass -- flag if deep-link refresh support becomes a real
-      # blocker for manual testing.
+          # GitHub Pages only ever consults ONE site-root 404.html for the
+          # whole site, never a per-subfolder one -- so a direct load/
+          # refresh on a deep link (e.g. /admin/dashboard) used to hit
+          # GitHub's generic 404 instead of that app. Fixed via the
+          # standard "spa-github-pages" pattern: this 404.html detects
+          # which app the path belongs to and redirects to that app's own
+          # index.html with the original path preserved in a query param;
+          # each Vite app's index.html (see the <script> right after
+          # <meta charset>) restores it via history.replaceState before its
+          # router mounts. Customer/Rider (Expo web export) aren't covered
+          # -- their index.html is generated fresh by `expo export` each
+          # build, not hand-editable the same way; a known remaining gap,
+          # not a regression.
+          cat > site/404.html <<'HTML'
+          <!doctype html>
+          <html><head><meta charset="utf-8"><title>Redirecting…</title>
+          <script>
+            (function () {
+              var path = window.location.pathname;
+              var segments = path.split("/").filter(Boolean);
+              var app = segments[0];
+              var known = ["admin", "merchant", "provider", "customer", "rider"];
+              if (known.indexOf(app) !== -1) {
+                var redirect = encodeURIComponent(path + window.location.search + window.location.hash);
+                window.location.replace("/" + app + "/?redirect=" + redirect);
+              } else {
+                window.location.replace("/");
+              }
+            })();
+          </script>
+          </head><body></body></html>
+          HTML
 
       - uses: actions/configure-pages@v5
 

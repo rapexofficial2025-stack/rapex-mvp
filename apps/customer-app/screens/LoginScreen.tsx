@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   ImageBackground,
@@ -14,11 +14,21 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Google from "expo-auth-session/providers/google";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { Hotspot, useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
 import { CATEGORY_HOTSPOTS, TOP_ICON_HOTSPOTS, FloatingReferenceModal, type FloatingKey } from "../components/LoginReferenceOverlays";
+import {
+  GOOGLE_ANDROID_CLIENT_ID_OR_PLACEHOLDER,
+  GOOGLE_IOS_CLIENT_ID_OR_PLACEHOLDER,
+  GOOGLE_WEB_CLIENT_ID_OR_PLACEHOLDER,
+  decodeGoogleIdToken,
+  isGoogleSignInConfigured,
+} from "../services/googleAuthConfig";
+import type { GoogleProfileInput } from "@rapex/api-client";
+import { markPreviewIntro } from "../services/previewIntro";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -32,11 +42,14 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
  * it's built here as real, functional components matching
  * login-dark-2-reference.png's styling, not flattened into an image.
  *
- * Google stays disabled-with-toast (no fake auth): it needs an OAuth client
- * ID that doesn't exist yet. Facebook is intentionally not offered here
- * (Google-only per spec). Email/password goes through the real, unchanged
- * AuthRepository. Create an Account routes through the Privacy & Terms
- * consent gate before the registration wizard.
+ * Google is real once EXPO_PUBLIC_GOOGLE_*_CLIENT_ID env vars are set (see
+ * googleAuthConfig.ts) -- expo-auth-session gets a real Google ID token,
+ * which goes to the real Xano `/auth/google` call (single-phase, no OTP,
+ * see XanoAuthRepository.loginWithGoogle). Until those env vars exist, the
+ * button stays disabled-with-toast (no fake auth). Facebook is
+ * intentionally not offered here (Google-only per spec). Email/password
+ * goes through the real, unchanged AuthRepository. Create an Account
+ * routes through the Privacy & Terms consent gate before registration.
  */
 const BACKGROUND = require("../../../assets/brand/Background/login-dark-2.png");
 const GOOGLE_ICON = require("../../../assets/brand/icons/google-logo-icon.png");
@@ -48,6 +61,45 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
   const [activeFloating, setActiveFloating] = useState<FloatingKey | null>(null);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
+  const googleLogin = useAsyncAction((profile: GoogleProfileInput) => auth.loginWithGoogle(profile));
+  const [, googleResponse, promptGoogleSignIn] = Google.useIdTokenAuthRequest({
+    webClientId: GOOGLE_WEB_CLIENT_ID_OR_PLACEHOLDER,
+    iosClientId: GOOGLE_IOS_CLIENT_ID_OR_PLACEHOLDER,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID_OR_PLACEHOLDER,
+  });
+
+  async function routeByNextStep() {
+    const nextStep = await auth.getNextStep();
+    switch (nextStep) {
+      case "PRIVACY_TERMS":
+        navigation.replace("PrivacyTerms");
+        break;
+      case "REGISTRATION":
+        navigation.replace("PrivacyTerms");
+        break;
+      case "WELCOME_ANIMATION":
+        navigation.replace("WelcomeVideo");
+        break;
+      case "PROFILE_SETUP":
+        navigation.replace("Profile");
+        break;
+      default:
+        navigation.replace("MainTabs");
+    }
+  }
+
+  useEffect(() => {
+    if (googleResponse?.type !== "success") return;
+    const idToken = googleResponse.params.id_token;
+    if (!idToken) return;
+    try {
+      const profile = decodeGoogleIdToken(idToken);
+      googleLogin.execute(profile).then(routeByNextStep);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Could not read your Google account details.", "error");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleResponse]);
 
   return (
     <View style={styles.flex}>
@@ -74,7 +126,7 @@ export function LoginScreen({ navigation }: Props) {
                 <View style={styles.field}>
                   <TextInput
                     style={styles.input}
-                    placeholder="Email or Mobile Number"
+                    placeholder="Email"
                     placeholderTextColor="rgba(255,255,255,0.45)"
                     autoCapitalize="none"
                     keyboardType="email-address"
@@ -102,8 +154,16 @@ export function LoginScreen({ navigation }: Props) {
 
                 <Pressable
                   onPress={async () => {
-                    const result = await login.execute({ email, password });
-                    if (result.status === "otp_required") navigation.navigate("Otp");
+                    try {
+                      const result = await login.execute({ email, password });
+                      if (result.status === "otp_required") navigation.navigate("Otp");
+                    } catch (err) {
+                      // Real backend rejects a still-pending account with an
+                      // approval message -- route to the dedicated notice
+                      // instead of just showing inline error text for it.
+                      const message = err instanceof Error ? err.message : "";
+                      if (/pending|approval/i.test(message)) navigation.navigate("PendingApproval");
+                    }
                   }}
                   disabled={login.loading}
                   style={({ pressed }) => [styles.primaryButtonWrap, { opacity: pressed ? 0.9 : 1 }]}
@@ -121,12 +181,20 @@ export function LoginScreen({ navigation }: Props) {
                 <View style={styles.socialRow}>
                   <Pressable
                     style={[styles.socialButton, styles.googleButton, styles.googleButtonFull]}
-                    onPress={() => showToast("Google sign-in requires Firebase configuration -- not connected yet", "neutral")}
+                    disabled={googleLogin.loading}
+                    onPress={() => {
+                      if (!isGoogleSignInConfigured) {
+                        showToast("Google sign-in needs an OAuth Client ID that isn't configured yet", "neutral");
+                        return;
+                      }
+                      promptGoogleSignIn();
+                    }}
                   >
                     <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
-                    <Text style={styles.googleText}>Continue with Google</Text>
+                    <Text style={styles.googleText}>{googleLogin.loading ? "Signing in..." : "Continue with Google"}</Text>
                   </Pressable>
                 </View>
+                {googleLogin.error ? <Text style={styles.errorText}>{googleLogin.error}</Text> : null}
 
                 <View style={styles.dividerRow}>
                   <View style={styles.dividerLine} />
@@ -146,6 +214,16 @@ export function LoginScreen({ navigation }: Props) {
                   >
                     <Text style={styles.primaryButtonText}>Create an Account</Text>
                   </LinearGradient>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    markPreviewIntro();
+                    navigation.replace("MainTabs");
+                  }}
+                  style={styles.forgotRow}
+                >
+                  <Text style={styles.forgotText}>Preview App — No Sign In</Text>
                 </Pressable>
 
                 <Text style={styles.footerText}>SEC & BIR Registered. Official Launch: 2026. All Rights Reserved.</Text>
