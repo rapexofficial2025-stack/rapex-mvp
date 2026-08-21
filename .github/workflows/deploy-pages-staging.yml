@@ -58,15 +58,33 @@ jobs:
       - name: Typecheck all apps
         run: pnpm -r --if-present typecheck
 
+      # Firebase web config (studio-9520309954-bfd24) is public client
+      # config, not a secret (Google's own guidance -- protected by
+      # Firebase's authorized-domains + Security Rules, not by hiding this),
+      # so it's fine committed directly here rather than needing a repo
+      # secret. Same six values across every app below; only the var name
+      # prefix changes (VITE_ for the Vite portals, EXPO_PUBLIC_ for Expo).
       - name: Build admin-portal (/admin/)
         run: pnpm --filter admin-portal build
         env:
           VITE_BASE_PATH: /admin/
+          VITE_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          VITE_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
+          VITE_FIREBASE_STORAGE_BUCKET: studio-9520309954-bfd24.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "828240163154"
+          VITE_FIREBASE_APP_ID: "1:828240163154:web:3438bd54ec04859ff84a8b"
 
       - name: Build merchant-portal (/merchant/)
         run: pnpm --filter merchant-portal build
         env:
           VITE_BASE_PATH: /merchant/
+          VITE_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          VITE_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
+          VITE_FIREBASE_STORAGE_BUCKET: studio-9520309954-bfd24.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "828240163154"
+          VITE_FIREBASE_APP_ID: "1:828240163154:web:3438bd54ec04859ff84a8b"
 
       - name: Build provider-portal (/provider/)
         run: pnpm --filter provider-portal build
@@ -86,11 +104,27 @@ jobs:
         run: cd apps/customer-app && npx expo export -p web
         env:
           EXPO_WEB_BASE_PATH: /customer
+          EXPO_PUBLIC_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
+          EXPO_PUBLIC_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
+          EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: studio-9520309954-bfd24.firebasestorage.app
+          EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "828240163154"
+          EXPO_PUBLIC_FIREBASE_APP_ID: "1:828240163154:web:3438bd54ec04859ff84a8b"
+          # PayMongo public key (test mode) -- safe client-side, see
+          # docs/business/PayMongoIntegration.md for why the secret key
+          # never appears here or anywhere else in this repo.
+          EXPO_PUBLIC_PAYMONGO_PUBLIC_KEY: pk_test_cXvtZE7XUdz8xheF7dLPnEZo
 
       - name: Build rider-app (/rider/)
         run: cd apps/rider-app && npx expo export -p web
         env:
           EXPO_WEB_BASE_PATH: /rider
+          EXPO_PUBLIC_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
+          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
+          EXPO_PUBLIC_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
+          EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET: studio-9520309954-bfd24.firebasestorage.app
+          EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "828240163154"
+          EXPO_PUBLIC_FIREBASE_APP_ID: "1:828240163154:web:3438bd54ec04859ff84a8b"
 
       - name: Assemble combined Pages site
         run: |

@@ -101,9 +101,17 @@ Rider delivers → Completed → **Escrow Released** → Merchant Paid → Rider
 completion" pattern `RiderRemittanceRecord`'s ledger-based design above
 already anticipated, now confirmed as the actual Alpha mechanism.
 
-**Payment rules (Alpha vs. Beta):** Alpha = RAPEX Wallet only (matches what's
-already built in `CheckoutScreen`). Beta = PayMongo QR, QRPH, GCash, Maya,
-Bank.
+**Payment rules (Alpha vs. Beta):** Originally locked as Alpha = RAPEX Wallet
+only, Beta = PayMongo QR/QRPH/GCash/Maya/Bank. **Updated 2026-08-21, founder
+decision:** GCash and QR Ph move into Alpha now that founder-provided
+PayMongo test keys exist -- see `docs/business/PayMongoIntegration.md` for
+the real scope of what's actually wired (client-side checkout UX + an
+honest in-app simulator) versus what still needs a Xano developer (the
+server-side endpoint that actually calls PayMongo, since that requires the
+account's secret key, which cannot live in any of these apps). Maya and
+Bank remain Beta -- no keys/integration exist for either. RAPEX Wallet
+stays the default and only fully-real payment method until that Xano piece
+ships.
 
 **Alpha status — Escrow Hold is described as ✅ ACTIVE** ("ensures customer
 has funds before merchant starts preparing"), separately from other

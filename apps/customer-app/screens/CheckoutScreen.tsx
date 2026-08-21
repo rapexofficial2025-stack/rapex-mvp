@@ -3,7 +3,7 @@ import { Pressable, ScrollView, View, Text } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Loading, ErrorState, Button, Badge, EmptyState, Input } from "@rapex/ui-native";
 import { formatPeso } from "@rapex/utils";
-import { useAsync, useAsyncAction, useMyOrders, useRepositories, type CartLine } from "@rapex/api-client";
+import { useAsync, useAsyncAction, useMyOrders, useRepositories, type CartLine, type PaymentMethodType } from "@rapex/api-client";
 import type { RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { useCartLines, clearCart } from "../services/cartStore";
@@ -177,38 +177,58 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * UI-only architecture prep, per instruction: RAPEX Wallet is the only
- * `payment_method` value the confirmed Xano contract accepts for Alpha
- * (see XanoOrdersRepository's doc comment) -- COD/GCash/Maya/QRPH are shown
- * so the future shape is visible, but disabled rather than wired to a fake
- * parameter. OrdersRepository.placeOrder() intentionally does not take a
- * payment method argument yet -- adding one would imply the backend can
- * accept it, which it can't confirm today.
+ * RAPEX Wallet, GCash, and QR Ph (via PayMongo) are real, selectable
+ * payment methods. Maya and COD stay disabled -- no PayMongo Maya
+ * integration or COD handling has been built. GCash/QRPH don't create a
+ * real PayMongo charge yet (that needs a Xano server-side endpoint holding
+ * the PayMongo secret key -- see XanoPaymentsRepository's doc comment and
+ * docs/business/PayMongoIntegration.md); selecting them still walks
+ * through the real UI flow end to end via PaymentCheckoutScreen's honest
+ * simulator.
  */
-const DISABLED_PAYMENT_METHODS = ["Cash on Delivery (COD)", "GCash", "Maya", "QRPH"] as const;
+type SelectablePaymentMethod = "wallet" | PaymentMethodType;
+const DISABLED_PAYMENT_METHODS = ["Cash on Delivery (COD)", "Maya"] as const;
 
-function PaymentMethodSelector() {
+function PaymentMethodSelector({
+  selected,
+  onSelect,
+}: {
+  selected: SelectablePaymentMethod;
+  onSelect: (method: SelectablePaymentMethod) => void;
+}) {
   const theme = useAppTheme();
+  const options: { key: SelectablePaymentMethod; label: string }[] = [
+    { key: "wallet", label: "RAPEX Wallet" },
+    { key: "gcash", label: "GCash" },
+    { key: "qrph", label: "QR Ph" },
+  ];
   return (
     <View style={{ gap: theme.spacing.xs }}>
       <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>Payment Method</Text>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: theme.spacing.md,
-          borderRadius: theme.radius.md,
-          borderWidth: 1,
-          borderColor: theme.colors.brandPrimary,
-          backgroundColor: theme.colors.surfaceAlt,
-        }}
-      >
-        <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.fontSize.sm, fontWeight: "600" }}>
-          RAPEX Wallet
-        </Text>
-        <Badge label="Selected" tone="success" />
-      </View>
+      {options.map((option) => {
+        const active = selected === option.key;
+        return (
+          <Pressable
+            key={option.key}
+            onPress={() => onSelect(option.key)}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: theme.spacing.md,
+              borderRadius: theme.radius.md,
+              borderWidth: active ? 2 : 1,
+              borderColor: active ? theme.colors.brandPrimary : theme.colors.border,
+              backgroundColor: active ? theme.colors.surfaceAlt : "transparent",
+            }}
+          >
+            <Text style={{ color: theme.colors.textPrimary, fontSize: theme.typography.fontSize.sm, fontWeight: active ? "700" : "400" }}>
+              {option.label}
+            </Text>
+            {active ? <Badge label="Selected" tone="success" /> : option.key !== "wallet" ? <Badge label="Simulated for now" tone="warning" /> : null}
+          </Pressable>
+        );
+      })}
       {DISABLED_PAYMENT_METHODS.map((method) => (
         <View
           key={method}
@@ -233,7 +253,7 @@ function PaymentMethodSelector() {
 
 export function CheckoutScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
-  const { marketplace, orders, wallet } = useRepositories();
+  const { marketplace, orders, wallet, payments } = useRepositories();
   // No params (navigated from the cart) -> checkout the whole cart. Params
   // present (navigated from Product's "Checkout" button) -> single-item
   // quick-buy, independent of whatever else is in the cart.
@@ -245,6 +265,7 @@ export function CheckoutScreen({ navigation, route }: Props) {
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleKey | null>(null);
   const [deliveryTiming, setDeliveryTiming] = useState<"now" | "later" | null>(null);
   const [appliedVoucher, setAppliedVoucher] = useState<VoucherResult | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"wallet" | PaymentMethodType>("wallet");
 
   const { data: walletSummary, loading: walletLoading } = useAsync(() => wallet.getWalletSummary(), []);
   const { data: pastOrders } = useMyOrders();
@@ -359,18 +380,23 @@ export function CheckoutScreen({ navigation, route }: Props) {
 
       {placeOrder.error ? <ErrorState description={placeOrder.error} /> : null}
 
-      <PaymentMethodSelector />
+      <PaymentMethodSelector selected={paymentMethod} onSelect={setPaymentMethod} />
       <Badge label="Place Order calls the real Xano backend — response shape unverified live" tone="info" />
       {!address ? <ErrorState description="Set a delivery address before placing your order." /> : null}
       {!deliveryTiming ? <ErrorState description="Choose a delivery vehicle (or Order Later) before placing your order." /> : null}
       <Button
-        label="Place Order"
+        label={paymentMethod === "wallet" ? "Place Order" : `Place Order & Pay with ${paymentMethod === "gcash" ? "GCash" : "QR Ph"}`}
         loading={placeOrder.loading}
         disabled={!canPlaceOrder}
         onPress={async () => {
-          await placeOrder.execute(lines);
+          const order = await placeOrder.execute(lines);
           if (isCartCheckout) clearCart();
-          navigation.replace("Orders");
+          if (paymentMethod === "wallet" || !payments) {
+            navigation.replace("Orders");
+            return;
+          }
+          const checkout = await payments.createCheckout({ method: paymentMethod, amount: effectiveTotal, orderId: order.id });
+          navigation.replace("PaymentCheckout", { referenceId: checkout.referenceId, method: paymentMethod, orderId: order.id });
         }}
       />
     </ScrollView>

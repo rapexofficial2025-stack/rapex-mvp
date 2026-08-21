@@ -25,6 +25,7 @@ import { WalletScreen } from "../screens/WalletScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { OrdersScreen } from "../screens/OrdersScreen";
 import { OrderTrackingScreen } from "../screens/OrderTrackingScreen";
+import { PaymentCheckoutScreen } from "../screens/PaymentCheckoutScreen";
 import { EarnScreen } from "../screens/EarnScreen";
 import { RexScreen } from "../screens/RexScreen";
 import { AuctionHomeScreen } from "../screens/AuctionHomeScreen";
@@ -89,6 +90,7 @@ export function RootNavigator() {
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: true, title: "Profile" }} />
       <Stack.Screen name="Orders" component={OrdersScreen} options={{ headerShown: true, title: "My Orders" }} />
       <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} options={{ headerShown: true, title: "Order Tracking" }} />
+      <Stack.Screen name="PaymentCheckout" component={PaymentCheckoutScreen} options={{ headerShown: true, title: "Payment" }} />
       <Stack.Screen name="Earn" component={EarnScreen} options={{ headerShown: true, title: "Earn & Rewards" }} />
       <Stack.Screen name="ChildAccounts" component={ChildAccountsScreen} options={{ headerShown: true, title: "Child Accounts" }} />
       <Stack.Screen name="ChildBasicInfo" component={ChildBasicInfoScreen} options={{ headerShown: true, title: "Add Child" }} />

@@ -34,6 +34,7 @@ export type RootStackParamList = {
   Profile: undefined;
   Orders: undefined;
   OrderTracking: { orderId: string };
+  PaymentCheckout: { referenceId: string; method: "gcash" | "qrph"; orderId: string };
   Earn: undefined;
   ChildAccounts: undefined;
   ChildBasicInfo: undefined;

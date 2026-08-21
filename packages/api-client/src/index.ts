@@ -49,6 +49,9 @@ export type { KycRepository, SubmitKycInput, SubmitKycResult } from "./repositor
 export { XanoKycRepository } from "./repositories/kyc/XanoKycRepository";
 export type { ChildAccountRepository } from "./repositories/childAccount/ChildAccountRepository";
 export { MockChildAccountRepository } from "./repositories/childAccount/MockChildAccountRepository";
+export type { PaymentsRepository, PaymentMethodType, PaymentCheckout, PaymentCheckoutStatus } from "./repositories/payments/PaymentsRepository";
+export { XanoPaymentsRepository } from "./repositories/payments/XanoPaymentsRepository";
+export { MockPaymentsRepository, mockSimulatePaymentOutcome } from "./repositories/payments/MockPaymentsRepository";
 export type {
   ChildAccountStatus,
   ChildAccountSummary,

@@ -12,6 +12,7 @@ import { MockDeliveryRepository } from "./repositories/delivery/MockDeliveryRepo
 import { MockReferenceDataRepository } from "./repositories/reference/MockReferenceDataRepository";
 import { MockKycRepository } from "./repositories/kyc/MockKycRepository";
 import { MockChildAccountRepository } from "./repositories/childAccount/MockChildAccountRepository";
+import { MockPaymentsRepository } from "./repositories/payments/MockPaymentsRepository";
 
 /** Every app wires this into its root RepositoryProvider until real Xano* implementations exist. */
 export function createMockRepositories(): Repositories {
@@ -29,5 +30,6 @@ export function createMockRepositories(): Repositories {
     referenceData: new MockReferenceDataRepository(),
     kyc: new MockKycRepository(),
     childAccount: new MockChildAccountRepository(),
+    payments: new MockPaymentsRepository(),
   };
 }
