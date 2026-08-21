@@ -120,6 +120,13 @@ jobs:
           # docs/business/PayMongoIntegration.md for why the secret key
           # never appears here or anywhere else in this repo.
           EXPO_PUBLIC_PAYMONGO_PUBLIC_KEY: pk_test_cXvtZE7XUdz8xheF7dLPnEZo
+          # Web OAuth client_id from the "rapex-marketplace-maps" Google
+          # Cloud project (founder-uploaded client_secret_...json,
+          # 2026-08-21) -- only the client_id, which Google does not treat
+          # as secret. The matching client_secret is never committed or
+          # used anywhere in this repo: expo-auth-session's
+          # Google.useIdTokenAuthRequest only ever needs a client_id.
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: 560808522151-kvmq0pe1joa1t0turj768pldlo7ul8a6.apps.googleusercontent.com
 
       - name: Build rider-app (/rider/)
         run: cd apps/rider-app && npx expo export -p web
