@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ErrorState } from "@rapex/ui-web";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
@@ -33,6 +33,19 @@ export function LoginPage() {
     searchParams.get("idle") === "1" ? "You were signed out after a period of inactivity. Please sign in again." : null,
   );
   const [googleLoading, setGoogleLoading] = useState(false);
+  // The desktop layout below uses absolute % positioning tuned for wide
+  // viewports -- on a narrow phone screen those percentages collapse the
+  // two columns into an overlapping, unreadable mess. Below this breakpoint
+  // the left branding column is dropped and the login card becomes a
+  // simple centered, self-sizing panel instead.
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 768);
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
 
   async function handleGoogleSignIn() {
@@ -52,12 +65,20 @@ export function LoginPage() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.leftPanel}>
-        <img src={LOGO} alt="" style={{ width: 48, height: "auto" }} />
-        <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 150, height: "auto", marginTop: 4 }} />
-      </div>
+      {!isMobile && (
+        <div style={styles.leftPanel}>
+          <img src={LOGO} alt="" style={{ width: 48, height: "auto" }} />
+          <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 150, height: "auto", marginTop: 4 }} />
+        </div>
+      )}
 
-      <div style={styles.rightPanel}>
+      <div style={isMobile ? styles.rightPanelMobile : styles.rightPanel}>
+        {isMobile && (
+          <div style={styles.mobileBrandRow}>
+            <img src={LOGO} alt="" style={{ width: 32, height: "auto" }} />
+            <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 108, height: "auto" }} />
+          </div>
+        )}
         <div>
           <div style={styles.eyebrow}>RAPEX COMMAND CENTER</div>
           <div style={styles.title}>Admin Login</div>
@@ -202,6 +223,27 @@ const styles: Record<string, CSSProperties> = {
     boxShadow: "inset 1px 1px 0 rgba(255,255,255,.18), 0 18px 48px rgba(3,1,15,.35), 0 0 28px rgba(157,92,255,.18)",
     backdropFilter: "blur(18px)",
   },
+  rightPanelMobile: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "88%",
+    maxWidth: 420,
+    maxHeight: "92vh",
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    gap: 14,
+    padding: "26px 20px",
+    borderRadius: 20,
+    border: "1px solid rgba(232, 210, 255, 0.34)",
+    background: "linear-gradient(135deg, rgba(24, 19, 52, 0.82), rgba(84, 49, 88, 0.5))",
+    boxShadow: "inset 1px 1px 0 rgba(255,255,255,.18), 0 18px 48px rgba(3,1,15,.35), 0 0 28px rgba(157,92,255,.18)",
+    backdropFilter: "blur(18px)",
+  },
+  mobileBrandRow: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, marginBottom: 4 },
   eyebrow: { fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: "#d7bdff" },
   title: { fontSize: 30, fontWeight: 750, letterSpacing: -0.6, color: "#FFFFFF", marginTop: 6 },
   subtitle: { fontSize: 14, color: "rgba(255,255,255,0.7)", marginTop: 4 },
