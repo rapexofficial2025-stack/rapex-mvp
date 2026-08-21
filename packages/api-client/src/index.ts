@@ -31,6 +31,8 @@ export type {
   CreateExpansionRequestInput,
   SaveRegistrationDraftInput,
   AddDraftProductInput,
+  CompleteMerchantOnboardingInput,
+  CompleteMerchantOnboardingResult,
 } from "./repositories/merchant/MerchantRepository";
 export { XanoMerchantRepository } from "./repositories/merchant/XanoMerchantRepository";
 export type {

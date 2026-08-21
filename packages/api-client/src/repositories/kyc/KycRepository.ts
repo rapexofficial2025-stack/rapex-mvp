@@ -26,9 +26,17 @@ export type SubmitKycResult = {
   message: string;
 };
 
+/**
+ * React Native's file picker gives a `{uri, fileName, mimeType}` shape (no
+ * real File/Blob object); a browser `<input type="file">` gives a real
+ * `File`. Both are valid inputs here so this one repository/method serves
+ * both native apps and the web portals.
+ */
+export type AssetUploadInput = { uri: string; fileName: string; mimeType: string } | File;
+
 export interface KycRepository {
   /** Uploads one image (ID front/back or selfie) and returns the asset_id to reference in submitIdentity(). */
-  uploadAsset(input: { uri: string; fileName: string; mimeType: string }): Promise<string>;
+  uploadAsset(input: AssetUploadInput): Promise<string>;
   /** Requires an authenticated session (Bearer token) -- caller must already be logged in. */
   submitIdentity(input: SubmitKycInput): Promise<SubmitKycResult>;
 }

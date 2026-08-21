@@ -49,8 +49,44 @@ export type SaveRegistrationDraftInput = Partial<
 
 export type AddDraftProductInput = { name: string; price: number; productCategory: string };
 
+/**
+ * Single atomic transaction (Xano build, 2026-08-21): verifies the shared
+ * OTP code, links the already-uploaded KYC assets to the account, creates
+ * the Merchant profile + Main Store, and moves the account to
+ * UNDER_REVIEW. Requires an authenticated session (Bearer token) -- caller
+ * must already be logged in (register() -> login() -> verifyOtp() first).
+ */
+export type CompleteMerchantOnboardingInput = {
+  otpCode: string;
+  idType: string;
+  idFrontAssetId: string;
+  idBackAssetId: string;
+  selfieAssetId: string;
+  storeName: string;
+  storeContact: string;
+  storeCategory: string;
+  storeSubcategory?: string;
+  storeDescription: string;
+  storeProvince: string;
+  storeCity: string;
+  storeBarangay: string;
+  storeAddress: string;
+  openingTime: string;
+  closingTime: string;
+};
+
+export type CompleteMerchantOnboardingResult = {
+  status: string;
+  applicationId: string;
+  merchantCode: string;
+  storeCode: string;
+  message: string;
+};
+
 export interface MerchantRepository {
   getMyAccount(): Promise<MerchantAccount>;
+
+  completeOnboarding(input: CompleteMerchantOnboardingInput): Promise<CompleteMerchantOnboardingResult>;
 
   getRegistrationDraft(): Promise<MerchantRegistrationDraft>;
   saveRegistrationDraft(input: SaveRegistrationDraftInput): Promise<MerchantRegistrationDraft>;

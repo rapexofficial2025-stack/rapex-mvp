@@ -1,6 +1,8 @@
 import { calculateOrderFinancials } from "@rapex/utils";
 import type {
   AddDraftProductInput,
+  CompleteMerchantOnboardingInput,
+  CompleteMerchantOnboardingResult,
   CreateExpansionRequestInput,
   CreateProductInput,
   CreateStoreInput,
@@ -265,6 +267,18 @@ syncProductCounts();
 export class MockMerchantRepository implements MerchantRepository {
   async getMyAccount(): Promise<MerchantAccount> {
     return delay(account);
+  }
+
+  async completeOnboarding(input: CompleteMerchantOnboardingInput): Promise<CompleteMerchantOnboardingResult> {
+    const merchantCode = generateId("MCT").toUpperCase();
+    const storeCode = generateId("STR").toUpperCase();
+    return delay({
+      status: "UNDER_REVIEW",
+      applicationId: merchantCode,
+      merchantCode,
+      storeCode,
+      message: `Merchant application submitted successfully for ${input.storeName}.`,
+    });
   }
 
   async getRegistrationDraft(): Promise<MerchantRegistrationDraft> {
