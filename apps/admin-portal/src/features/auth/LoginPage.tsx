@@ -167,6 +167,12 @@ const styles: Record<string, CSSProperties> = {
     backgroundSize: "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
+    // Pins the background to the viewport so it never shifts/reveals a gap
+    // when the page is resized, scrolled, or the browser is zoomed --
+    // browsers don't let a page block zoom itself (Ctrl+scroll/pinch stay
+    // available on purpose, an accessibility protection), but the
+    // background staying correctly framed regardless is what this fixes.
+    backgroundAttachment: "fixed",
     backgroundColor: "#0B0713",
     fontFamily: "inherit",
   },
