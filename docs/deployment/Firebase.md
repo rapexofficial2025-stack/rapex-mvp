@@ -92,4 +92,51 @@ Console: https://developers.facebook.com
    configured would just throw; connecting them now would be UI work ahead
    of having something real to test, out of scope for this foundation pass.
 3. Add `expo-auth-session` + steps 2/3 above → native sign-in becomes real.
-4. Firebase Cloud Messaging (push) — not started, separate piece of work.
+4. Firebase Cloud Messaging (push) — started, see below.
+
+## Cloud Messaging (push notifications)
+
+**Status: Cloud Function saved to the repo, not deployed, not wired end to
+end.** Irvin provided a `sendPushNotification` Cloud Function
+(2026-08-21); it lives at `firebase/functions/index.js` (deploy config at
+the repo root: `firebase.json` + `.firebaserc`, default project
+`studio-9520309954-bfd24` — the same project already used for Auth).
+
+### To deploy it
+This has to be done from a machine with the Firebase CLI and Irvin's own
+Google login — nothing in this coding environment can do it:
+1. `npm install -g firebase-tools` (once), `firebase login`.
+2. Cloud Functions (2nd gen, `firebase-functions/v2/https`) requires the
+   project to be on the **Blaze (pay-as-you-go)** plan, even for usage
+   that stays inside the free tier. Enable that in the Firebase Console
+   first if it isn't already.
+3. From the repo root: `firebase deploy --only functions`.
+
+### Two real gaps before this can actually send a notification
+
+1. **Token type mismatch.** `sendPushNotification` expects a native FCM
+   device token (`admin.messaging().send({ token: targetToken, ... })`).
+   `apps/customer-app/services/notifications.ts` and
+   `apps/rider-app/services/notifications.ts` currently obtain **Expo**
+   push tokens (`Notifications.getExpoPushTokenAsync`) — a different token
+   type FCM's `send()` doesn't accept. Two ways to close this, pick one:
+   - Switch the apps to get a native FCM token instead
+     (`Notifications.getDevicePushTokenAsync()`), which needs a Firebase
+     config file bundled into the native build
+     (`google-services.json`/`GoogleService-Info.plist`) and a custom dev
+     client / EAS build (won't work in plain Expo Go); or
+   - Skip this Cloud Function and call
+     [Expo's own push service](https://docs.expo.dev/push-notifications/sending-notifications/)
+     directly from Xano with the Expo token already being collected —
+     no Firebase Function needed at all.
+2. **No caller authentication.** As written, `sendPushNotification` is a
+   public HTTP endpoint — anyone who finds the URL can send an arbitrary
+   push to an arbitrary token. Before this is called from Xano in
+   production, it needs some form of caller verification (e.g. a shared
+   secret header checked against a Xano env var, or Firebase App Check).
+   Not added here since it's Irvin's function as provided — flagging it
+   rather than changing the logic unasked.
+3. There is also still no confirmed Xano endpoint to register/store a
+   device's push token per user (see `notifications.ts`'s own comment) —
+   that's the other missing half of the pipeline regardless of which
+   token type is chosen above.
