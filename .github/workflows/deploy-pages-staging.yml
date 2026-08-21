@@ -68,6 +68,12 @@ jobs:
         run: pnpm --filter admin-portal build
         env:
           VITE_BASE_PATH: /admin/
+          # Reusing the same key the founder gave us for Firebase -- Firebase
+          # web keys and Google Maps API keys are the same Google Cloud key
+          # type, so this either just works or Google's own SDK will report
+          # a specific "this key isn't enabled for Maps" error, which is a
+          # more useful signal than staying on the placeholder forever.
+          VITE_GOOGLE_MAPS_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
           VITE_FIREBASE_API_KEY: AIzaSyAviqSSFInie9mblpY5a44zwmq51X4avqk
           VITE_FIREBASE_AUTH_DOMAIN: studio-9520309954-bfd24.firebaseapp.com
           VITE_FIREBASE_PROJECT_ID: studio-9520309954-bfd24
