@@ -125,14 +125,20 @@ export class XanoAuthRepository implements AuthRepository {
   }
 
   /**
-   * POST /auth/google { google_id, email, first_name?, last_name? } --
+   * POST /auth/google { google_id, email, first_name?, last_name?, role } --
    * single-phase, real session immediately (Google already verified the
    * email). Contract per the 2026-08-21 Xano build: checks for an existing
    * user by google_id, falls back to matching by email to link the
    * account, and creates a new one (account_status: active) if neither
-   * matches. Response shape assumed to mirror verify-otp's ({ authToken },
-   * optionally { user }) -- not explicitly confirmed by Xano; flag for
-   * confirmation once this can be tested end-to-end.
+   * matches. `role` is sent so a brand-new account created via this flow
+   * gets the right role for whichever app is calling (Customer/Rider/
+   * Merchant) -- Xano's first cut of this endpoint hardcoded every new
+   * signup to "CUSTOMER" regardless of caller, which this fixes on the
+   * frontend side; Xano's function stack must read $input.role instead
+   * of the hardcoded literal for this to actually take effect. Response
+   * shape assumed to mirror verify-otp's ({ authToken }, optionally
+   * { user }) -- not explicitly confirmed by Xano; flag for confirmation
+   * once this can be tested end-to-end.
    */
   async loginWithGoogle(profile: GoogleProfileInput): Promise<AuthSession> {
     const result = await this.client.request<{
@@ -141,7 +147,13 @@ export class XanoAuthRepository implements AuthRepository {
     }>({
       path: "/auth/google",
       method: "POST",
-      body: { google_id: profile.googleId, email: profile.email, first_name: profile.firstName, last_name: profile.lastName },
+      body: {
+        google_id: profile.googleId,
+        email: profile.email,
+        first_name: profile.firstName,
+        last_name: profile.lastName,
+        role: this.role,
+      },
     });
 
     if (!result?.authToken) {
