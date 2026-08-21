@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import type { GoogleProfileInput } from "@rapex/api-client";
 import { MerchantAuthShell } from "./MerchantAuthShell";
 import { signInWithGoogle } from "../services/socialAuth";
 
@@ -17,15 +18,19 @@ export function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
   const verify = useAsyncAction((otpCode: string) => auth.verifyOtp(otpCode));
+  const googleLogin = useAsyncAction((profile: GoogleProfileInput) => auth.loginWithGoogle(profile));
 
   async function handleGoogleSignIn() {
     setNotice(null);
     setGoogleLoading(true);
     try {
       const result = await signInWithGoogle();
-      // Firebase identity confirmed -- exchanging it for a real RAPEX
-      // merchant session needs Xano's confirmed /auth/me contract, not built yet.
-      setNotice(`Signed in as ${result.user.email} with Google. Linking this to a RAPEX merchant session isn't wired up yet -- use email/password sign-in for now.`);
+      const { uid, email, displayName } = result.user;
+      if (!email) throw new Error("Google didn't share an email for this account -- try a different Google account.");
+      const [firstName, ...rest] = (displayName ?? "").split(" ").filter(Boolean);
+      const profile: GoogleProfileInput = { googleId: uid, email, firstName, lastName: rest.join(" ") || undefined };
+      await googleLogin.execute(profile);
+      navigate("/portal/dashboard");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Google sign-in failed.");
     } finally {
