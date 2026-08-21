@@ -157,16 +157,38 @@ jobs:
           </body></html>
           HTML
 
-      # KNOWN LIMITATION, documented rather than half-fixed: GitHub Pages
-      # only ever consults ONE site-root 404.html for the whole site, never
-      # a per-subfolder one -- so a direct load/refresh on a deep link (e.g.
-      # /admin/dashboard) will hit GitHub's generic 404, not this app. This
-      # doesn't affect normal use: navigating there via in-app links from
-      # each app's own /<name>/ root works fine (client-side routing, no
-      # full page load). A real fix (a root 404.html that redirects based on
-      # path prefix, the "spa-github-pages" pattern) is out of scope for
-      # this pass -- flag if deep-link refresh support becomes a real
-      # blocker for manual testing.
+          # GitHub Pages only ever consults ONE site-root 404.html for the
+          # whole site, never a per-subfolder one -- so a direct load/
+          # refresh on a deep link (e.g. /admin/dashboard) used to hit
+          # GitHub's generic 404 instead of that app. Fixed via the
+          # standard "spa-github-pages" pattern: this 404.html detects
+          # which app the path belongs to and redirects to that app's own
+          # index.html with the original path preserved in a query param;
+          # each Vite app's index.html (see the <script> right after
+          # <meta charset>) restores it via history.replaceState before its
+          # router mounts. Customer/Rider (Expo web export) aren't covered
+          # -- their index.html is generated fresh by `expo export` each
+          # build, not hand-editable the same way; a known remaining gap,
+          # not a regression.
+          cat > site/404.html <<'HTML'
+          <!doctype html>
+          <html><head><meta charset="utf-8"><title>Redirecting…</title>
+          <script>
+            (function () {
+              var path = window.location.pathname;
+              var segments = path.split("/").filter(Boolean);
+              var app = segments[0];
+              var known = ["admin", "merchant", "provider", "customer", "rider"];
+              if (known.indexOf(app) !== -1) {
+                var redirect = encodeURIComponent(path + window.location.search + window.location.hash);
+                window.location.replace("/" + app + "/?redirect=" + redirect);
+              } else {
+                window.location.replace("/");
+              }
+            })();
+          </script>
+          </head><body></body></html>
+          HTML
 
       - uses: actions/configure-pages@v5
 
