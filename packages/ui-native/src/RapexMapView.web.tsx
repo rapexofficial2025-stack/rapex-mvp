@@ -9,12 +9,14 @@ import type { MapMarkerRole } from "@rapex/constants";
  * the native version so nothing consuming `@rapex/ui-native` needs a
  * platform-specific import.
  *
+ * Also requires "web" in the consuming app's metro.config.js
+ * `resolver.platforms` -- `expo/metro-config`'s `getDefaultConfig` omits it,
+ * which silently disables this `.web.tsx` resolution and falls back to the
+ * native file (see apps/customer-app/metro.config.js's comment).
+ *
  * Real web map support (e.g. @react-google-maps/api, already used by
- * GoogleMapView.tsx in @rapex/ui-web) is a separate piece of work -- neither
- * customer-app nor rider-app currently renders RapexMapView on any screen
- * (see its native file's doc comment), so this is an honest "not available
- * on web yet" placeholder rather than a fake map, kept ready for whichever
- * screen wires it in first.
+ * GoogleMapView.tsx in @rapex/ui-web) is a separate piece of work -- this is
+ * an honest "not available on web yet" placeholder rather than a fake map.
  */
 export type RapexMapMarker = {
   id: string;

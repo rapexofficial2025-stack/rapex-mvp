@@ -18,6 +18,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { Hotspot, useToast } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
+import { signInWithGoogle } from "../services/socialAuth";
 import { CATEGORY_HOTSPOTS, TOP_ICON_HOTSPOTS, FloatingReferenceModal, type FloatingKey } from "../components/LoginReferenceOverlays";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
@@ -32,11 +33,17 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
  * it's built here as real, functional components matching
  * login-dark-2-reference.png's styling, not flattened into an image.
  *
- * Google stays disabled-with-toast (no fake auth): it needs an OAuth client
- * ID that doesn't exist yet. Facebook is intentionally not offered here
- * (Google-only per spec). Email/password goes through the real, unchanged
- * AuthRepository. Create an Account routes through the Privacy & Terms
- * consent gate before the registration wizard.
+ * Google calls the real signInWithGoogle() (Firebase popup, see
+ * services/socialAuth.ts) -- real on web once a Firebase project's config
+ * exists (docs/deployment/Firebase.md), throws its real "not configured"
+ * error until then. Native still needs an OAuth client ID that doesn't
+ * exist yet (same doc). No confirmed Xano contract exists to turn a
+ * successful Firebase sign-in into a RAPEX session, so success just
+ * confirms who signed in rather than fake-navigating anywhere. Facebook is
+ * intentionally not offered here (Google-only per spec). Email/password
+ * goes through the real, unchanged AuthRepository. Create an Account
+ * routes through the Privacy & Terms consent gate before the registration
+ * wizard.
  */
 const BACKGROUND = require("../../../assets/brand/Background/login-dark-2.png");
 const GOOGLE_ICON = require("../../../assets/brand/icons/google-logo-icon.png");
@@ -48,6 +55,7 @@ export function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState("");
   const [activeFloating, setActiveFloating] = useState<FloatingKey | null>(null);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
+  const googleSignIn = useAsyncAction(signInWithGoogle);
 
   return (
     <View style={styles.flex}>
@@ -121,10 +129,23 @@ export function LoginScreen({ navigation }: Props) {
                 <View style={styles.socialRow}>
                   <Pressable
                     style={[styles.socialButton, styles.googleButton, styles.googleButtonFull]}
-                    onPress={() => showToast("Google sign-in requires Firebase configuration -- not connected yet", "neutral")}
+                    disabled={googleSignIn.loading}
+                    onPress={async () => {
+                      try {
+                        const credential = await googleSignIn.execute();
+                        const who = credential.user.email ?? credential.user.displayName ?? "your Google account";
+                        // No confirmed Xano contract to exchange a Firebase identity for a
+                        // RAPEX session yet (see docs/deployment/Firebase.md) -- this is a
+                        // real, successful Google sign-in, it just doesn't log you into
+                        // RAPEX itself until that bridge exists.
+                        showToast(`Signed in with Google as ${who}. RAPEX account linking isn't wired up yet, so you're not logged into RAPEX itself.`, "success");
+                      } catch (err) {
+                        showToast(err instanceof Error ? err.message : "Google sign-in failed.", "error");
+                      }
+                    }}
                   >
                     <Image source={GOOGLE_ICON} style={styles.socialIcon} resizeMode="contain" />
-                    <Text style={styles.googleText}>Continue with Google</Text>
+                    <Text style={styles.googleText}>{googleSignIn.loading ? "Signing in..." : "Continue with Google"}</Text>
                   </Pressable>
                 </View>
 
