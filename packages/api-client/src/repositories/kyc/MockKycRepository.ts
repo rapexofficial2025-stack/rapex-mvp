@@ -1,4 +1,4 @@
-import type { KycRepository, SubmitKycInput, SubmitKycResult } from "./KycRepository";
+import type { AssetUploadInput, KycRepository, SubmitKycInput, SubmitKycResult } from "./KycRepository";
 
 const MOCK_DELAY_MS = 400;
 function delay<T>(value: T): Promise<T> {
@@ -9,7 +9,7 @@ let mockAssetCounter = 0;
 
 /** Stands in for XanoKycRepository until an app's own real contract is confirmed. */
 export class MockKycRepository implements KycRepository {
-  async uploadAsset(_input: { uri: string; fileName: string; mimeType: string }): Promise<string> {
+  async uploadAsset(_input: AssetUploadInput): Promise<string> {
     mockAssetCounter += 1;
     return delay(`mock-asset-${mockAssetCounter}`);
   }

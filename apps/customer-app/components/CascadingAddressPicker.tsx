@@ -44,34 +44,74 @@ export function CascadingAddressPicker({
   const [provinces, setProvinces] = useState<LocationOption[]>([]);
   const [municipalities, setMunicipalities] = useState<LocationOption[]>([]);
   const [barangays, setBarangays] = useState<LocationOption[]>([]);
+  const [regionsError, setRegionsError] = useState<string | null>(null);
+  const [provincesError, setProvincesError] = useState<string | null>(null);
+  const [municipalitiesError, setMunicipalitiesError] = useState<string | null>(null);
+  const [barangaysError, setBarangaysError] = useState<string | null>(null);
+  const [retryTick, setRetryTick] = useState(0);
+
+  const NOT_LOADED = "Couldn't load options -- check your connection and tap Retry.";
 
   useEffect(() => {
-    referenceData?.getRegions().then(setRegions).catch(() => setRegions([]));
-  }, [referenceData]);
+    setRegionsError(null);
+    referenceData
+      ?.getRegions()
+      .then(setRegions)
+      .catch(() => {
+        setRegions([]);
+        setRegionsError(NOT_LOADED);
+      });
+  }, [referenceData, retryTick]);
 
   useEffect(() => {
     if (!value.regionId) {
       setProvinces([]);
+      setProvincesError(null);
       return;
     }
-    referenceData?.getProvinces(value.regionId).then(setProvinces).catch(() => setProvinces([]));
-  }, [referenceData, value.regionId]);
+    setProvincesError(null);
+    referenceData
+      ?.getProvinces(value.regionId)
+      .then(setProvinces)
+      .catch(() => {
+        setProvinces([]);
+        setProvincesError(NOT_LOADED);
+      });
+  }, [referenceData, value.regionId, retryTick]);
 
   useEffect(() => {
     if (!value.provinceId) {
       setMunicipalities([]);
+      setMunicipalitiesError(null);
       return;
     }
-    referenceData?.getMunicipalities(value.provinceId).then(setMunicipalities).catch(() => setMunicipalities([]));
-  }, [referenceData, value.provinceId]);
+    setMunicipalitiesError(null);
+    referenceData
+      ?.getMunicipalities(value.provinceId)
+      .then(setMunicipalities)
+      .catch(() => {
+        setMunicipalities([]);
+        setMunicipalitiesError(NOT_LOADED);
+      });
+  }, [referenceData, value.provinceId, retryTick]);
 
   useEffect(() => {
     if (!value.municipalityId) {
       setBarangays([]);
+      setBarangaysError(null);
       return;
     }
-    referenceData?.getBarangays(value.municipalityId).then(setBarangays).catch(() => setBarangays([]));
-  }, [referenceData, value.municipalityId]);
+    setBarangaysError(null);
+    referenceData
+      ?.getBarangays(value.municipalityId)
+      .then(setBarangays)
+      .catch(() => {
+        setBarangays([]);
+        setBarangaysError(NOT_LOADED);
+      });
+  }, [referenceData, value.municipalityId, retryTick]);
+
+  const retry = () => setRetryTick((t) => t + 1);
 
   return (
     <>
@@ -79,6 +119,8 @@ export function CascadingAddressPicker({
         label="Region"
         value={value.regionName}
         options={regions.map((r) => r.name)}
+        errorText={regionsError}
+        onRetry={retry}
         onSelect={(name) => {
           const picked = regions.find((r) => r.name === name);
           onChange({ ...EMPTY_CASCADING_ADDRESS, regionId: picked?.id ?? null, regionName: name });
@@ -89,6 +131,8 @@ export function CascadingAddressPicker({
         value={value.provinceName}
         options={provinces.map((p) => p.name)}
         disabled={!value.regionId}
+        errorText={provincesError}
+        onRetry={retry}
         onSelect={(name) => {
           const picked = provinces.find((p) => p.name === name);
           onChange({
@@ -107,6 +151,8 @@ export function CascadingAddressPicker({
         value={value.municipalityName}
         options={municipalities.map((m) => m.name)}
         disabled={!value.provinceId}
+        errorText={municipalitiesError}
+        onRetry={retry}
         onSelect={(name) => {
           const picked = municipalities.find((m) => m.name === name);
           onChange({ ...value, municipalityId: picked?.id ?? null, municipalityName: name, barangayId: null, barangayName: null });
@@ -117,6 +163,8 @@ export function CascadingAddressPicker({
         value={value.barangayName}
         options={barangays.map((b) => b.name)}
         disabled={!value.municipalityId}
+        errorText={barangaysError}
+        onRetry={retry}
         onSelect={(name) => {
           const picked = barangays.find((b) => b.name === name);
           onChange({ ...value, barangayId: picked?.id ?? null, barangayName: name });

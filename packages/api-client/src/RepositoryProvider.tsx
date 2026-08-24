@@ -12,6 +12,7 @@ import type { DeliveryRepository } from "./repositories/delivery/DeliveryReposit
 import type { ReferenceDataRepository } from "./repositories/reference/ReferenceDataRepository";
 import type { KycRepository } from "./repositories/kyc/KycRepository";
 import type { ChildAccountRepository } from "./repositories/childAccount/ChildAccountRepository";
+import type { PaymentsRepository } from "./repositories/payments/PaymentsRepository";
 
 export type Repositories = {
   auth: AuthRepository;
@@ -29,6 +30,7 @@ export type Repositories = {
   referenceData?: ReferenceDataRepository;
   kyc?: KycRepository;
   childAccount?: ChildAccountRepository;
+  payments?: PaymentsRepository;
 };
 
 const RepositoriesContext = createContext<Repositories | null>(null);

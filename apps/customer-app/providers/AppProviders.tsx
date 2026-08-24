@@ -8,6 +8,7 @@ import {
   XanoWalletRepository,
   XanoReferenceDataRepository,
   XanoKycRepository,
+  XanoPaymentsRepository,
 } from "@rapex/api-client";
 import { ThemeProvider, ToastProvider } from "@rapex/ui-native";
 import {
@@ -40,6 +41,9 @@ const repositories = {
   // location cascading picker, Culture/Community list, KYC upload+submit.
   referenceData: new XanoReferenceDataRepository(rapexSuperAppHttpClient, rapexCoreHttpClient),
   kyc: new XanoKycRepository(rapexSuperAppHttpClient, rapexAuthHttpClient),
+  // Not wired to a real Xano endpoint yet -- delegates to Mock internally.
+  // See XanoPaymentsRepository's doc comment for the exact contract needed.
+  payments: new XanoPaymentsRepository(),
 };
 
 /**

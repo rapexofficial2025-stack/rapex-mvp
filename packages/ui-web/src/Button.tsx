@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import { useState, type ButtonHTMLAttributes } from "react";
 import { useTheme } from "./useTheme";
 
 export type ButtonVariant = "primary" | "secondary" | "outline" | "danger";
@@ -14,6 +14,8 @@ export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "style">
 export function Button({ label, variant = "primary", size = "md", loading, disabled, ...buttonProps }: ButtonProps) {
   const theme = useTheme();
   const isDisabled = disabled || loading;
+  const [pressed, setPressed] = useState(false);
+  const release = () => setPressed(false);
 
   const backgroundColor: Record<ButtonVariant, string> = {
     primary: theme.colors.brandPrimary,
@@ -41,10 +43,27 @@ export function Button({ label, variant = "primary", size = "md", loading, disab
     lg: theme.typography.fontSize.lg,
   };
 
+  // Floating look per founder instruction (2026-08-20): every button gets a
+  // drop shadow, strongest on the main/primary category, lighter on
+  // secondary/danger, and none on outline (a bordered, flat control by
+  // design -- a shadow there would fight its own "flat" affordance).
+  const boxShadow: Record<ButtonVariant, string> = {
+    primary: "0 6px 16px rgba(0, 0, 0, 0.22)",
+    secondary: "0 3px 10px rgba(0, 0, 0, 0.12)",
+    outline: "none",
+    danger: "0 4px 12px rgba(0, 0, 0, 0.18)",
+  };
+
   return (
     <button
       type="button"
       disabled={isDisabled}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={release}
+      onMouseLeave={release}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={release}
+      onTouchCancel={release}
       style={{
         backgroundColor: backgroundColor[variant],
         color: color[variant],
@@ -56,6 +75,11 @@ export function Button({ label, variant = "primary", size = "md", loading, disab
         fontFamily: "inherit",
         cursor: isDisabled ? "not-allowed" : "pointer",
         opacity: isDisabled ? 0.5 : 1,
+        boxShadow: isDisabled ? "none" : boxShadow[variant],
+        // Press feedback per founder reference (docs/design/button-reference.md):
+        // scales down on press so the interaction is visible, springs back on release.
+        transform: pressed && !isDisabled ? "scale(0.9)" : "scale(1)",
+        transition: "transform 100ms ease",
       }}
       {...buttonProps}
     >

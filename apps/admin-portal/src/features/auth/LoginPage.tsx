@@ -1,7 +1,9 @@
-import { useState, type CSSProperties } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, type CSSProperties } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ErrorState } from "@rapex/ui-web";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import { signInWithGoogle } from "../../services/socialAuth";
+import { recordAdminLogin } from "../../services/sessionAudit";
 
 const BACKGROUND = new URL("../../../../../assets/brand/Background/admin-login.png", import.meta.url).href;
 const LOGO = new URL("../../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
@@ -22,21 +24,61 @@ const GOOGLE_ICON = new URL("../../../../../assets/brand/icons/google-logo-icon.
  */
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { auth } = useRepositories();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(
+    searchParams.get("idle") === "1" ? "You were signed out after a period of inactivity. Please sign in again." : null,
+  );
+  const [googleLoading, setGoogleLoading] = useState(false);
+  // The desktop layout below uses absolute % positioning tuned for wide
+  // viewports -- on a narrow phone screen those percentages collapse the
+  // two columns into an overlapping, unreadable mess. Below this breakpoint
+  // the left branding column is dropped and the login card becomes a
+  // simple centered, self-sizing panel instead.
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 768);
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
+
+  async function handleGoogleSignIn() {
+    setNotice(null);
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      // Firebase identity confirmed -- exchanging it for a real RAPEX admin
+      // session needs Xano's confirmed admin auth contract, not built yet.
+      setNotice(`Signed in as ${result.user.email} with Google. Linking this to a RAPEX admin session isn't wired up yet -- use email/password sign-in for now.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Google sign-in failed.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
 
   return (
     <div style={styles.page}>
-      <div style={styles.leftPanel}>
-        <img src={LOGO} alt="" style={{ width: 48, height: "auto" }} />
-        <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 150, height: "auto", marginTop: 4 }} />
-      </div>
+      {!isMobile && (
+        <div style={styles.leftPanel}>
+          <img src={LOGO} alt="" style={{ width: 48, height: "auto" }} />
+          <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 150, height: "auto", marginTop: 4 }} />
+        </div>
+      )}
 
-      <div style={styles.rightPanel}>
+      <div style={isMobile ? styles.rightPanelMobile : styles.rightPanel}>
+        {isMobile && (
+          <div style={styles.mobileBrandRow}>
+            <img src={LOGO} alt="" style={{ width: 32, height: "auto" }} />
+            <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 108, height: "auto" }} />
+          </div>
+        )}
         <div>
           <div style={styles.eyebrow}>RAPEX COMMAND CENTER</div>
           <div style={styles.title}>Admin Login</div>
@@ -98,6 +140,7 @@ export function LoginPage() {
           onClick={async () => {
             try {
               await login.execute({ email, password });
+              recordAdminLogin();
               navigate("/admin/dashboard", { replace: true });
             } catch {
               // The Xano error is rendered above. Never open an admin portal
@@ -118,10 +161,11 @@ export function LoginPage() {
           <button
             type="button"
             style={styles.socialButton}
-            onClick={() => setNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
+            disabled={googleLoading}
+            onClick={handleGoogleSignIn}
           >
             <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
-            Google
+            {googleLoading ? "Signing in…" : "Google"}
           </button>
         </div>
         {notice ? <p style={styles.notice}>{notice}</p> : null}
@@ -144,6 +188,12 @@ const styles: Record<string, CSSProperties> = {
     backgroundSize: "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
+    // Pins the background to the viewport so it never shifts/reveals a gap
+    // when the page is resized, scrolled, or the browser is zoomed --
+    // browsers don't let a page block zoom itself (Ctrl+scroll/pinch stay
+    // available on purpose, an accessibility protection), but the
+    // background staying correctly framed regardless is what this fixes.
+    backgroundAttachment: "fixed",
     backgroundColor: "#0B0713",
     fontFamily: "inherit",
   },
@@ -173,6 +223,27 @@ const styles: Record<string, CSSProperties> = {
     boxShadow: "inset 1px 1px 0 rgba(255,255,255,.18), 0 18px 48px rgba(3,1,15,.35), 0 0 28px rgba(157,92,255,.18)",
     backdropFilter: "blur(18px)",
   },
+  rightPanelMobile: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "88%",
+    maxWidth: 420,
+    maxHeight: "92vh",
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    gap: 14,
+    padding: "26px 20px",
+    borderRadius: 20,
+    border: "1px solid rgba(232, 210, 255, 0.34)",
+    background: "linear-gradient(135deg, rgba(24, 19, 52, 0.82), rgba(84, 49, 88, 0.5))",
+    boxShadow: "inset 1px 1px 0 rgba(255,255,255,.18), 0 18px 48px rgba(3,1,15,.35), 0 0 28px rgba(157,92,255,.18)",
+    backdropFilter: "blur(18px)",
+  },
+  mobileBrandRow: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, marginBottom: 4 },
   eyebrow: { fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: "#d7bdff" },
   title: { fontSize: 30, fontWeight: 750, letterSpacing: -0.6, color: "#FFFFFF", marginTop: 6 },
   subtitle: { fontSize: 14, color: "rgba(255,255,255,0.7)", marginTop: 4 },

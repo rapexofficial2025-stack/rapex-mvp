@@ -41,12 +41,39 @@ export function MerchantInfoCard({ merchant, onClose }: MerchantInfoCardProps) {
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <div style={{ fontSize: theme.typography.fontSize.lg, fontWeight: 700, color: theme.colors.textPrimary }}>
-            {merchant.storeName}
-          </div>
-          <div style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>
-            {merchant.merchantName} · {merchant.merchantId}
+        <div style={{ display: "flex", gap: theme.spacing.sm, alignItems: "center" }}>
+          {merchant.logoUrl ? (
+            <img
+              src={merchant.logoUrl}
+              alt=""
+              style={{ width: 44, height: 44, borderRadius: theme.radius.sm, objectFit: "cover", border: `1px solid ${theme.colors.border}` }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: theme.radius.sm,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: theme.colors.surfaceAlt,
+                border: `1px solid ${theme.colors.border}`,
+                fontSize: theme.typography.fontSize.lg,
+                fontWeight: 700,
+                color: theme.colors.textSecondary,
+              }}
+            >
+              {merchant.storeName.charAt(0)}
+            </div>
+          )}
+          <div>
+            <div style={{ fontSize: theme.typography.fontSize.lg, fontWeight: 700, color: theme.colors.textPrimary }}>
+              {merchant.storeName}
+            </div>
+            <div style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>
+              {merchant.merchantName} · {merchant.merchantId}
+            </div>
           </div>
         </div>
         <button
@@ -81,6 +108,8 @@ export function MerchantInfoCard({ merchant, onClose }: MerchantInfoCardProps) {
         </span>
       </div>
 
+      <Field label="Mobile Number" value={merchant.phone} />
+      <Field label="Current Location" value={`${merchant.barangay}, ${merchant.municipality}`} />
       <Field label="Category" value={merchant.category} />
       <Field label="Open Hours" value={merchant.openHours} />
       <Field label="Today's Orders" value={merchant.ordersToday} />
@@ -96,7 +125,6 @@ export function MerchantInfoCard({ merchant, onClose }: MerchantInfoCardProps) {
       <Field label="Commission Today" value={formatPeso(merchant.commissionToday)} />
       <Field label="Voucher Campaign" value={merchant.currentVoucherCampaign ?? "None"} />
       <Field label="Online Staff" value={merchant.onlineStaffCount} />
-      <Field label="Assigned Barangay" value={merchant.barangay} />
       <Field label="Last Activity" value={merchant.lastActivity} />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: theme.spacing.xs, marginTop: theme.spacing.sm }}>

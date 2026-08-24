@@ -17,7 +17,15 @@ export function MerchantAuthShell({
   return (
     <main
       className="merchant-auth"
-      style={{ backgroundImage: "linear-gradient(115deg, rgba(5, 5, 13, 0.82), rgba(14, 8, 25, 0.55)), url(" + BACKGROUND + ")" }}
+      style={{
+        backgroundImage: "linear-gradient(115deg, rgba(5, 5, 13, 0.82), rgba(14, 8, 25, 0.55)), url(" + BACKGROUND + ")",
+        // Pins the background to the viewport so it never shifts/reveals a
+        // gap when the page is resized, scrolled, or the browser is zoomed
+        // -- browsers don't let a page block zoom itself (Ctrl+scroll/pinch
+        // stay available on purpose, an accessibility protection), but the
+        // background staying correctly framed regardless is what this fixes.
+        backgroundAttachment: "fixed",
+      }}
     >
       <section className="merchant-auth__frame" aria-label="RAPEX Merchant authentication">
         <div className="merchant-auth__story">

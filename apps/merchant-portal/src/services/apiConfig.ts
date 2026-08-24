@@ -37,3 +37,13 @@ export const rapexMasterDataHttpClient = createRapexHttpClient({
   appId: "merchant",
   tokenStorage: webTokenStorage,
 });
+
+/** Real Xano `super_app` group -- confirmed live 2026-08-14 handover. Backs the generic asset upload (ID front/back, selfie, profile photo) used during onboarding. */
+const SUPER_APP_API_BASE_URL =
+  import.meta.env.VITE_SUPER_APP_API_BASE_URL ?? "https://x8ki-letl-twmt.n7.xano.io/api:super_app";
+
+export const rapexSuperAppHttpClient = createRapexHttpClient({
+  baseUrl: SUPER_APP_API_BASE_URL,
+  appId: "merchant",
+  tokenStorage: webTokenStorage,
+});

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { RepositoryProvider, createMockRepositories } from "@rapex/api-client";
-import { ThemeProvider } from "@rapex/ui-native";
+import { ThemeProvider, ToastProvider } from "@rapex/ui-native";
 
 type AppProvidersProps = {
   children: ReactNode;
@@ -27,7 +27,9 @@ export function AppProviders({ children }: AppProvidersProps) {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <RepositoryProvider repositories={repositories}>{children}</RepositoryProvider>
+        <ToastProvider>
+          <RepositoryProvider repositories={repositories}>{children}</RepositoryProvider>
+        </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

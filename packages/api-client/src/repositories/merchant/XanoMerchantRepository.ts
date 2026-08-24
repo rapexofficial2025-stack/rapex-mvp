@@ -2,6 +2,8 @@ import type { HttpClient } from "../../core/httpClient";
 import { MockMerchantRepository } from "./MockMerchantRepository";
 import type {
   AddDraftProductInput,
+  CompleteMerchantOnboardingInput,
+  CompleteMerchantOnboardingResult,
   CreateExpansionRequestInput,
   CreateProductInput,
   CreateStoreInput,
@@ -13,12 +15,14 @@ import type {
   UpdateVariantInput,
 } from "./MerchantRepository";
 import type {
+  CreateVoucherInput,
   MerchantAccount,
   MerchantOrder,
   MerchantOrderFinancials,
   MerchantProduct,
   MerchantRegistrationDraft,
   MerchantStore,
+  MerchantVoucher,
   NearbyRider,
   ProductImportResult,
   ProductImportRow,
@@ -51,9 +55,61 @@ const DEFAULT_LONGITUDE = 120.936;
 export class XanoMerchantRepository implements MerchantRepository {
   private readonly fallback = new MockMerchantRepository();
   private readonly client: HttpClient;
+  /** rapex-auth group client -- completeOnboarding lives there, not admin-master-data (see its own doc comment). */
+  private readonly authClient: HttpClient;
 
-  constructor(client: HttpClient) {
+  constructor(client: HttpClient, authClient: HttpClient) {
     this.client = client;
+    this.authClient = authClient;
+  }
+
+  /**
+   * POST /rapex-auth/merchant/complete-onboarding (Bearer, 2026-08-21 Xano
+   * build) -- single atomic transaction: verifies the shared OTP code,
+   * links the already-uploaded KYC assets (see KycRepository.uploadAsset,
+   * same generic /super_app/assets/upload as everywhere else), creates the
+   * Merchant profile + Main Store, and returns UNDER_REVIEW with an
+   * application ID. Not independently confirmed against a live response
+   * yet -- response field names below match what was described when this
+   * endpoint was built, not yet tested end-to-end.
+   */
+  async completeOnboarding(input: CompleteMerchantOnboardingInput): Promise<CompleteMerchantOnboardingResult> {
+    const result = await this.authClient.request<{
+      success?: boolean;
+      status?: string;
+      application_id?: string;
+      message?: string;
+      onboarding?: { merchant_code?: string; store_code?: string };
+    }>({
+      path: "/merchant/complete-onboarding",
+      method: "POST",
+      body: {
+        otp_code: input.otpCode,
+        id_type: input.idType,
+        id_front: input.idFrontAssetId,
+        id_back: input.idBackAssetId,
+        selfie_with_id: input.selfieAssetId,
+        store_name: input.storeName,
+        store_contact: input.storeContact,
+        store_category: input.storeCategory,
+        store_subcategory: input.storeSubcategory,
+        store_description: input.storeDescription,
+        store_province: input.storeProvince,
+        store_city: input.storeCity,
+        store_barangay: input.storeBarangay,
+        store_address: input.storeAddress,
+        opening_time: input.openingTime,
+        closing_time: input.closingTime,
+      },
+    });
+
+    return {
+      status: result?.status ?? "UNDER_REVIEW",
+      applicationId: result?.application_id ?? result?.onboarding?.merchant_code ?? "",
+      merchantCode: result?.onboarding?.merchant_code ?? "",
+      storeCode: result?.onboarding?.store_code ?? "",
+      message: result?.message ?? "",
+    };
   }
 
   async createStore(input: CreateStoreInput): Promise<MerchantStore> {
@@ -97,7 +153,7 @@ export class XanoMerchantRepository implements MerchantRepository {
         name: input.name,
         price: input.price,
         store_id: storeId,
-        stock: 0,
+        stock: input.stock ?? 0,
       },
     });
 
@@ -108,7 +164,7 @@ export class XanoMerchantRepository implements MerchantRepository {
       price: Number(raw.price ?? input.price),
       imageLabel: "🛍️",
       productCategory: input.productCategory,
-      stock: Number(raw.stock ?? 0),
+      stock: Number(raw.stock ?? input.stock ?? 0),
       isActive: true,
       variantCount: 0,
     };
@@ -199,5 +255,14 @@ export class XanoMerchantRepository implements MerchantRepository {
   }
   getOrderFinancials(storeId: string): Promise<MerchantOrderFinancials[]> {
     return this.fallback.getOrderFinancials(storeId);
+  }
+  getMyVouchers(storeId: string): Promise<MerchantVoucher[]> {
+    return this.fallback.getMyVouchers(storeId);
+  }
+  createVoucher(storeId: string, input: CreateVoucherInput): Promise<MerchantVoucher> {
+    return this.fallback.createVoucher(storeId, input);
+  }
+  deactivateVoucher(voucherId: string): Promise<MerchantVoucher> {
+    return this.fallback.deactivateVoucher(voucherId);
   }
 }

@@ -1,5 +1,5 @@
 import type { HttpClient } from "../../core/httpClient";
-import type { KycRepository, SubmitKycInput, SubmitKycResult } from "./KycRepository";
+import type { AssetUploadInput, KycRepository, SubmitKycInput, SubmitKycResult } from "./KycRepository";
 
 /**
  * Real Xano-backed KycRepository (2026-08-14 handover). Two Xano groups:
@@ -24,15 +24,18 @@ export class XanoKycRepository implements KycRepository {
     this.authClient = authClient;
   }
 
-  async uploadAsset(input: { uri: string; fileName: string; mimeType: string }): Promise<string> {
+  async uploadAsset(input: AssetUploadInput): Promise<string> {
     const formData = new FormData();
-    // React Native's fetch/FormData accepts this {uri, name, type} shape
-    // directly for a local file URI -- not a real Blob/File, this is the
-    // standard RN pattern.
-    formData.append(
-      "file",
-      { uri: input.uri, name: input.fileName, type: input.mimeType } as unknown as Blob,
-    );
+    if (typeof File !== "undefined" && input instanceof File) {
+      // Browser <input type="file"> gives a real File -- standard web FormData usage.
+      formData.append("file", input, input.name);
+    } else {
+      // React Native's fetch/FormData accepts this {uri, name, type} shape
+      // directly for a local file URI -- not a real Blob/File, this is the
+      // standard RN pattern.
+      const rn = input as { uri: string; fileName: string; mimeType: string };
+      formData.append("file", { uri: rn.uri, name: rn.fileName, type: rn.mimeType } as unknown as Blob);
+    }
 
     const result = await this.superAppClient.request<{ asset_id?: string | number; id?: string | number }>({
       path: "/assets/upload",

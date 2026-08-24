@@ -1,8 +1,11 @@
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useRepositories } from "@rapex/api-client";
 import { OperationsRail } from "./OperationsRail";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminTopbar } from "./AdminTopbar";
+import { IdleSessionGuard } from "../shared/IdleSessionGuard";
+import { recordAdminLogout } from "../services/sessionAudit";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", path: "/admin/dashboard" },
@@ -30,6 +33,7 @@ const NAV_ITEMS = [
   { key: "integrations", label: "Integrations", path: "/admin/integrations" },
   { key: "errors", label: "Error Center", path: "/admin/errors" },
   { key: "settings", label: "Operational Settings", path: "/admin/settings" },
+  { key: "profile", label: "My Profile", path: "/admin/profile" },
   { key: "super-admin", label: "Security Access", path: "/admin/super-admin" },
   { key: "super-admin-admins", label: "Admin Accounts", path: "/admin/super-admin/admins" },
   { key: "super-admin-users", label: "Users & Roles", path: "/admin/super-admin/users" },
@@ -47,23 +51,49 @@ export function PortalLayout() {
   const { auth } = useRepositories();
   const isPreview = location.pathname.startsWith("/admin/preview");
 
+  // The sidebar/rail shell below assumes a wide desktop viewport (a fixed
+  // 252px nav column + a right-hand OperationsRail). On a phone that leaves
+  // almost no room for actual content, so below this breakpoint the sidebar
+  // becomes a slide-in drawer (closed by default, toggled by the topbar's
+  // menu button) and the OperationsRail is dropped entirely.
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 900);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 900);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
+
   const routeFor = (path: string) => (isPreview ? path.replace("/admin/", "/admin/preview/") : path);
   const activeItem = NAV_ITEMS.find((item) => location.pathname.startsWith(routeFor(item.path)));
 
   return (
     <div className="rapex-admin-shell" style={{ display: "flex", minHeight: "100vh" }}>
-      <AdminSidebar items={NAV_ITEMS} activeKey={activeItem?.key} onNavigate={(path) => navigate(routeFor(path))} onLogout={async () => {
+      <AdminSidebar
+        items={NAV_ITEMS}
+        activeKey={activeItem?.key}
+        onNavigate={(path) => navigate(routeFor(path))}
+        isMobile={isMobile}
+        mobileOpen={mobileNavOpen}
+        onCloseMobile={() => setMobileNavOpen(false)}
+        onLogout={async () => {
+              if (!isPreview) recordAdminLogout("user_manual");
               await auth.logout();
               navigate("/admin/login", { replace: true });
             }} />
       <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
         <div className="rapex-admin-workspace" style={{ flex: 1, minWidth: 0 }}>
-        <AdminTopbar />
+        <AdminTopbar isMobile={isMobile} onMenuClick={() => setMobileNavOpen(true)} />
         <main key={location.pathname} className="rapex-route-transition">
-          <Outlet />
+          {isPreview ? <Outlet /> : <IdleSessionGuard><Outlet /></IdleSessionGuard>}
         </main>
         </div>
-        <OperationsRail />
+        {!isMobile && <OperationsRail />}
       </div>
     </div>
   );

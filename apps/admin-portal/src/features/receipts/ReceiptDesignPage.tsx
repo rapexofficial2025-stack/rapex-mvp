@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@rapex/ui-web";
+import { Badge, Button, useBluetoothPrinter } from "@rapex/ui-web";
 
 const LAYERS = ["RAPEX logo", "Merchant legal name", "Order / receipt reference", "VAT or non-VAT line", "Commission disclosure", "Masked bank details", "QR verification", "Audit footer"];
 
@@ -8,6 +8,16 @@ export function ReceiptDesignPage() {
   const [layers, setLayers] = useState(() => new Set(LAYERS));
   const [notice, setNotice] = useState<string | null>(null);
   const toggle = (layer: string) => setLayers((current) => { const next = new Set(current); if (next.has(layer)) next.delete(layer); else next.add(layer); return next; });
+  const printer = useBluetoothPrinter();
+  const testPrint = () =>
+    printer.print({
+      storeName: "RAPEX Marketplace",
+      subtitle: "Template test print",
+      reference: "TEMPLATE-PREVIEW",
+      lines: [...layers].map((layer) => ({ label: layer, value: "✓" })),
+      total: `${layers.size} layers`,
+      footer: "Design preview only -- not a legal receipt",
+    });
   return <div className="ecosystem-page">
     <header className="ecosystem-page-header"><div><span className="ecosystem-eyebrow">SUPER ADMIN · RECEIPT DESIGN</span><h1>Receipt template controls</h1><p>Configure an approved document layout without exposing bank account numbers, passwords, or raw payment secrets in the frontend.</p></div><span className="ecosystem-contract-badge">Super Admin policy required</span></header>
     <section className="receipt-layout-grid">
@@ -20,7 +30,23 @@ export function ReceiptDesignPage() {
         <p>Logo uploads, tax registration data, bank details, receipt numbering, and QR payloads must be provided only by authorized backend endpoints.</p>
         <Button label="Review save contract" type="submit" />
       </form>
-      <section className="receipt-settings-card"><h2>Visible layers</h2><p>Select the parts that a server-issued document may display. Every change must create a versioned audit record.</p><div className="receipt-layer-list">{LAYERS.map((layer) => <label key={layer}><input type="checkbox" checked={layers.has(layer)} onChange={() => toggle(layer)} />{layer}</label>)}</div><div className="receipt-mini-preview"><span>RAPEX</span><strong>Official receipt layout preview</strong><small>{layers.size} approved visual layers selected locally</small></div></section>
+      <section className="receipt-settings-card"><h2>Visible layers</h2><p>Select the parts that a server-issued document may display. Every change must create a versioned audit record.</p><div className="receipt-layer-list">{LAYERS.map((layer) => <label key={layer}><input type="checkbox" checked={layers.has(layer)} onChange={() => toggle(layer)} />{layer}</label>)}</div><div className="receipt-mini-preview"><span>RAPEX</span><strong>Official receipt layout preview</strong><small>{layers.size} approved visual layers selected locally</small></div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginTop: 12 }}>
+          {printer.connected ? (
+            <Button label={printer.printing ? "Printing…" : "Test print via Bluetooth"} onClick={testPrint} disabled={printer.printing} />
+          ) : (
+            <Button label={printer.connecting ? "Connecting…" : "Connect Bluetooth Printer"} variant="secondary" onClick={printer.connect} disabled={!printer.supported || printer.connecting} />
+          )}
+          {!printer.supported ? (
+            <Badge label="Needs Chrome or Edge (desktop or Android)" tone="neutral" />
+          ) : printer.connected ? (
+            <Badge label={`Connected: ${printer.deviceName ?? "Bluetooth printer"}`} tone="success" />
+          ) : (
+            <Badge label="No printer connected" tone="neutral" />
+          )}
+          {printer.error ? <Badge label={printer.error} tone="error" /> : null}
+        </div>
+      </section>
     </section>
     {notice ? <section className="ecosystem-contract-panel"><div><span>NO WRITE PERFORMED</span><h2>Receipt design contract</h2><p>{notice}</p></div><dl><div><dt>ACCESS</dt><dd>Super Admin only; never client-side PIN alone</dd></div><div><dt>SAVE</dt><dd>Versioned template with activation window</dd></div><div><dt>ISSUE</dt><dd>Server assigns legal number, QR payload and tax data</dd></div><div><dt>AUDIT</dt><dd>Record editor, previous version and effective time</dd></div></dl><button type="button" onClick={() => setNotice(null)}>Close</button></section> : null}
   </div>;

@@ -1,16 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { createBottomTabNavigator, type BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Home, Package, Power, User, Wallet as WalletIcon } from "lucide-react-native";
 import { useAsyncAction, useRepositories, useRiderProfile } from "@rapex/api-client";
+import { FlashCardIntro } from "@rapex/ui-native";
 import type { MainTabParamList } from "../types/navigation";
 import { HomeScreen } from "../screens/HomeScreen";
 import { EarningsScreen } from "../screens/EarningsScreen";
 import { WalletScreen } from "../screens/WalletScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 import { addNotificationResponseListener, registerForPushNotificationsAsync } from "../services/notifications";
+import { consumePreviewIntro } from "../services/previewIntro";
+import { FLASHCARD_INTRO_IMAGES } from "../services/flashcardAssets";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -112,13 +115,21 @@ export function MainTabNavigator() {
     });
   }, []);
 
+  // Set once by LoginScreen's "Preview App" button -- read exactly once
+  // here (MainTabNavigator remounts fresh each time Login replaces into
+  // MainTabs), never re-triggered by normal tab navigation afterward.
+  const [showFlashIntro, setShowFlashIntro] = useState(() => consumePreviewIntro());
+
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <CustomTabBar {...props} />}>
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Earnings" component={EarningsScreen} />
-      <Tab.Screen name="Wallet" component={WalletScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-    </Tab.Navigator>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <CustomTabBar {...props} />}>
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Earnings" component={EarningsScreen} />
+        <Tab.Screen name="Wallet" component={WalletScreen} />
+        <Tab.Screen name="Profile" component={ProfileScreen} />
+      </Tab.Navigator>
+      {showFlashIntro ? <FlashCardIntro images={FLASHCARD_INTRO_IMAGES} onFinish={() => setShowFlashIntro(false)} /> : null}
+    </View>
   );
 }
 

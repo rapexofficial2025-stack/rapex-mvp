@@ -60,11 +60,11 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1 },
   brandSection: { flex: 2, alignItems: "center", justifyContent: "center" },
-  logo: { width: 110, height: 110 },
+  logo: { width: 310, height: 310 },
   wordmark: { width: 230, height: 55, marginTop: 10 },
   loginSection: { flex: 3 },
   glassCard: {
-    width: "90%",
+    width: "100%",
     alignSelf: "center",
     borderRadius: 28,
     borderWidth: 1,

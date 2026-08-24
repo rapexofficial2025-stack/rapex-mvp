@@ -1,4 +1,4 @@
-import type { AuthMeResponse, AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
+import type { AuthMeResponse, AuthRepository, GoogleProfileInput, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 const MOCK_DELAY_MS = 400;
@@ -42,7 +42,7 @@ export class MockAuthRepository implements AuthRepository {
     return delay({ user, token: "mock-token" });
   }
 
-  async loginWithGoogle(_idToken: string): Promise<AuthSession> {
+  async loginWithGoogle(_profile: GoogleProfileInput): Promise<AuthSession> {
     currentUser = MOCK_USER;
     return delay({ user: MOCK_USER, token: "mock-google-token" });
   }

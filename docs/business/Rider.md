@@ -10,6 +10,23 @@ Drafted. Frozen once reconciled against the real Xano workspace field-for-field,
 - Password reset re-uses the OTP flow against the registered email.
 - A rider's `AuthUser` never grants marketplace/merchant scopes — role is enforced server-side, not just client-side routing.
 
+### 1a. Registration flow (2026-08-20 update — received, not independently verified)
+From the same GPT-authored auth-flow reconciliation as `Authentication.md`. 6-step registration:
+1. **Create Rider Account** — First Name, Last Name, Email, Mobile Number, Password, Confirm Password.
+2. **Verify** — Email OTP, Mobile OTP.
+3. **Basic Rider Information** — Birthday, Gender, Profile Photo, Residential Address.
+4. **Rider Information** — Vehicle Type, Vehicle Brand/Model, Plate Number (if applicable), Driver License (if applicable), Vehicle Photo.
+5. **Identity Verification** — ID Type, ID Number, ID Front, ID Back, Selfie with ID.
+6. **Submit.**
+
+Status chain:
+```
+REGISTERED → EMAIL_VERIFIED → MOBILE_VERIFIED → IDENTITY_SUBMITTED →
+RIDER_REVIEW → APPROVED → ACTIVE
+```
+Only `APPROVED` + `ACTIVE` riders can receive delivery assignments —
+consistent with the existing eligibility rule in §3 below.
+
 ## 2. Rider Profile
 Fields: profile photo, full name, birthday, age (derived, not stored, from birthday), phone, email, address, barangay, municipality, province, vehicle type, plate number, driver's license, valid ID, selfie holding ID.
 

@@ -11,6 +11,9 @@ import { StorePage } from "./features/store/StorePage";
 import { CapabilityCenterPage } from "./features/capabilities/CapabilityCenterPage";
 import { ListingTypeSelectorPage } from "./features/listings/ListingTypeSelectorPage";
 import { ReceiptHistoryPage } from "./features/receipts/ReceiptHistoryPage";
+import { MerchantWalletPage } from "./features/wallet/MerchantWalletPage";
+import { AddProductPage } from "./features/products/AddProductPage";
+import { CreateVoucherPage } from "./features/vouchers/CreateVoucherPage";
 
 // GitHub Pages staging serves this app from a /<repo>/ or /<repo>/merchant/
 // subpath via VITE_BASE_PATH -- see vite.config.ts. Unlike admin-portal,
@@ -28,15 +31,16 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/xano-test" element={<XanoLiveTestPage />} />
-        {import.meta.env.DEV ? (
-          <Route path="/portal/preview" element={<PortalLayout previewMode />}>
-            <Route index element={<Navigate to="/portal/preview/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage previewMode />} />
-            <Route path="capabilities" element={<CapabilityCenterPage previewMode />} />
-            <Route path="listings/new" element={<ListingTypeSelectorPage previewMode />} />
-            <Route path="receipts" element={<ReceiptHistoryPage />} />
-          </Route>
-        ) : null}
+        <Route path="/portal/preview" element={<PortalLayout previewMode />}>
+          <Route index element={<Navigate to="/portal/preview/dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage previewMode />} />
+          <Route path="capabilities" element={<CapabilityCenterPage previewMode />} />
+          <Route path="listings/new" element={<ListingTypeSelectorPage previewMode />} />
+          <Route path="receipts" element={<ReceiptHistoryPage />} />
+          <Route path="wallet" element={<MerchantWalletPage />} />
+          <Route path="products/add" element={<AddProductPage />} />
+          <Route path="vouchers" element={<CreateVoucherPage />} />
+        </Route>
         <Route
           path="/portal"
           element={
@@ -52,6 +56,9 @@ function App() {
           <Route path="capabilities" element={<CapabilityCenterPage />} />
           <Route path="listings/new" element={<ListingTypeSelectorPage />} />
           <Route path="receipts" element={<ReceiptHistoryPage />} />
+          <Route path="wallet" element={<MerchantWalletPage />} />
+          <Route path="products/add" element={<AddProductPage />} />
+          <Route path="vouchers" element={<CreateVoucherPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

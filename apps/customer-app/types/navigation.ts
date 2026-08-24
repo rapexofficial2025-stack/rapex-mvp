@@ -2,10 +2,10 @@ import type { NavigatorScreenParams } from "@react-navigation/native";
 
 export type MainTabParamList = {
   Home: undefined;
-  Marketplace: { categoryId?: string } | undefined;
   Wishlist: undefined;
-  Orders: undefined;
-  Earn: undefined;
+  Marketplace: { categoryId?: string } | undefined;
+  Services: undefined;
+  Profile: undefined;
 };
 
 export type RootStackParamList = {
@@ -32,6 +32,10 @@ export type RootStackParamList = {
   Address: { fromRegistration?: boolean } | undefined;
   Wallet: undefined;
   Profile: undefined;
+  Orders: undefined;
+  OrderTracking: { orderId: string };
+  PaymentCheckout: { referenceId: string; method: "gcash" | "qrph"; orderId: string };
+  Earn: undefined;
   ChildAccounts: undefined;
   ChildBasicInfo: undefined;
   ChildAddress: undefined;

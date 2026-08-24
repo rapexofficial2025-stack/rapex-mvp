@@ -11,9 +11,9 @@ type NavGroup = { key: string; label: string; items: NavItem[] };
 const NAV_GROUPS: NavGroup[] = [
   { key: "overview", label: "Overview", items: [{ key: "dashboard", label: "Dashboard", path: "/portal/dashboard" }] },
   { key: "stores", label: "Store Management", items: [{ key: "stores", label: "My Stores", path: "/portal/store" }, { key: "branches", label: "Branches", stage: "Next module" }] },
-  { key: "catalog", label: "Listings", items: [{ key: "create-listing", label: "Create Listing", path: "/portal/listings/new" }, { key: "products", label: "Products", stage: "Product module" }, { key: "services", label: "Services", stage: "Capability required" }, { key: "auction", label: "Auction", stage: "Capability required" }, { key: "pre-loved", label: "Pre-Loved", stage: "Contract required" }, { key: "inventory", label: "Inventory", stage: "Inventory module" }] },
+  { key: "catalog", label: "Listings", items: [{ key: "create-listing", label: "Create Listing", path: "/portal/listings/new" }, { key: "products", label: "Add Product", path: "/portal/products/add" }, { key: "services", label: "Services", stage: "Capability required" }, { key: "auction", label: "Auction", stage: "Capability required" }, { key: "pre-loved", label: "Pre-Loved", stage: "Contract required" }, { key: "inventory", label: "Inventory", stage: "Inventory module" }] },
   { key: "operations", label: "Operations", items: [{ key: "orders", label: "Orders", path: "/portal/orders" }, { key: "receipts", label: "Receipt History", path: "/portal/receipts" }, { key: "delivery", label: "Delivery", stage: "Planned" }] },
-  { key: "finance", label: "Finance & Growth", items: [{ key: "financials", label: "Financials", stage: "Planned" }, { key: "marketing", label: "Marketing", stage: "Planned" }, { key: "analytics", label: "Analytics", stage: "Planned" }] },
+  { key: "finance", label: "Finance & Growth", items: [{ key: "wallet", label: "Wallet", path: "/portal/wallet" }, { key: "vouchers", label: "Vouchers", path: "/portal/vouchers" }, { key: "financials", label: "Financials", stage: "Planned" }, { key: "marketing", label: "Marketing", stage: "Planned" }, { key: "analytics", label: "Analytics", stage: "Planned" }] },
   { key: "settings", label: "Account", items: [{ key: "capabilities", label: "My Capabilities", path: "/portal/capabilities" }, { key: "notifications", label: "Notifications", stage: "Contract required" }, { key: "profile", label: "Profile", stage: "Planned" }, { key: "support", label: "Support", stage: "Planned" }] },
 ];
 
@@ -149,7 +149,7 @@ function PortalShell({ previewMode }: { previewMode: boolean }) {
           <div className="merchant-topbar__actions">
             <button className="merchant-theme-control" type="button" onClick={toggleMode} aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}><span aria-hidden="true">{mode === "dark" ? "D" : "L"}</span><span>{mode === "dark" ? "Dark" : "Light"}</span></button>
             <button type="button" onClick={() => setNotice("Notification API contract is required before this panel can show live records.")}>Notifications</button>
-            <button type="button" onClick={() => window.print()}>Print current view</button>
+            <button className="merchant-topbar__print" type="button" onClick={() => window.print()}>Print current view</button>
             <div className="merchant-profile">
               <button type="button" onClick={() => setProfileOpen((value) => !value)} aria-expanded={profileOpen}>
                 <span>{(user?.name ?? "Merchant Preview").charAt(0)}</span>

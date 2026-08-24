@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { GoogleMap, MarkerF, useJsApiLoader } from "@react-google-maps/api";
+import { CircleF, GoogleMap, MarkerF, useJsApiLoader } from "@react-google-maps/api";
 import { MAP_MARKER_COLORS, type MapMarkerRole } from "@rapex/constants";
 
 /**
@@ -26,6 +26,15 @@ export type MapMarker = {
   label?: string;
 };
 
+/** A service-coverage / geo-fence boundary drawn as a circle on the map. */
+export type MapGeoFence = {
+  id: string;
+  center: { lat: number; lng: number };
+  radiusMeters: number;
+  label?: string;
+  color?: string;
+};
+
 export type GoogleMapViewProps = {
   apiKey: string;
   markers: MapMarker[];
@@ -33,12 +42,32 @@ export type GoogleMapViewProps = {
   zoom?: number;
   height?: number | string;
   onMarkerClick?: (marker: MapMarker) => void;
+  geoFences?: MapGeoFence[];
+  /** Applies Google's dark map style -- for ops/monitoring screens designed for a permanent night theme, independent of the app's own light/dark mode toggle. */
+  darkMode?: boolean;
 };
+
+/** Standard Google Maps "night mode" style array -- same one used across most dark-themed ops dashboards. */
+const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
+  { elementType: "geometry", stylers: [{ color: "#1a1a2e" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2e" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#8d88a8" }] },
+  { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#c9c6dc" }] },
+  { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#6b6690" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#16213e" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#2a2a4a" }] },
+  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#8d88a8" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#3a3a5e" }] },
+  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#2f2f52" }] },
+  { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2a2a4a" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#0f1226" }] },
+  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#4f4b78" }] },
+];
 
 const DEFAULT_ZOOM = 13;
 const CONTAINER_STYLE_BASE = { width: "100%" };
 
-export function GoogleMapView({ apiKey, markers, center, zoom = DEFAULT_ZOOM, height = 400, onMarkerClick }: GoogleMapViewProps) {
+export function GoogleMapView({ apiKey, markers, center, zoom = DEFAULT_ZOOM, height = 400, onMarkerClick, geoFences = [], darkMode = false }: GoogleMapViewProps) {
   const { isLoaded, loadError } = useJsApiLoader({ googleMapsApiKey: apiKey });
 
   const containerStyle = useMemo(() => ({ ...CONTAINER_STYLE_BASE, height }), [height]);
@@ -58,7 +87,27 @@ export function GoogleMapView({ apiKey, markers, center, zoom = DEFAULT_ZOOM, he
   }
 
   return (
-    <GoogleMap mapContainerStyle={containerStyle} center={resolvedCenter} zoom={zoom}>
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={resolvedCenter}
+      zoom={zoom}
+      options={darkMode ? { styles: DARK_MAP_STYLES } : undefined}
+    >
+      {geoFences.map((fence) => (
+        <CircleF
+          key={fence.id}
+          center={fence.center}
+          radius={fence.radiusMeters}
+          options={{
+            fillColor: fence.color ?? "#8B5CF6",
+            fillOpacity: 0.12,
+            strokeColor: fence.color ?? "#8B5CF6",
+            strokeOpacity: 0.7,
+            strokeWeight: 2,
+            clickable: false,
+          }}
+        />
+      ))}
       {markers.map((marker) => (
         <MarkerF
           key={marker.id}
