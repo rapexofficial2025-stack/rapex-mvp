@@ -5,7 +5,7 @@ import { ReceiptPreview, type ReceiptOrder } from "./ReceiptPreview";
 /** No receipt rows are invented. This becomes a real history only after the receipt list contract is approved. */
 export function ReceiptHistoryPage() {
   const [selected, setSelected] = useState<ReceiptOrder | null>(null);
-  return <div className="ecosystem-page">
+  return <div className="ecosystem-page merchant-receipt-history">
     <header className="ecosystem-page-header"><div><span className="ecosystem-eyebrow">OPERATIONS · RECEIPTS</span><h1>Receipt history</h1><p>Find issued order receipts, request official receipts where eligible, and print a single audit-friendly copy.</p></div><span className="ecosystem-contract-badge">Receipt API required</span></header>
     <section className="ecosystem-table-shell" aria-label="Receipt history">
       <div className="ecosystem-table-toolbar"><label><span className="sr-only">Search receipts</span><input disabled placeholder="Search activates with the receipt-history endpoint" /></label><span>No receipt records are fabricated.</span><Button label="Print current view" variant="secondary" onClick={() => window.print()} /></div>

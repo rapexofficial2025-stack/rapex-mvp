@@ -175,6 +175,40 @@ button {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
+.merchant-receipt-history {
+  max-width: 1320px !important;
+  padding: clamp(20px, 3vw, 34px) !important;
+}
+
+.merchant-receipt-history .ecosystem-page-header,
+.merchant-receipt-history .ecosystem-table-shell,
+.merchant-receipt-history .ecosystem-contract-panel {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.085), rgba(220, 242, 255, 0.03), rgba(255, 255, 255, 0.045));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.merchant-receipt-history .ecosystem-page-header {
+  padding: clamp(18px, 2.5vw, 26px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+}
+
+.merchant-receipt-history .ecosystem-table-shell,
+.merchant-receipt-history .ecosystem-contract-panel {
+  border-radius: 18px;
+}
+
+.merchant-receipt-history .ecosystem-table-toolbar {
+  min-height: 68px;
+  padding: 14px 16px;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.merchant-receipt-history .ecosystem-table__empty {
+  padding: 48px 18px;
+}
+
 @media (max-width: 760px) {
   .merchant-orders-page__header { display: grid; }
   .merchant-orders-page__source { justify-items: start; }
