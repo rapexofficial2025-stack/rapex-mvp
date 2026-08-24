@@ -34,26 +34,35 @@ export function OrdersPage() {
   const [receiptOrder, setReceiptOrder] = useState<ReceiptOrder | null>(null);
 
   return (
-    <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: theme.spacing.lg }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: theme.spacing.md }}>
+    <section className="merchant-orders-page">
+      <header className="merchant-orders-page__header">
         <div>
-          <h2 style={{ margin: 0, color: theme.colors.textPrimary }}>Orders</h2>
-          <p style={{ margin: `${theme.spacing.xs}px 0 0`, color: theme.colors.textSecondary, fontSize: theme.typography.fontSize.sm }}>
+          <span className="merchant-orders-page__eyebrow">Operations · Order workspace</span>
+          <h2>Orders</h2>
+          <p>
             Select an order to review its details and next preparation step.
           </p>
         </div>
-        <Badge label="Placeholder data — Xano order endpoint pending" tone="warning" />
-      </div>
+        <div className="merchant-orders-page__source"><Badge label="Placeholder data — Xano order endpoint pending" tone="warning" /><span>Read-only preview</span></div>
+      </header>
 
-      <DataTable
-        columns={COLUMNS}
-        rows={PLACEHOLDER_ORDERS}
-        rowKey={(order) => order.id}
-        searchPlaceholder="Search orders…"
-        searchFn={(order, query) => `${order.id} ${order.customer}`.toLowerCase().includes(query.toLowerCase())}
-        onRowClick={setSelectedOrder}
-        emptyMessage="No orders to show"
-      />
+      <section className="merchant-orders-page__summary" aria-label="Placeholder order summary">
+        <div><span>New</span><strong>1</strong><small>Requires live order list</small></div>
+        <div><span>Preparing</span><strong>1</strong><small>Preview placeholder</small></div>
+        <div><span>Ready for pickup</span><strong>1</strong><small>Preview placeholder</small></div>
+      </section>
+
+      <div className="merchant-orders-page__table">
+        <DataTable
+          columns={COLUMNS}
+          rows={PLACEHOLDER_ORDERS}
+          rowKey={(order) => order.id}
+          searchPlaceholder="Search orders…"
+          searchFn={(order, query) => `${order.id} ${order.customer}`.toLowerCase().includes(query.toLowerCase())}
+          onRowClick={setSelectedOrder}
+          emptyMessage="No orders to show"
+        />
+      </div>
 
       {selectedOrder ? (
         <Modal title={`Order ${selectedOrder.id}`} onClose={() => setSelectedOrder(null)} footer={<div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}><Button label="Preview receipt" variant="secondary" onClick={() => setReceiptOrder(selectedOrder)} /><Button label="Update order status" onClick={() => setStatusEditorOpen(true)} /></div>}>
@@ -79,7 +88,7 @@ export function OrdersPage() {
           </div>
         </Modal>
       ) : null}
-    </div>
+    </section>
   );
 }
 

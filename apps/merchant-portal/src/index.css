@@ -58,6 +58,85 @@ button {
   background-position: center;
 }
 
+.merchant-orders-page {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 34px);
+  display: grid;
+  gap: 18px;
+}
+
+.merchant-orders-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.merchant-orders-page__eyebrow {
+  color: #c7a7ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.merchant-orders-page h2 {
+  margin: 6px 0 5px;
+  color: #fff;
+  font-size: clamp(26px, 3vw, 34px);
+  letter-spacing: -0.045em;
+}
+
+.merchant-orders-page__header p {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(245, 245, 252, 0.62);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.merchant-orders-page__source {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+  color: rgba(245, 245, 252, 0.44);
+  font-size: 10px;
+}
+
+.merchant-orders-page__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.merchant-orders-page__summary > div,
+.merchant-orders-page__table {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.085), rgba(220, 242, 255, 0.03), rgba(255, 255, 255, 0.045));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.11);
+}
+
+.merchant-orders-page__summary > div {
+  min-height: 122px;
+  padding: 18px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+}
+
+.merchant-orders-page__summary span { color: rgba(245, 245, 252, 0.58); font-size: 11px; font-weight: 700; }
+.merchant-orders-page__summary strong { color: #fff; font-size: 30px; letter-spacing: -0.04em; }
+.merchant-orders-page__summary small { color: rgba(245, 245, 252, 0.4); font-size: 10px; }
+.merchant-orders-page__table { overflow: hidden; }
+
+@media (max-width: 760px) {
+  .merchant-orders-page__header { display: grid; }
+  .merchant-orders-page__source { justify-items: start; }
+  .merchant-orders-page__summary { grid-template-columns: 1fr; }
+}
+
 .merchant-auth__frame {
   width: min(1180px, 100%);
   min-height: min(760px, calc(100vh - 48px));

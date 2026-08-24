@@ -108,8 +108,9 @@ function PortalShell({ previewMode }: { previewMode: boolean }) {
                   <div className="merchant-nav-group__items">
                     {group.items.map((item) => {
                       const active = Boolean(item.path && location.pathname.startsWith(item.path));
-                      if (!item.path || (previewMode && item.key === "stores")) {
-                        return <span className="merchant-nav-item is-planned" key={item.key}><NavMark active={false} /><span>{item.label}</span><small>{previewMode && item.key === "stores" ? "Sign in" : item.stage}</small></span>;
+                      if (!item.path || (previewMode && (item.key === "stores" || item.key === "orders"))) {
+                        const previewStage = item.key === "stores" ? "Sign in" : item.key === "orders" ? "Live order data" : item.stage;
+                        return <span className="merchant-nav-item is-planned" key={item.key}><NavMark active={false} /><span>{item.label}</span><small>{previewStage}</small></span>;
                       }
                       return (
                         <button className={active ? "merchant-nav-item is-active" : "merchant-nav-item"} type="button" key={item.key} onClick={() => navigate(item.path!)}>
