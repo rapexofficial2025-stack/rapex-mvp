@@ -131,6 +131,50 @@ button {
 .merchant-orders-page__summary small { color: rgba(245, 245, 252, 0.4); font-size: 10px; }
 .merchant-orders-page__table { overflow: hidden; }
 
+.merchant-product-page {
+  max-width: 620px !important;
+  padding: clamp(20px, 3vw, 34px) !important;
+  gap: 18px !important;
+}
+
+.merchant-product-page__header {
+  display: grid;
+  gap: 7px;
+}
+
+.merchant-product-page__eyebrow {
+  color: #c7a7ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.merchant-product-page__header h1 {
+  letter-spacing: -0.045em;
+}
+
+.merchant-product-page__header p {
+  max-width: 540px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.merchant-product-page__card {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(220, 242, 255, 0.035), rgba(255, 255, 255, 0.055)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 18px 42px rgba(5, 4, 20, 0.16);
+}
+
+.merchant-product-page__section-title {
+  letter-spacing: -0.025em;
+}
+
+.merchant-product-page__product-list > div {
+  background: rgba(255, 255, 255, 0.055) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
 @media (max-width: 760px) {
   .merchant-orders-page__header { display: grid; }
   .merchant-orders-page__source { justify-items: start; }
@@ -1575,6 +1619,15 @@ button {
 
   .merchant-store-details {
     grid-template-columns: 1fr;
+  }
+
+  /* Most RAPEX merchants at this width are phone-only, non-technical local
+     vendors (carinderia, food carts, wet market stalls) -- keep only what a
+     "GCash simple" flow needs (nav, theme, notifications, profile) and drop
+     power-user chrome that doesn't earn its space on a phone. */
+  .merchant-topbar__search,
+  .merchant-topbar__print {
+    display: none;
   }
 }
 
