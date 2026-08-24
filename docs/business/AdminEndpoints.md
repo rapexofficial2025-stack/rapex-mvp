@@ -195,12 +195,28 @@ Response: `{ "customerCount": 0, "merchantCount": 0, "ordersToday": 0, "revenueT
 
 ---
 
-## Next batches (not written yet, tell me when ready for these)
-- Product Monitoring, Product Categories/Variants/Options/Images, Inventory
-- Master Data modules (Registration Monitor, Age Engine, Locations, Communities)
-- Riders list + Active Deliveries
-- Integrations, Error Center, Operational Settings
-- Super Admin (Admin Accounts, Users & Roles, Stores & Merchants, Products &
-  Listings, Audit & Recovery, Receipt Design, Secure Exports)
-- Merchant portal's remaining ~25 mock methods (store management, KYC review
-  queue for merchant-facing side, order acceptance, vouchers, wallet, etc.)
+## Next batches (all written — see individual files)
+- `AdminEndpoints-Batch2.md` — Product Monitoring, Product Categories/
+  Variants/Options/Images, Inventory
+- `AdminEndpoints-Batch3.md` — Master Data (Registration Monitor, Age
+  Engine, Locations, Communities), full Merchant Management
+- `AdminEndpoints-Batch4.md` — Order Management, Delivery Monitoring,
+  Rider Management + Active Deliveries
+- `AdminEndpoints-Batch5.md` — Error Center, Operational Settings
+- `AdminEndpoints-Batch6.md` — Super Admin (Admin Accounts, Users & Roles,
+  Stores & Merchants, Products & Listings, Formula Engines, Audit &
+  Recovery) — **flagged as needing a security review pass before building**,
+  not just a contract read-through
+- `AdminEndpoints-Batch7.md` — Merchant portal's remaining ~25 mock methods
+  (stores, registration draft, products/variants, expansion requests,
+  insights, orders, vouchers)
+
+Total across all 7 documents: ~90 endpoints spanning Admin, Super Admin, and
+Merchant. Every one of these is currently Mock-only in the frontend — none
+of this is guessed at the contract level; field names were taken directly
+from the already-designed TypeScript interfaces
+(`packages/api-client/src/repositories/*/*.ts`, `types.ts`) or from what the
+existing UI screens already render. Wiring the frontend to each real
+endpoint once Xano builds it is a small, mechanical change per method (swap
+a `fallback.method()` call for a real `client.request()` call) — the slow
+part was always the backend, not the frontend adapter.
