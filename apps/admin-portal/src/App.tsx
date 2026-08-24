@@ -21,6 +21,7 @@ import { ExportCenterPage } from "./features/receipts/ExportCenterPage";
 import { SuperAdminAccessPage } from "./features/super-admin/SuperAdminAccessPage";
 import { SuperAdminModulePage } from "./features/super-admin/SuperAdminModulePage";
 import { AdminProfilePage } from "./features/profile/AdminProfilePage";
+import { ErrorCenterPage } from "./features/error-center/ErrorCenterPage";
 
 // GitHub Pages staging can serve this app two ways: (a) owning the whole
 // site root under a repo-name prefix (VITE_BASE_PATH=/rapex-mvp/, the
@@ -70,7 +71,7 @@ function App() {
           <Route path="orders" element={<AdminDataModulePage module="orders" />} />
           <Route path="delivery" element={<AdminDataModulePage module="delivery" />} />
           <Route path="riders" element={<AdminDataModulePage module="riders" />} />
-          <Route path="errors" element={<AdminDataModulePage module="errors" />} />
+          <Route path="errors" element={<ErrorCenterPage />} />
           <Route path="settings" element={<AdminDataModulePage module="system-settings" />} />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route path="receipt-design" element={<Navigate to="/admin/preview/super-admin/receipt-design" replace />} />
@@ -117,7 +118,7 @@ function App() {
           <Route path="orders" element={<AdminDataModulePage module="orders" />} />
           <Route path="delivery" element={<AdminDataModulePage module="delivery" />} />
           <Route path="riders" element={<AdminDataModulePage module="riders" />} />
-          <Route path="errors" element={<AdminDataModulePage module="errors" />} />
+          <Route path="errors" element={<ErrorCenterPage />} />
           <Route path="settings" element={<AdminDataModulePage module="system-settings" />} />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route path="receipt-design" element={<Navigate to="/admin/super-admin/receipt-design" replace />} />
