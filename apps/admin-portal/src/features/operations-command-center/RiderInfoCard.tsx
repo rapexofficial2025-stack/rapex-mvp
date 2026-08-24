@@ -41,11 +41,38 @@ export function RiderInfoCard({ rider, onClose }: RiderInfoCardProps) {
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <div style={{ fontSize: theme.typography.fontSize.lg, fontWeight: 700, color: theme.colors.textPrimary }}>
-            {rider.name}
+        <div style={{ display: "flex", gap: theme.spacing.sm, alignItems: "center" }}>
+          {rider.photoUrl ? (
+            <img
+              src={rider.photoUrl}
+              alt=""
+              style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: `1px solid ${theme.colors.border}` }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: theme.colors.surfaceAlt,
+                border: `1px solid ${theme.colors.border}`,
+                fontSize: theme.typography.fontSize.lg,
+                fontWeight: 700,
+                color: theme.colors.textSecondary,
+              }}
+            >
+              {rider.name.charAt(0)}
+            </div>
+          )}
+          <div>
+            <div style={{ fontSize: theme.typography.fontSize.lg, fontWeight: 700, color: theme.colors.textPrimary }}>
+              {rider.name}
+            </div>
+            <div style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>{rider.vehicle}</div>
           </div>
-          <div style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>{rider.vehicle}</div>
         </div>
         <button
           type="button"
@@ -79,9 +106,12 @@ export function RiderInfoCard({ rider, onClose }: RiderInfoCardProps) {
         </span>
       </div>
 
+      <Field label="Mobile Number" value={rider.phone} />
+      <Field label="Plate Number" value={rider.plateNumber} />
+      <Field label="License No." value={rider.licenseNumber} />
       <Field label="Current Speed" value={`${rider.currentSpeedKph} km/h`} />
       <Field label="Battery" value={rider.batteryPercent === null ? "N/A" : `${rider.batteryPercent}%`} />
-      <Field label="Current Barangay" value={rider.barangay} />
+      <Field label="Current Location" value={`${rider.barangay}, ${rider.municipality}`} />
       <Field label="Today's Deliveries" value={rider.todayDeliveries} />
       <Field label="Completed Deliveries" value={rider.completedDeliveries} />
       <Field label="Current Earnings" value={formatPeso(rider.currentEarnings)} />
