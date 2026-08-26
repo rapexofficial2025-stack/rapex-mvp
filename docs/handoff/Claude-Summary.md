@@ -9,20 +9,24 @@ and `docs/handoff/RNCodex-Summary.md` (screen-by-screen UI inventories) —
 this one is rules and logic.
 
 Section 8 was built incrementally across a complete Xano business-logic
-deep-dive (2026-08-26) — the founder's own final message called it "the
-total Brain of the ecosystem... every rule and logic currently hard-coded."
-It covers every domain: Merchant (incl. exact tiered-commission numbers),
-Admin/Super Admin, Partnership, Gamification, Wallet/Accounting/Ledger,
-KYC, Auctions, Child/Baon, Rider dispatch, Freelance/Service Provider,
-Google Maps/Geofencing, Referrals, Community/Messaging, Marketing, the
-multi-store Cart/Checkout split architecture, Pre-Loved/Variants, Ratings,
-System Health/Maintenance Mode, and the four vertical-specific purchase
-flows (Wet Market, No-POS, Carenderia, Wholesale). Treat section 8 as the
-single most authoritative part of this document; sections 3-6 above it
-were written earlier from frontend-side inference and are superseded
-wherever the two disagree. One open discrepancy is flagged inline (review
-XP: 10 vs. 50) rather than silently resolved — confirm with Xano before
-implementing either number.
+deep-dive (2026-08-26) — the founder's own closing message called it "the
+complete RAPEX logic map... every button in the app is governed by one of
+these rules." It covers every domain: Merchant (incl. exact tiered-
+commission numbers), Admin/Super Admin/God Mode, Partnership, Gamification,
+Wallet/Accounting/Ledger, KYC, Auctions, Child/Baon, Rider dispatch,
+Freelance/Service Provider, Google Maps/Geofencing, Referrals, Community/
+Messaging, Marketing, the multi-store Cart/Checkout split architecture,
+Pre-Loved/Variants, Ratings, System Health/Maintenance Mode, Agriculture/
+Hardware dispatch constraints, the full 14-state Order Flow, and the four
+vertical-specific purchase flows (Wet Market, No-POS, Carenderia,
+Wholesale). Treat section 8 as the single most authoritative part of this
+document; sections 3-6 above it were written earlier from frontend-side
+inference and are superseded wherever the two disagree — this includes
+the 14-state Order Flow explicitly superseding two earlier, narrower
+state lists mentioned elsewhere in section 8 itself (see that
+subsection's own reconciliation note). One open discrepancy remains
+flagged inline rather than silently resolved (review XP: 10 vs. 50) —
+confirm with Xano before implementing either number.
 
 Nothing here is Xano-specific in substance. Exact endpoint paths (`/rapex-market/products` etc.)
 are dropped as noise; the request/response *shapes* and the *business rules
@@ -1147,6 +1151,97 @@ bought.
   return **503 Service Unavailable**. This is a genuinely useful
   platform-wide safe-deploy mechanism worth building early in the new
   stack, not treating as a nice-to-have.
+
+### Agriculture/Agrivet & Hardware/Industrial (two more "dirty cargo" pillars, extending the Wet-Market/Food-priority pattern)
+
+- **Agriculture**: seasonal Advanced Booking for harvests (rice, corn);
+  the **Inquiry Flow applies here too** above a quantity threshold
+  (example: >50 sacks) — a *third* trigger for the Inquiry-not-Order
+  pattern documented earlier (Wholesale/Industrial being the first
+  confirmed one). Agrivet chemical/pesticide items are Hazmat-flagged,
+  restricted to ELF/Truck vehicles only, never bundled with food.
+- **Hardware/Industrial**: `is_dirty: true` products flag. **Cross-order
+  dispatch constraint**: the dispatch engine won't assign a rider who has
+  an *active Food delivery already in progress* to a dirty-cargo order —
+  this is a rider-level exclusion across concurrent orders, not just a
+  same-cart bundling rule. Heavy hardware bypasses motorcycle entirely,
+  routed only to vehicles with `capacity_weight > 500kg`.
+
+### The Order Flow — full 14-state machine (authoritative, reconciles earlier conflicting state lists)
+
+```
+Draft → Order Placed → Merchant Pending → Merchant Accepted → Preparing →
+Ready for Pickup → Searching Rider → Rider Assigned → Rider Confirmed →
+On the Way to Merchant → Picked Up → Delivering → Delivered/Completed
+                                                  ↘ Failed/Cancelled
+```
+
+**"Any transition outside this path is rejected by Xano"** — a strictly
+enforced state machine, not a suggested flow. Per-state notes: Order
+Placed activates the wallet hold; Preparing activates the Batch View for
+kitchen staff; Ready for Pickup fires the realtime 2km ping; Rider
+Confirmed specifically checks the GPS heartbeat confirms the rider is
+actually moving toward the store (not just that they clicked Accept);
+Picked Up requires the rider to enter a **Pickup Code** from the merchant
+(a real handoff-verification step not mentioned anywhere earlier in this
+document); Delivering activates live tracking + the 150m shield;
+Delivered/Completed triggers POD upload + the atomic payout;
+Failed/Cancelled returns funds to the customer where applicable.
+
+**Reconciliation note — this supersedes two earlier, narrower state
+lists in this same document**: an earlier Rider-API round described a
+simplified 5-state set (`searching_rider → rider_assigned → picked_up →
+out_for_delivery → delivered_completed`) — that was evidently a
+rider-facing subset/simplification of this full 14-state machine, not a
+different state model. And this document's sections 3-6 (written from
+frontend-side inference before the Xano deep-dive) referenced a 13-state
+`DeliveryOrderStatus` enum with different naming
+(`going-to-merchant`/`arrived-merchant`/`arrived-customer` etc.) that
+doesn't match this list either. **This 14-state list is the one to
+actually implement** — treat both earlier mentions as superseded.
+
+### God Mode — concrete scope (adds real API examples to the high-risk capability flagged earlier)
+
+- **Force Status Change**: Admin can move an order directly from
+  `searching_rider` to `completed` for manually-arranged offline
+  deliveries — skips the entire rest of the state machine above.
+- **Wallet God Mode**: `api: admin-master-data/wallet/adjust` — add or
+  deduct funds on any wallet, gated to require a high-risk audit log
+  entry. This is the real endpoint shape to design the Django equivalent
+  around.
+- **Account Force-Active**: Admin can bypass the RN 10-second welcome
+  animation *or* the KYC flow entirely for designated "Emergency Fix"
+  accounts.
+- All three of these are exactly the "impersonate/override/adjust-wallet"
+  capability flagged earlier as the platform's single highest-risk area —
+  this batch doesn't reduce that risk assessment, it just gives concrete
+  shapes to design the security review around.
+
+### Store Hours "Graceful Close" + exact Local Rider priority number
+
+- **Graceful Close**: if cart items belong to a store closing within 15
+  minutes, a botification fires: "Store is closing soon! Checkout now to
+  avoid cancellation." — a proactive nudge, not a silent cancellation.
+- **Local Anchor, exact number**: a rider inside their own
+  `municipality_id` gets **15% higher dispatch priority** than a visiting
+  rider from elsewhere — quantifies the "Home Hub priority" concept from
+  the earlier Local Rider Rules section, which only described it
+  qualitatively before.
+
+### Reward & Audit History (append-only, matches the pattern already seen in Jed's real Django code)
+
+- `reward_history`: every points/cash event logs `source_type` (Purchase,
+  Review, Referral) + `balance_after` — specifically built to resolve
+  user disputes about missing points, so this needs to be queryable by
+  user + time range, not just a write-only log.
+- **Security Audit fields, confirmed exact schema**: `actor_user_id`,
+  `ip_address`, `old_value` vs `new_value`, `risk_level` (High/Medium/Low)
+  — logged on every God Mode action and every high-value P2P transfer.
+  This exact field list is what the Django audit model should implement;
+  it also matches `SystemSettingChangeLog`'s append-only pattern already
+  found in Jed's actual `apps/system/models.py` (blocked update/delete at
+  the model level) — reuse that same append-only enforcement pattern for
+  this audit table too.
 
 ---
 
