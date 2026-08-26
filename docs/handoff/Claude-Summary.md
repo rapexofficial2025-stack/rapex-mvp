@@ -906,6 +906,64 @@ Two distinct logistics tiers, not one uniform delivery system:
   `marketing/points/convert` — same rate as documented earlier, now with
   its own dedicated function reference.
 
+### Vertical-specific purchase flows — the marketplace is NOT one uniform checkout, four real variants
+
+Important for checkout/cart UI design: these aren't edge cases, they're
+four genuinely different purchase mechanics depending on what's being
+bought.
+
+**Wet Market / Fresh Goods** (`is_fresh: true`):
+- Wallet holds the **maximum possible price** at order time (e.g. 1kg
+  ordered = held at 1kg's price). At pickup, the merchant adjusts to the
+  **actual weight** (e.g. 0.95kg) and the system auto-refunds the
+  difference to the customer's wallet — a post-fulfillment price
+  adjustment, not a fixed charge.
+- Fresh goods are **Rapid-Express-only** and cannot bundle with
+  Industrial/Wholesale items in the same delivery (spoilage risk).
+- **Early Shift hours**: typically 4:00 AM–10:00 AM, auto-marked `Closed`
+  by noon — a distinct operating-hours pattern from the general
+  `store_hours` open/close logic described earlier.
+
+**No-POS / Traditional Merchants** (Sari-sari stores, small stalls,
+`inventory_tracking: false`):
+- "Always Available" by default — product assumed in stock until the
+  merchant manually flips it to `out_of_stock`; there's no real-time stock
+  sync to base availability on.
+- **5-Minute Acceptance Rule**: orders sit `merchant_pending`; no manual
+  Accept within 5 minutes auto-cancels. (This is a *specific*, shorter
+  window for No-POS merchants — don't assume it's the same "system-defined
+  window" mentioned generically for order acceptance elsewhere in this
+  document; confirm whether POS-integrated merchants get a different,
+  longer window.)
+
+**Fast-Running / Carenderia** (high-volume, low-prep-time):
+- Every product carries a `preparation_time` (e.g. 5 min); a countdown
+  starts on order-accept, and exceeding it **automatically dings the
+  merchant's Reliability Rating** — prep speed is a tracked, scored metric,
+  not just informational.
+- **Batch Prep View**: identical items across multiple concurrent orders
+  group into one batch (e.g. "10x Pork Sisig" instead of 10 separate
+  tickets) — a real kitchen-facing UI concept worth preserving, not just a
+  backend optimization.
+- A prominent 1-tap "Sold Out" toggle on the merchant dashboard — fast
+  stock-outs need a faster UI path than the standard product-edit flow.
+
+**Wholesale / Retail / Industrial** (B2B, bulk):
+- **Inquiry, not Order**: large/bulk items use `wholesale_inquiries`, not
+  the cart — "Add to Cart" is replaced by "Send Inquiry," and **no wallet
+  charge happens at inquiry time**.
+- **Quotation Loop**: merchant reviews the inquiry, submits a custom
+  quote (volume discount + delivery timeline) → customer reviews and
+  accepts → **only then** do funds move to escrow. Escrow/wallet-hold
+  happens after quote-acceptance, not at inquiry submission — a
+  materially later point in the flow than every other purchase type in
+  this document.
+- **Automatic tiered pricing**: `wholesale_tiers` switches retail→
+  wholesale pricing by quantity in cart (example: 1-9 units = ₱100 each,
+  10+ = ₱85 each), applied automatically before checkout — the customer
+  never manually selects a "wholesale" mode, the system detects it from
+  quantity.
+
 ---
 
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
