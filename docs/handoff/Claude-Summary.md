@@ -8,16 +8,21 @@ new stack. It complements, not replaces, `docs/handoff/WebCodex-Summary.md`
 and `docs/handoff/RNCodex-Summary.md` (screen-by-screen UI inventories) —
 this one is rules and logic.
 
-Section 8 was built incrementally across a full Xano business-logic
-deep-dive (2026-08-26) covering every domain: Merchant, Admin/Super Admin,
-Partnership, Gamification, Wallet/Accounting, KYC, Auctions, Child/Baon,
-Rider dispatch, Freelance/Service Provider, Google Maps/Geofencing,
-Referrals, Community, Marketing, vertical-specific purchase flows (Wet
-Market, No-POS, Carenderia, Wholesale), Service Bookings, Reservations,
-and Realtime/GPS — the founder confirmed this was the final round. Treat
-section 8 as the single most authoritative part of this document; sections
-3-6 above it were written earlier from frontend-side inference and are
-superseded wherever the two disagree.
+Section 8 was built incrementally across a complete Xano business-logic
+deep-dive (2026-08-26) — the founder's own final message called it "the
+total Brain of the ecosystem... every rule and logic currently hard-coded."
+It covers every domain: Merchant (incl. exact tiered-commission numbers),
+Admin/Super Admin, Partnership, Gamification, Wallet/Accounting/Ledger,
+KYC, Auctions, Child/Baon, Rider dispatch, Freelance/Service Provider,
+Google Maps/Geofencing, Referrals, Community/Messaging, Marketing, the
+multi-store Cart/Checkout split architecture, Pre-Loved/Variants, Ratings,
+System Health/Maintenance Mode, and the four vertical-specific purchase
+flows (Wet Market, No-POS, Carenderia, Wholesale). Treat section 8 as the
+single most authoritative part of this document; sections 3-6 above it
+were written earlier from frontend-side inference and are superseded
+wherever the two disagree. One open discrepancy is flagged inline (review
+XP: 10 vs. 50) rather than silently resolved — confirm with Xano before
+implementing either number.
 
 Nothing here is Xano-specific in substance. Exact endpoint paths (`/rapex-market/products` etc.)
 are dropped as noise; the request/response *shapes* and the *business rules
@@ -1048,6 +1053,100 @@ bought.
   poll) reaches every eligible rider within 2km simultaneously — this is
   what makes the Accept button "appear instantly," per the founder's own
   description of the intended feel.
+
+### Merchant Tiers — exact commission-by-rank numbers (extends the Engine Center / Performance Tiers concept with real values)
+
+- Bronze → Silver → Gold → Platinum, driven by merchant XP (on-time
+  fulfillment + 5-star reviews — same XP source described in the
+  Gamification section, one shared XP pool, not a separate merchant-tier
+  metric).
+- **Commission drops by tier**: Bronze 10%, scaling down to Platinum 7% —
+  concrete numbers to seed the Engine Center's per-merchant override
+  logic with, replacing the vague "star merchants get a lower rate"
+  phrasing from earlier.
+- **Multi-store pillar limit is itself tiered**: only Gold and above can
+  manage **3+ store pillars** at once — the base One-Pillar-per-category
+  rule still applies per pillar, but how many *total* pillars a merchant
+  can run simultaneously scales with their rank.
+
+### Cart / Checkout split logic (the actual multi-store cart architecture)
+
+- **"One Checkout, Many Orders"**: a single cart can hold items from up to
+  5 different stores; clicking Checkout splits it into that many separate
+  **Child Orders**, one per store — this is the real mechanic behind the
+  "child-order" language used in the earlier voucher one-per-child-order
+  rule; a "child order" = one store's slice of a multi-store cart, not a
+  Child/Baon account's order.
+- **Food Priority / no-bundling constraint**: Food items cannot share a
+  delivery vehicle/trip with Industrial (heavy/dirty) items — generalizes
+  the Wet-Market-specific "Rapid-Express-only, no bundling with Industrial/
+  Wholesale" rule to Food broadly.
+- **Branch Locking**: a Food order cannot mix items from two branches of
+  the same chain (example given: Jollibee Branch A and Branch B) in one
+  order — keeps fulfillment to a single physical pickup point per order.
+
+### Pre-Loved & Variants/Add-ons
+
+- `preloved_enabled: true` products are hard-locked to **stock quantity
+  1** — inherently unique, never restocked.
+- **No-Return Rule**: the instant a pre-loved item hits
+  `delivered_completed`, funds release to the seller immediately and
+  returns are disabled — sold as-is, no post-delivery dispute window
+  (unlike the standard order flow's normal settlement timing).
+- **Variants** (Size/Color): own SKU, own price, stock tracked
+  per-variant. **Add-ons** (Extra Cheese, Gift Wrap): price modifiers
+  only, no separate inventory count. (Matches this project's own existing
+  `ProductDetail.variants`/`.addOns` distinction in
+  `packages/api-client/src/repositories/types.ts` exactly — no correction
+  needed here, just confirms the existing frontend model was already
+  right.)
+
+### Community Messaging (adds exact scope to the earlier chat-leakage mention)
+
+- Customer↔Rider chat is only open while an order is in an **Active**
+  state — specifically `picked_up` or `delivering`, not any "active"
+  order status broadly.
+- Conversation auto-deletes/archives **24 hours after order completion** —
+  a real privacy-driven data-retention rule, not just UI hiding.
+- `chat_leakage_filter` reconfirmed as the same real-time message-scanning
+  block described in section 8's Scam/Spam rules.
+
+### Ratings — double-blind, with real enforcement consequences
+
+- **Double-blind, asymmetric pairing**: Customer rates the Store/Product;
+  separately, the **Rider rates the Customer** — there's no
+  Customer-rates-Rider or Store-rates-Customer pairing described here.
+  Worth confirming directly whether Customer-rates-Rider exists at all
+  (this project's own UI assumed it does, e.g. delivery completion
+  screens) — this summary doesn't confirm that direction one way or
+  the other.
+- Store rating is a real **search-ranking input** (alongside distance and
+  Promoted-subscription placement, both documented earlier under Service
+  Radius) — three ranking factors total, not just distance.
+- **Automatic enforcement**: a rider whose rating drops below **3.5
+  stars** is auto-toggled Offline and flagged "Review Account" for Super
+  Admin — a real automatic quality-gate action, not just a displayed
+  number.
+- **Possible discrepancy worth flagging, not silently resolving**: this
+  batch says review-with-photo earns **10 XP**; the Gamification section
+  earlier in this document says buyers earn **50 XP** per written review
+  (no photo qualifier mentioned there). Confirm with Xano whether these
+  are the same reward described inconsistently, or two genuinely
+  different amounts (e.g. 50 XP base + 10 XP photo bonus, or photo
+  reviews are a separate lower-value action) before implementing either
+  number.
+
+### System Health / Maintenance Mode (new, not previously documented)
+
+- `server_monitor` tracks CPU/Memory/Latency per API call; **latency over
+  2000ms** triggers a "High Latency Alert" to the developer group — a
+  real operational alerting threshold worth replicating.
+- **Maintenance Mode kill switch**: Admin toggles `system_status =
+  MAINTENANCE` → every frontend app shows a "REX is Sleeping/Upgrading"
+  screen, and write endpoints (example given: `rapex-orders/create`)
+  return **503 Service Unavailable**. This is a genuinely useful
+  platform-wide safe-deploy mechanism worth building early in the new
+  stack, not treating as a nice-to-have.
 
 ---
 
