@@ -24,9 +24,35 @@ document; sections 3-6 above it were written earlier from frontend-side
 inference and are superseded wherever the two disagree — this includes
 the 14-state Order Flow explicitly superseding two earlier, narrower
 state lists mentioned elsewhere in section 8 itself (see that
-subsection's own reconciliation note). One open discrepancy remains
-flagged inline rather than silently resolved (review XP: 10 vs. 50) —
-confirm with Xano before implementing either number.
+subsection's own reconciliation note).
+
+**Section 9** adds the founder's own approved Child/Baon specification —
+a higher-authority source than section 8 for that feature specifically
+(see section 9's own note). **Section 10** adds a dedicated Rider App doc
+with more precise delivery-fee/ETA math, and flags a real unresolved
+conflict on proximity-unlock distance (150m vs. 500m vs. 50m — do not
+implement any of these until confirmed) plus a dispatch-architecture
+question (Merchant vs. Global Checkout) that needs reconciling with
+section 8's child-order model, not silently merged. **Section 11**
+closes out the remaining infrastructure/governance rules the source
+itself called "100% of the logic currently existing in the RAPEX Xano
+Workspace" — Error/Bug tracking, Inventory/Price history, Hub-to-Hub
+logistics manifests, Session/Device governance, typed Messaging, and
+PSGC-based location data.
+
+Two open discrepancies remain flagged inline rather than silently
+resolved: review XP (10 vs. 50 — section 11's later confirmations lean
+toward 10, but this isn't fully closed), and the Bulk Upload
+partial-vs-all-or-nothing conflict noted in section 11 (this document's
+own earlier Merchant spec assumed partial import; section 11 confirms
+all-or-nothing is correct — use all-or-nothing).
+
+**This document is the designated "Fault Sync" correction reference** —
+the source's own words: if any AI tool (including future Claude sessions)
+proposes something that contradicts what's written here (a direct wallet
+edit without a ledger entry, skipping an order-flow state, etc.), that
+proposal is wrong and should be corrected against this document, not the
+other way around.
 
 Nothing here is Xano-specific in substance. Exact endpoint paths (`/rapex-market/products` etc.)
 are dropped as noise; the request/response *shapes* and the *business rules
@@ -401,17 +427,45 @@ in this document.
   Admins can mock rider GPS movement to test geofencing and the 150m rule
   without a real device.
 
-### ID format convention (per role)
+### ID format convention (per role) — built on real PSGC codes, one detail still unclear
 
-Confirmed format: `USR-<RegionCode>-<MunicipalityCode>-<SerialNumber>` (e.g.
-`USR-72726-000001` / the Partnership section's shorthand example
-`USR-72726-001`) — a branded, human-readable display ID separate from the
-internal DB primary key, used for display/receipts/support/referral-link
-identification only, never for joins. Only the `USR-` (User/Customer)
-prefix is confirmed with this exact structure — other roles likely follow
-the same `<PREFIX>-<Region>-<Municipality>-<Serial>` shape (mock data
-elsewhere used `MID-00142` for merchants, `RIDER-1` for riders) but treat
-those as unconfirmed until Xano verifies the real prefix per role.
+Confirmed format: `USR-<GeoCode>-<SerialNumber>` (e.g. `USR-72726-000001`
+/ the Partnership section's shorthand example `USR-72726-001`) — a
+branded, human-readable display ID separate from the internal DB primary
+key, used for display/receipts/support/referral-link identification only,
+never for joins.
+
+**Merchant prefix confirmed**: `MCT-` (e.g. `MCT-72726-001`) — supersedes
+the earlier unconfirmed `MID-` guess taken from mock data elsewhere in
+this project.
+
+**The geo segment is a real PSGC (Philippine Standard Geographic Code)**,
+not an arbitrary internal number — all location master data (regions,
+provinces, etc.) follows the actual PSGC standard. **One thing genuinely
+unclear**: an example given separately ("regional IDs, e.g. 15 for ARMM,
+used as the middle segment — `USR-15-...`") shows a *region-level* code
+alone, while the confirmed `USR-72726-...` example looks like a more
+granular municipality-level PSGC code (PSGC codes are hierarchical —
+a single numeric code's leading digits already encode the region). These
+may not actually conflict — PSGC codes are naturally hierarchical, so
+`72726` could just be doing double duty as "the region, more precisely
+specified" — but confirm the real intended granularity (region-only vs.
+full municipality-level PSGC) before hardcoding either assumption into
+the new backend's ID-generation logic.
+
+**Rider/Admin/Super Admin prefixes still unconfirmed** — mock data
+elsewhere in this project used `RIDER-1`-style placeholders; treat as
+unconfirmed until Xano verifies the real prefix per remaining role.
+
+### Registration progress — exact percentage breakdown (new)
+
+`registration_progress` moves through fixed checkpoints, not an arbitrary
+percentage: **20% (registration started) → 40% (basic info) → 60%
+(address) → 80% (KYC upload) → 100% (OTP verified)**. Even at 100%, the
+`next_step` still locks to `WelcomeIntro` until `welcome_seen` flips true
+(per the earlier-confirmed onboarding state-machine detail) — 100%
+registration progress and "fully onboarded" are two different gates, not
+one.
 
 ### Merchant — technical enforcement detail (exact endpoints, not just rules)
 
@@ -1629,6 +1683,110 @@ sufficient.
   released once the Merchant confirms receiving the returned package** —
   a real payment-gating condition tied to merchant confirmation, not just
   the rider's own claim of having returned it.
+
+---
+
+## 11. Infrastructure, Supply Chain, Data History & Governance — the remaining rules (the source document's own words: "this now represents 100% of the logic")
+
+### Platform Infrastructure
+
+- **Error Logging**: every 500 error auto-caught into an `error_logs`
+  table with `request_id` + `stack_trace` — this is the actual mechanism
+  behind the earlier-documented "Emergency Fix" God-Mode logic, not a
+  separate system.
+- **Bug Tracker**: a dedicated `bug_tracker` table — UI bugs from any app
+  logged with `device_id`, `app_version`, `severity`; only Admins can mark
+  `resolved`.
+- **Server Monitor auto-throttle**: if Database, OpenAI, or Maps shows
+  `DOWN`/`DEGRADED` in `server_monitor`, high-resource endpoints (example
+  given: Bulk Upload) are **automatically throttled** — a real
+  self-protective circuit-breaker, not just an alert.
+- **IP ban expiry is mandatory**: `blocked_ips` entries always carry an
+  `expires_at` — **no permanent IP bans**, since ISPs recycle public IPs
+  and a permanent ban would eventually punish an innocent future user of
+  that address. Don't implement an "infinite ban" option even as an admin
+  convenience.
+
+### Deep Inventory & Price Control
+
+- **Inventory history**: any manual stock adjustment (Admin or Merchant)
+  must log `old_stock`, `new_stock`, and a `reason` enum (Sale, Damage,
+  Restock, Return) to `inventory_history` — every adjustment is
+  reason-coded, not a bare number change.
+- **Price history**: every price change on a product/variant logs to
+  `price_history` with `changed_by_user_id` — explicitly framed as
+  protection against merchant price-gouging during peak-demand windows,
+  tying directly to the Peak Multiplier system in section 10.
+- **⚠️ Bulk CSV upload — corrects an assumption made earlier in this
+  document's Batch 7 spec**: this confirms **transactional all-or-nothing**
+  validation — one invalid `category_id` anywhere in a 100-row CSV
+  **rejects the entire upload**, not a partial import. This conflicts with
+  the `ProductImportResult { imported: [...], failedCount }` shape assumed
+  in the earlier Merchant Xano-spec batch (which implied partial success
+  was acceptable) — **use all-or-nothing semantics**, not partial-import,
+  when this gets built for real.
+
+### Hub-to-Hub Logistics Manifests (new — the real mechanism behind the earlier-mentioned Hub system)
+
+- Long-distance (municipality-to-municipality) orders group into a
+  `logistics_manifest`.
+- **Only a `COLLECTOR` role** (a role not mentioned anywhere else in this
+  document — confirm whether this is a Rider sub-type, an Admin-assigned
+  duty, or a genuinely separate account role before implementing) can
+  Close and Depart a manifest.
+- **Sequential integrity enforced server-side**: a manifest can't be
+  marked arrived at the destination hub until `departed_at` is actually
+  set — can't skip the departure step.
+- Hubs have their **own operating hours**, independent of store hours.
+  **"3 PM Cutoff"**: a hard-coded consolidation deadline for next-day
+  municipality transfers — orders after 3PM roll to the next day's
+  manifest.
+
+### Session & Device Governance
+
+- **Multi-device**: a user can be logged in on multiple devices
+  simultaneously; each device tracked separately in `user_devices` with
+  its own `push_token` — push notifications target specific devices, not
+  a single per-user token.
+- **Admin session lockout, exact mechanic**: `admin_sessions` tracks
+  `timeout_events`; **3 inactivity-triggered auto-logouts within one
+  hour locks the session entirely**, requiring a fresh password login (not
+  just re-authenticating a token) — a real escalation beyond a single
+  timeout. This is the precise mechanic behind the earlier-documented
+  "Randomized Inactivity Checks / counts Inactivity Events" description —
+  now with the actual threshold (3 events / 1 hour) and consequence (hard
+  session lock, not just re-timeout).
+- **Forced app updates**: backend checks an `app_version` request header;
+  on a critical security patch, Xano returns **HTTP 426 Upgrade
+  Required** to force the client to update before continuing — a real,
+  specific status code to implement, not just "show an update prompt."
+
+### Messaging & Support (new — a typed system, not one generic chat)
+
+- **Three distinct thread types**: `ORDER_CHAT` (Buyer↔Rider, matches the
+  earlier-documented Active-Order-only chat rule), `MERCHANT_SUPPORT`
+  (Buyer↔Merchant), `SYSTEM_TICKET` (User↔Admin) — these are separate
+  conversation types, not one unified inbox with different participants.
+- **Role-targeted Help Center**: `help_center` articles are tagged by
+  `target_audience`; REX's own help-search tool only returns Rider
+  articles to a user who actually holds the RIDER role — content
+  filtering happens server-side based on real role, not client-side
+  category selection.
+- **Read receipts**: `is_read` boolean + `read_at` timestamp on every
+  message — the standard double-checkmark UI pattern, backed by real
+  per-message state.
+
+### Regional Master Data (PSGC) — see also the ID-format correction above
+
+All location master data (`location_regions`, provinces, etc.) follows
+the real **Philippine Standard Geographic Code (PSGC)** standard, not an
+internal-only numbering scheme — worth using an actual PSGC reference
+dataset when building the Django `addresses` app's location tables,
+rather than inventing region/province/municipality/barangay IDs from
+scratch. This is also what unblocks the Locations gap flagged as
+highest-priority earlier in this document (section 8's Admin Locations
+subsection, and the Django `addresses` app noted as already having a real
+migration in the Production Readiness Audit).
 
 ---
 
