@@ -55,13 +55,17 @@ mismatch here: **Admin, Merchant, Rider, Customer/User, Super Admin**
 (Super Admin as an elevated Admin capability, not a fully separate account
 type).
 
-**One real gap**: this project also had a **Services/Provider** role
-(freelance/services listings, separate from Merchant) that has no
-equivalent anywhere in Jed's five-role model. Surfaced in: a standalone
-`provider-portal` app, and the Rider app's "Category" tab (Auction /
-Partnership / Services & Freelance / Rewards as rider-facing opportunity
-types). This needs a product decision — fold into Merchant, add as a sixth
-role, or drop from MVP scope — before any code targets it.
+**Update — this gap is now resolved, confirmed from Xano**: Services/
+Freelance is NOT a sixth role. A Freelancer is a **Customer account with
+its `role` field upgraded from `CUSTOMER` to `FREELANCER`**, reached via
+the Buyer/Customer app's Profile → "Become Freelancer" flow — not a
+separate portal or app. (This project's standalone `provider-portal` app
+was therefore a structural mismatch with the real backend model and
+shouldn't be ported as its own app in the new stack — fold this into the
+Customer/User surface instead.) See the Freelance subsection below for the
+full rule set. **Auction and Partnership are still worth clarifying
+separately** — Partnership is confirmed as its own distinct business role
+(see below), but Auction's role model isn't confirmed either way yet.
 
 ---
 
@@ -490,6 +494,118 @@ ones.
 - Withdrawals only allowed to bank accounts with a verified
   `verification_status` — checked at `POST /wallet/withdraw` time, not
   earlier.
+
+### Freelance (resolves the role-model question above)
+
+- A Freelancer = a Customer account with `role` upgraded `CUSTOMER →
+  FREELANCER` — not a separate app or portal. Reached via Buyer app
+  Profile → "Become Freelancer."
+- Gate: requires **KYC Level 3** (selfie with ID) admin-approved, plus a
+  mandatory `service_category_id` anchor — a freelancer must pick one
+  system-defined service pillar, never "anything."
+- Same Split Rule as merchants: ~10% of booking fee moves to the Admin
+  wallet on job completion.
+- Visibility gated on `approval_status == approved`, surfaced via `GET
+  /super_app/merchants/services`.
+
+### Service Provider (a DIFFERENT concept from Freelance — don't conflate)
+
+Companies/agencies, not individuals — the B2B tier with team management,
+distinct from the individual Freelancer role above. This is likely the
+real backend equivalent of this project's standalone `provider-portal`
+app, where Freelance is not.
+
+- Subscription-based (`subscription_plans` table): **VIP** (priority
+  search placement), **Partner** (lower commission), **Freelance/Pro**
+  (advanced booking-management tools) tiers.
+- Auto-renewal: `auto_renew: true` deducts the plan fee on
+  `next_billing_date`; failure downgrades to inactive "Basic" status.
+- Providers have their own `approval_status` gate (Pending → Approved)
+  before subscription benefits activate — separate from KYC.
+
+### Google Maps / Geofencing (adds detail + new rules beyond the 150m pickup rule)
+
+- **150m Privacy Shield**: reinforces earlier detail — rider/store GPS
+  distance check, customer `precise_address`/`phone_number` hidden until
+  ≤150m.
+- **2km Dispatch Radius**: new-order "Searching Rider" broadcast only
+  reaches riders with `online_status: true` within 2km of the store —
+  this is the initial candidate pool before the accept/reject/reassign
+  flow (section 6) kicks in.
+- **Geofencing**: `function: security/check_geofence` blocks placing
+  orders/ride-requests entirely if the user's coordinates fall outside
+  RAPEX's defined active service polygons (PH regional boundaries) — a
+  hard platform-wide boundary check, not per-store.
+- **Reverse-geocoding cache**: coordinates are geocoded once, then stored
+  in `user_addresses`; repeat lookups for the same location read from the
+  Xano DB instead of re-calling Google — a real cost-control measure worth
+  replicating (don't re-call Maps geocoding for an address already on
+  file).
+
+### Referrals — two distinct systems, don't conflate
+
+**User-to-User** (customer growth): only counts "successful" once the
+referred user completes their **first** order (`delivered_completed`).
+Reward rules live in `referral_configs` (PTS or PHP payout). **Monthly cap**
+per user (example given: 10 successful referrals/month) to prevent gaming.
+Every user has a `referral_id` tied to a `qr_payload` for the actual
+share/scan mechanic.
+
+**Partner-to-Merchant** (B2B, ties into the Partnership Program above):
+quota credit only fires when the referred merchant hits `kyc_status:
+verified` (not at signup). **Lifetime Rule**: once credited, the partner
+earns commission on every future sale that merchant makes for the life of
+the partnership — not a one-time bounty. Missing the annual quota
+(`function: partnerships/check_annual_status`) drops the partner from
+"Platinum" to a reduced rate, matching the Partnership section above.
+
+### Vehicles
+
+Classes: `bicycle`, `motorcycle`, `hatchback`, `sedan`, `elf` (truck),
+`van` — each with a `capacity_weight` and `capacity_volume` limit. Orders
+over **20kg automatically disqualify** bicycle/motorcycle from the
+dispatch pool — this is a real filter on the candidate-rider query, not
+just a UI hint. A vehicle isn't "Active" until `license_number` and
+`or_cr_photo_id` are Admin-verified — separate from the rider's own KYC.
+
+### Dynamic pricing — Peak/Rush surge
+
+- `function: orders/calculate_delivery_fee` applies a surge multiplier
+  during peak windows defined in `system_settings` (example: 11AM-1PM
+  lunch, 5PM-8PM dinner) — `base_fare` (₱50) × surge rate (example: 1.5x)
+  to pull more riders online.
+- Separately, a "Traffic Adjustment" fee applies when Google's estimated
+  travel time significantly exceeds the distance-based average —
+  distinct from the time-of-day peak surge, both can apply to the same
+  order.
+
+### Service radius / nearest-store ranking
+
+- Default **10km radius** (`service_radius_km`) — stores/providers only
+  visible to customers within it.
+- `GET /rapex-market/stores` ranks by Haversine-formula distance ASC, with
+  one exception: a **subscription-Promoted store can jump to the top even
+  if further away** — ranking isn't pure distance-sort once paid
+  promotion is a factor.
+- Riders set their own `service_radius_km` and only receive new-order
+  notifications for stores within it — a second, independent radius from
+  the store's own 10km customer-visibility radius.
+
+### Store categories/pillars (confirmed authoritative list) + operating hours
+
+- **Seven pillars**: Food, Marketplace, Wholesale, Industrial,
+  Agriculture, Services, Auction. (This project's own category lists
+  elsewhere used a different set — e.g. Hardware instead of Wholesale/
+  Industrial split — reconcile against this list as the real one.) One
+  store per pillar per merchant (same Pillar Rule as section 8's Merchant
+  audit).
+- `store_hours` table tracks `open_time`/`close_time` per day;
+  `open_status` auto-flips `false` outside those hours — a hard close, not
+  a soft warning.
+- **Basket Rule**: a closed store is still browsable, but "Add to Cart" is
+  disabled with an "Opening Soon" label — never a fully blocked page.
+- Stores open 10PM-5AM can carry a "Night Owl" delivery surcharge via
+  `delivery_rates` — separate line item from the peak-hour surge above.
 
 ---
 
