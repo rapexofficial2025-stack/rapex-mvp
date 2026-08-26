@@ -377,6 +377,120 @@ in this document.
   Admins can mock rider GPS movement to test geofencing and the 150m rule
   without a real device.
 
+### ID format convention (per role)
+
+Confirmed format: `USR-<RegionCode>-<MunicipalityCode>-<SerialNumber>` (e.g.
+`USR-72726-000001` / the Partnership section's shorthand example
+`USR-72726-001`) — a branded, human-readable display ID separate from the
+internal DB primary key, used for display/receipts/support/referral-link
+identification only, never for joins. Only the `USR-` (User/Customer)
+prefix is confirmed with this exact structure — other roles likely follow
+the same `<PREFIX>-<Region>-<Municipality>-<Serial>` shape (mock data
+elsewhere used `MID-00142` for merchants, `RIDER-1` for riders) but treat
+those as unconfirmed until Xano verifies the real prefix per role.
+
+### Merchant — technical enforcement detail (exact endpoints, not just rules)
+
+- **Pillar Rule**: enforced at `POST /super_app/stores/create` via a
+  `db.query` check for an existing `stores` row with the same
+  `merchant_id` + `category` — rejects with "You already have a store in
+  this category."
+- **Approval Gate**: new stores/products default to `is_active: false` /
+  `status: "pending"`; `GET /rapex-market/products` and `GET
+  /rapex-market/nearby-stores` both hard-filter `status == "active"` — so
+  the gate is enforced on the *read* side, not just at creation.
+- **Onboarding state machine**: driven by `GET /rapex-auth/auth/me` +
+  `function: util/get_auth_next_step`. `registration_progress` (int) plus
+  a separate `welcome_seen` (bool) — even at 100% progress, `next_step`
+  stays hard-locked to `WelcomeIntro` until `welcome_seen` flips true. This
+  confirms the RN welcome animation is a real gating step in the auth flow,
+  not just a cosmetic screen.
+- **Split Engine, exact mechanics**: `function: accounting/distribute_funds`,
+  triggered on `delivered_completed`, one atomic DB transaction: release
+  escrow (deduct `held_amount` from customer) → merchant payout (`product
+  price - commission`) → rider earning (`delivery_fee`) → admin ledger
+  (`commission` + `platform_fee`). Full rollback on any partial failure —
+  no partial payouts possible by design.
+- **150m Rule, exact mechanics**: `GET /super_app/orders/delivery_details`
+  computes rider-to-store distance server-side; beyond 150m,
+  `customer_name`/`phone`/`precise_address` come back `null`/`HIDDEN` in
+  the response itself — never a frontend-side hide of fields the API
+  already sent.
+
+### Partnership Program (V2.0) — entirely new, not previously documented anywhere in this project
+
+A referral/reseller tier: users pay to become a "Partner" who earns
+commission for bringing merchants onto the platform.
+
+- **Entry**: `POST /super_app/partnerships/subscribe` — ₱500/year,
+  checked against the user's wallet balance. Creates a `partnerships` row,
+  `status: active`, `expires_at` = now + 365 days.
+- **Quota**: partners must refer a set number of active merchants/year
+  (`annual_quota_target`, admin-managed). Missing the quota by
+  `expires_at` triggers a grace period, then either `is_reduced_rate:
+  true` (commission cut) or the partnership is purged.
+- **Referral counting**: tracked via the partner's `user_code`; a referral
+  only counts once the referred merchant completes KYC *and* their main
+  store is approved — not at signup. Enforced in `function:
+  partnerships/track_referral`.
+- **Commission**: percentage of every transaction by referred merchants,
+  credited atomically during the same `accounting/distribute_funds` phase
+  as the main order split. Tiered — more referrals unlocks a higher
+  `commission_rate` (stored in `commission_tiers`).
+- **Lifecycle automation**: `function: partnerships/check_annual_status`
+  runs on a schedule; `auto_renew: true` attempts to deduct ₱500 to
+  extend, otherwise status moves to `expired`/`suspended` on insufficient
+  funds or missed quota.
+
+This is a real, distinct business role from Merchant/Rider/Customer — worth
+its own module in the new backend rather than bolting onto an existing one.
+
+### Gamification — XP, Levels, Promos, Incentives, Wallet (detailed rules)
+
+**Dual-currency**: XP (non-spendable, determines Level/Rank only) vs.
+Reward Points (spendable, earned via purchases/deliveries) — two separate
+tracked values, never conflated. Level progression has a real XP-per-level
+table (Level 1→2 = 100 XP, scaling up through 50+). Buyers earn XP from
+spending + reviews; Riders earn XP from completed deliveries weighted by
+rating + speed. `function: gamification/process_xp` runs on level-up,
+unlocking level-specific rewards (discount coupons, lower service fees,
+profile badges).
+
+**Vouchers/Promos**: merchant-created vouchers sit `pending` until
+Super Admin approval (matches what was already documented) — new detail:
+scoping is one of Store-specific (merchant-funded) / Product-specific
+(brand-funded) / Global (platform-funded). Minimum-purchase is a hard
+checkout-time rejection (cart below threshold = voucher rejected outright,
+not silently ignored). Only **one voucher per child-order** (i.e. per
+merchant split within a multi-store cart) — stacking beyond that isn't
+allowed. Expired vouchers (`expires_at` passed) are excluded from `GET
+/promotions` automatically, not just hidden client-side.
+
+**Incentives**: conversion rate is **5 Reward Points = ₱5.00** (1:1 with
+peso, just scaled), via `POST /super_app/marketing/points/convert` —
+atomic points-deducted/balance-added operation. Riders get a speed-bonus
+multiplier for beating ETA. Merchants with low cancellation rates unlock
+better (lower) commission tiers — same tiering concept as the Split Engine
+above, worth confirming these are the same tier table or two separate
+ones.
+
+**Wallet — Escrow and fraud rules (adds detail to section 3/6's Escrow mentions)**:
+- Placing an order moves funds `available_balance → held_balance` — money
+  is locked, not spendable elsewhere, for the order's duration.
+- **₱100 P2P Rule**: peer-to-peer transfers require mobile OTP if the
+  amount exceeds a threshold (₱100 referenced) or the sender has an
+  elevated fraud "Risk Score."
+- **Impossible-Travel fraud detection applies to P2P transfers too**, not
+  just login (multiple transfers from different-city IPs within 5 minutes
+  → auto-flag). This is a separate detection instance from the
+  login-based Impossible Travel rule in section 8's Admin block — both
+  need implementing, not just one.
+- Fraud detection auto-sets `wallet.status = locked`, blocking all
+  cash-outs pending Admin review.
+- Withdrawals only allowed to bank accounts with a verified
+  `verification_status` — checked at `POST /wallet/withdraw` time, not
+  earlier.
+
 ---
 
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
