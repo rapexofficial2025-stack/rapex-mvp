@@ -289,6 +289,92 @@ back to the Services/Provider role-model gap noted in section 2.
 
 ---
 
+## 8. Confirmed business rules, verbatim from Xano (2026-08-26 — most authoritative source)
+
+Everything below was retrieved directly from the actual Xano backend logic
+(not inferred from frontend types like sections 3-6 above) — treat this as
+the ground truth wherever it's more specific than something stated earlier
+in this document.
+
+### Merchant
+
+- **One Pillar Rule**: a merchant owns at most one store per category
+  pillar (one Food store, one Marketplace store, etc.) — stricter than
+  "at most one per vertical" phrasing used elsewhere; confirm these are the
+  same constraint before implementing.
+- Products/variants belong to Stores, not directly to the Merchant —
+  deleting a store cascades to its inventory.
+- Stores and products are created hidden/inactive; visible to customers
+  only after Super Admin approval.
+- Onboarding state machine: `Signup → OTP/Email Verify → Merchant Profile
+  → Main Store Creation → Store Location & Ops → Business Document Upload
+  → Payout Setup`.
+- **The 10-Second Rule**: after verification, a mandatory 10-second
+  "Welcome Animation" with a countdown plays before the dashboard is
+  reachable — no skip.
+- A merchant cannot receive orders or list products until `kyc_status =
+  verified`, admin-set.
+- Order status control is merchant-exclusive through `merchant_accepted →
+  preparing → ready_for_pickup`; unaccepted orders past a system window
+  may auto-cancel or flag.
+- **150m Security applies in both directions**: merchant cannot see rider
+  personal details until the rider is within 150m for pickup (this
+  document's earlier sections only had the reverse direction — rider
+  can't see customer until near merchant. Confirm whether it's genuinely
+  bidirectional or these are two separate rule instances).
+- **Split Engine**: merchant receives `productPrice - commission`, split
+  triggers atomically only at `completed` status — never partial/early.
+- **Escrow**: funds sit in a platform wallet hold from checkout until
+  final delivery, not released early.
+- Performance tiers: commission rate can drop at higher sales volume
+  (matches this doc's Engine Center description in section 3).
+- Low-stock reminders respect a **Silent Window**: no notifications
+  10PM–8AM.
+- Bulk CSV upload validates category IDs and variant pricing before
+  insertion, not after.
+
+### Admin / Super Admin
+
+- **God Mode override logic**: force-change any order status, impersonate
+  users for troubleshooting, manually adjust any wallet balance. **This is
+  the highest-risk capability on the entire platform — user impersonation
+  and direct wallet mutation need a dedicated security design pass (auth
+  scoping, mandatory audit capture, probably a break-glass approval flow)
+  before being built for real, not a straight port of "it exists."**
+- Automated penalty triggers: "Impossible Travel" (logins from
+  geographically distant locations too fast) and "OTP Abuse" both able to
+  auto-set an account to `locked`.
+- **Randomized Inactivity Checks**: not a fixed idle timeout — the system
+  counts "Inactivity Events" and force-logs-out after a threshold. (This
+  project's own Admin idle-timeout feature used a fixed timer — this is a
+  materially different, more sophisticated mechanism worth implementing
+  as specified, not simplified back to a fixed timer.)
+- **Formula Engine defaults** (the actual numbers, not placeholders):
+  Markup Rate 20%, Platform Commission 10%, Logistics base fare ₱50 +
+  ₱10/km. These are the real defaults to seed the Engine Rules tiers with.
+- **Feature flags**: admin-controlled kill switches per module (e.g.
+  disable Auctions or Wholesale platform-wide instantly).
+- Verification loop covers: Rider licenses + vehicle photos, Merchant
+  business permits, Store operating hours.
+- Merchant-proposed vouchers only go live after Admin approves the
+  discount value and usage limits — vouchers are never merchant-unilateral.
+- Admin can manually assign a rider when auto-dispatch fails to find one
+  within the service radius.
+- Every admin mutation (status change, wallet adjustment, user edit) is
+  audit-logged with `actor_user_id` **and a `risk_level`** — the risk
+  scoring is a specific field to carry into the new audit model, not just
+  a generic audit row.
+- **REX Admin Copilot**: a read-only AI assistant for KPI summaries, audit
+  log search, and system health checks — explicitly barred from
+  performing any mutation. Worth remembering as a real planned feature,
+  not scope creep, if an AI assistant surfaces in the new Admin UI later.
+- **Alpha testing tools**: a "Global Seed" resets the workspace to a known
+  state with pre-verified Founder/Test-Merchant/Test-Rider accounts, and
+  Admins can mock rider GPS movement to test geofencing and the 150m rule
+  without a real device.
+
+---
+
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
 
 - `docs/business/AdminEndpoints.md` + `AdminEndpoints-Batch2.md` through
