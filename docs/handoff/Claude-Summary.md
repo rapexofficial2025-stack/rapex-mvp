@@ -313,7 +313,9 @@ in this document.
   verification, a mandatory 10-second "Welcome Animation" with a countdown
   plays before the dashboard is reachable — no skip. Confirmed
   founder-corrected scope: this does not apply to the Merchant/Admin web
-  portals, only the React Native apps.
+  portals, only the React Native apps. Also confirmed: the animation asset
+  is an **MP4 video file**, not a Lottie/CSS/sprite animation — only ever
+  produced for React Native, never for Web.
 - A merchant cannot receive orders or list products until `kyc_status =
   verified`, admin-set.
 - Order status control is merchant-exclusive through `merchant_accepted →
