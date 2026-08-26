@@ -762,6 +762,77 @@ weighting:
 5. **Auto-reassign on timeout**: no Accept within **60 seconds** → offer
    moves to the next-closest eligible rider automatically.
 
+### Wallet Atomic Split — now confirmed as FOUR parties, not three
+
+Supersedes the earlier three-party split description — the real split on
+order completion has four legs in one atomic transaction:
+- **Merchant**: `Price − Commission`
+- **Rider**: `Delivery Fee − Rider Platform Fee` (new detail: the rider's
+  own delivery fee has a platform cut taken out of it too — a separate fee
+  from the merchant's commission)
+- **Partner**: referral commission, only if the merchant was
+  partner-referred (ties into the tiered rates below)
+- **RAPEX Admin**: `Platform Fee + Markup + Commissions` — three of
+  Admin's own revenue streams bundled into one ledger credit, not three
+  separate transactions
+
+**COD rules**: requires at least **KYC Tier 1**. Orders **over ₱2,000**
+automatically disable COD as an option (protects the merchant from
+high-value no-shows) — this is a hard cutoff to implement exactly, not a
+soft warning.
+
+### Auction — 24-Hour Finalization + Delivery specifics
+
+- **24-Hour Rule**: once an auction ends, the winner has 24 hours to
+  confirm delivery address + payment method (if not already wallet-paid).
+  Miss the window → auction marked `forfeited`, seller can re-list. This
+  needs a scheduled/background task (`auto_expiration_task`), not a
+  request-time check.
+- Auction→Order conversion happens **immediately at auction close**,
+  landing directly at order status `preparing` (not `pending` — skips the
+  merchant-acceptance step other orders go through, since the "sale" was
+  already agreed via the winning bid).
+- Auction delivery fee: either an Admin-set flat rate, or the standard
+  weight-based vehicle-capacity logic (heavy/bulky auction items require
+  ELF/Van, same rule as regular orders).
+
+### Delivery Types — Rapid Express vs. Standard (new, not previously documented)
+
+Two distinct logistics tiers, not one uniform delivery system:
+
+- **Rapid Express**: 2-5km radius only, carries a "Priority Surcharge"
+  (higher base fare), broadcasts exclusively to motorcycle/bicycle riders.
+- **Standard Delivery**: 10-50km (municipality-wide), fee = `Base Fare +
+  (km × rate)`, and orders **can be bundled** — one rider handling multiple
+  pickups in one trip. Bundling is a real Standard-tier capability worth
+  designing for, not an edge case.
+
+### Partnership commission tiers — exact rates (supersedes "tiered, unspecified rate" language earlier)
+
+- **Silver**: 1% of referred-merchant sales, 1-5 referrals
+- **Gold**: 2%, 6-15 referrals
+- **Platinum**: 3%, 16+ referrals
+- `function: partnerships/track_referral` links the merchant's `id` to the
+  partner's `user_code` **permanently** ("forever") — this is what backs
+  the earlier-documented Lifetime Rule; the link itself, once made, is
+  never broken even if the partnership later lapses.
+
+### Invitations + Store completeness gate
+
+- **Admin invites**: Super Admin generates an `invite_code`; that exact
+  code is required to sign up with the `ADMIN` role — this is the real,
+  confirmed mechanic (supersedes the generic `POST /super-admin/admins/
+  invite` shape guessed in the earlier Xano spec batch — use the
+  invite-code flow instead, not an email-invitation-link flow).
+- **Merchant store setup**: requires KYC Tier 2 (Identity Verified) before
+  a store can even be created; One-Store-Limit per category reinforced
+  again here.
+- **The 100% Rule**: a store stays `is_active: false` until its profile is
+  fully complete — Name, Category, GPS Location, Operating Hours, and
+  Verified Business Docs, all five, not a partial-completion threshold.
+  This is a stricter gate than "pending admin approval" alone — the store
+  can't even reach the review queue until every field is filled.
+
 ---
 
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
