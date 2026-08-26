@@ -849,6 +849,130 @@ expiration the item is still only in cart state under this rule (i.e. no
 payment/order has been placed against it yet, so there is nothing to
 refund; it simply drops out of the cart).
 
+### 🔒 Q19 RULE — Customer Delivery-Fee Reduction (Deliver-Later depletion)
+
+Context: this extends the Deliver Later / 24-hour flexible-delivery model
+from Q2. When a Deliver-Later delivery runs past its window, the delivery
+fee **the customer owes** decreases over time — ₱5 every 20 minutes — and
+that ₱5 reduction is explicitly **not** RAPEX revenue.
+
+Example:
+```
+Original delivery fee: ₱100
+
+After 24h:
+24:20 → ₱95 customer delivery fee
+24:40 → ₱90
+25:00 → ₱85
+...
+```
+
+So the longer the delivery is delayed past the window, the less the
+customer ultimately pays for delivery. RAPEX does **not** collect the ₱5
+reductions — they simply reduce what the customer owes.
+
+**At ₱0** (delivery fee fully depleted): the order is marked **FAILED TO
+DELIVER**, and a separate rider-liability rule activates, because the rider
+accepted the delivery but failed to complete it within the fee-covered
+window.
+
+Two distinct financial concepts, kept separate:
+- **Customer side** — delivery fee decreases → customer benefits, pays
+  less the longer it takes.
+- **Rider side** — failed delivery after fee depletion → rider becomes
+  liable under the (still-to-be-detailed) failed-delivery rule.
+
+> ⚠️ The exact **rider-liability rule** referenced here (what the rider
+> owes/loses on a FAILED TO DELIVER after fee depletion) has not itself
+> been spelled out yet — only that it "activates." Treat the liability
+> mechanics as still open until locked explicitly.
+
+*(Relates to Part B Question 41 — Refund: this is a fee-depletion rule,
+distinct from a refund, since the customer isn't being refunded so much as
+progressively charged less as time passes.)*
+
+### 🔒 Q25 RULE — Cancellation Lockout at Delivery-In-Progress
+
+Once an order reaches the delivery-in-progress stage, the customer
+cancellation control becomes **CANCEL ORDER — UNAVAILABLE**:
+
+- Button becomes greyed out
+- Cancellation icon/text is crossed out
+- Button is disabled
+- Customer cannot initiate cancellation from the app
+
+This applies once the rider has actually started the delivery/dispatch
+stage. Current cancellation-lockout point in the flow:
+
+```
+ORDER PLACED
+   ↓
+Merchant Processing
+   ↓
+Rider Searching
+   ↓
+Rider Accepted
+   ↓
+Rider Going to Merchant
+   ↓
+PICKED UP
+   ↓
+🚚 DELIVERY IN PROGRESS
+   ↓
+❌ CANCEL BUTTON DISABLED
+```
+
+RAPEX does not rely solely on a penalty to discourage cancellation at this
+stage — the option is removed from the UI entirely once cancelling could
+seriously disrupt the delivery. If something genuinely goes wrong after
+this point, it becomes a support/admin exception flow rather than a normal
+customer-initiated cancellation.
+
+> This **confirms** the direction of Part B Question 45 (Customer
+> Cancellation) and the earlier-documented "no cancellation once en route"
+> rule — cancellation is disabled from Delivery-In-Progress onward. It does
+> not yet confirm the exact cutoff for every earlier stage (e.g. whether
+> "Picked Up" but not yet "Delivery In Progress" still allows cancellation)
+> — that finer-grained boundary is still implicit, not explicitly locked.
+
+### ⬜ Question 26 — Merchant Cancellation (OPEN, EXPLICITLY PAUSED)
+
+Posed immediately after Q25, but **explicitly paused by the founder before
+being answered** — preserved here as still fully open, not to be guessed:
+
+> Suppose the merchant accepted the order, but later says "Sorry, we don't
+> have the product." Who should bear the consequence?
+> - **A.** Customer gets full refund, no customer penalty.
+> - **B.** Merchant receives a cancellation penalty.
+> - **C.** Both: customer gets full refund + merchant receives an
+>   operational penalty.
+> - **D.** No penalty; merchant simply cancels.
+> - **E.** Different rule depending on why the merchant cancelled.
+
+Founder's own words pausing this: *"okay before This we move to Freelance
+Booking and Registration"* — and, confirming the pause: *"Yep. Pause the
+Order Engine here. We'll come back to Question 26 later. Now we switch
+completely to Freelance / Service Provider Registration + Booking and do
+the same thing: one question at a time. I won't generate the master prompt
+yet."*
+
+**This is a direct duplicate/overlap of Part B's Question 4** ("If one
+merchant rejects: does the whole checkout fail, or only that merchant's
+order?") and **Part B's Question 47** (Merchant timeout) — all three remain
+open together as one unresolved merchant-side cancellation/rejection
+cluster.
+
+> **Topic-shift marker:** as of this point in the live round, the founder
+> paused the Order Engine open-questions round (90% done by the founder's
+> own estimate, with "remaining ARE LIST of CATEGORIES 10% RULES and Logic
+> TO BE FOLLOWED during Operation" still to come) to begin a **separate**
+> one-question-at-a-time round on **Freelance / Service Provider
+> Registration + Booking**. Expect the next locked rules relayed to belong
+> to that new topic, not to this Order Engine catalog — they should be
+> captured in a dedicated Freelance/Service-Provider registration-and-
+> booking file when they arrive, not folded into this one, to keep the two
+> subject areas from blurring together.
+
 ---
 
 *(End of current content. This file will be appended to as further Q&A
