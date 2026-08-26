@@ -8,6 +8,17 @@ new stack. It complements, not replaces, `docs/handoff/WebCodex-Summary.md`
 and `docs/handoff/RNCodex-Summary.md` (screen-by-screen UI inventories) —
 this one is rules and logic.
 
+Section 8 was built incrementally across a full Xano business-logic
+deep-dive (2026-08-26) covering every domain: Merchant, Admin/Super Admin,
+Partnership, Gamification, Wallet/Accounting, KYC, Auctions, Child/Baon,
+Rider dispatch, Freelance/Service Provider, Google Maps/Geofencing,
+Referrals, Community, Marketing, vertical-specific purchase flows (Wet
+Market, No-POS, Carenderia, Wholesale), Service Bookings, Reservations,
+and Realtime/GPS — the founder confirmed this was the final round. Treat
+section 8 as the single most authoritative part of this document; sections
+3-6 above it were written earlier from frontend-side inference and are
+superseded wherever the two disagree.
+
 Nothing here is Xano-specific in substance. Exact endpoint paths (`/rapex-market/products` etc.)
 are dropped as noise; the request/response *shapes* and the *business rules
 behind them* are kept, since those need to be re-implemented as real Django
@@ -963,6 +974,80 @@ bought.
   10+ = ₱85 each), applied automatically before checkout — the customer
   never manually selects a "wholesale" mode, the system detects it from
   quantity.
+
+### Service Bookings (professional/appointment services — IT, Cleaning, Construction)
+
+- **Two-step pricing**: `estimated_price` held in wallet at booking time;
+  provider submits `final_price` after the job (covers materials/
+  overtime). If final > estimated, **the customer must explicitly approve
+  the extra charge before the booking can complete** — the provider can't
+  just charge more unilaterally.
+- **Scheduling gate**: no past-dated bookings; `POST /service_bookings`
+  checks the provider's `operating_hours` + `availability_status` before
+  accepting.
+- **Cancellation penalty**: customer cancels within 2 hours of the
+  appointment → a cancellation fee (example: ₱50) moves customer→provider
+  as compensation for the held time slot.
+
+### Accounting / Ledger — the real financial integrity rules
+
+- **SSOT rule**: a wallet balance can never change without a
+  corresponding `ledger` table row — no direct balance writes anywhere in
+  the system, ever.
+- **Idempotency**: every transaction requires a `transaction_code` (e.g.
+  `PAY`, `TFR`, `DLV` prefixes); a repeated code is rejected outright —
+  this is what makes retried/duplicate requests safe from double-charging.
+- **Admin wallet isolation**: markup + commission revenue moves into a
+  dedicated `admin_wallet`, kept separate from general "Operating Funds" —
+  a real solvency/accounting separation, not just a labeling convention.
+- Atomic distribution (`accounting/distribute_funds`) reconfirmed: full
+  DB-transaction rollback if any single payout leg fails — no partial
+  settlement is ever possible.
+
+### REX Botifications (adds scope to the Silent Window rule from section 8)
+
+- **Silent Window (10PM-8AM) applies platform-wide to non-critical
+  notifications**, not just low-stock reminders as originally documented —
+  the general rule is broader than first described. **Critical alerts
+  (Order Accepted, Rider Arrived) explicitly bypass the silent window** —
+  a two-tier notification-priority system, not a blanket quiet period.
+- **Role-targeted content**: the same event can produce different
+  messages per role — Riders get Earnings Alerts, Customers get Promo
+  Alerts — content is role-aware, not one broadcast body sent to everyone.
+- **Firebase push fires only after the internal `notifications` table
+  write succeeds** — the DB record is the source of truth, the push
+  notification is a side-effect of it, never the other way around (matches
+  section 8's confirmed Firebase-is-delivery-only boundary).
+
+### Reservations — 10-minute inventory lock (new, not previously documented)
+
+- Adding a **"Fast-Running" item** to cart creates a `product_reservation`
+  that deducts the reserved quantity from the *public* stock count
+  immediately — prevents overselling during high-demand windows.
+- Lock lasts **exactly 10 minutes**. `function:
+  reservations/cleanup_expired` runs on a **1-minute schedule**,
+  releasing stock and clearing the cart for any reservation past 10
+  minutes with no completed checkout.
+- This is specifically for fast-moving items (ties to the Carenderia/
+  fast-running-product logic documented earlier) — confirm whether it
+  applies to all products or only ones flagged fast-running before
+  implementing it universally.
+
+### Realtime — GPS heartbeat + live dispatch channel
+
+- **30-second GPS heartbeat** required from every Online rider. **No
+  heartbeat for 5 minutes → automatic Offline toggle + removal from the
+  dispatch pool** — the backend actively demotes stale-presence riders,
+  not just a passive last-seen timestamp.
+- `map:updates` realtime channel broadcasts **Rider ID + current
+  coordinates only — drop-off/customer location is never put on this
+  channel**, even though it's visible to the rider directly through their
+  own delivery detail once assigned. Public/broadcast visibility and
+  assigned-rider visibility are two different privacy scopes.
+- The instant a merchant clicks "Ready for Pickup," a realtime push (not a
+  poll) reaches every eligible rider within 2km simultaneously — this is
+  what makes the Accept button "appear instantly," per the founder's own
+  description of the intended feel.
 
 ---
 
