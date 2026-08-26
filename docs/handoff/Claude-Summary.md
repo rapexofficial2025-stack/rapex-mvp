@@ -1245,6 +1245,149 @@ actually implement** — treat both earlier mentions as superseded.
 
 ---
 
+## 9. Child/Baon — approved rules (supersedes every earlier Child/Baon mention in this document)
+
+**Source tier is different from section 8 above**: everything in section 8
+came from asking a Xano AI to *describe what's currently implemented*.
+What follows came from the founder's own written specification — an
+approved-rules document handed to an implementation analyst, i.e. the
+authoritative target design, not a description of existing code. Where
+this conflicts with anything said about Child/Baon earlier in this
+document (including this doc's own "Confirmed business rules" and
+"Referrals/Community" sections' passing Child/Baon mentions), **this
+section wins.**
+
+### Identity model — the biggest correction to earlier assumptions
+
+- A Child Account is a **full, independently authenticated user** — its
+  own `UserID`, own login identifier (email), own password. It is
+  **not** a profile record hanging off the parent's account.
+- `AccountRole = CHILD` (vs. `STANDARD`/`RIDER`/`MERCHANT`/`ADMIN` for
+  primary accounts), plus `ParentAccountID` linking child → the primary
+  account that created it. The child logs into the **same** Customer App
+  — there is no separate Child app, no separate Parent app, no separate
+  Parent role, and no separate Parent authentication system.
+- **"Parent" is a relationship, not a role.** The primary account's own
+  `AccountRole` never changes when it gains a child — a STANDARD customer
+  stays STANDARD after creating a child.
+- Backend must expose an **authoritative role field** the frontend reads
+  to decide UI — not just a `IsChildAccount` boolean the frontend could
+  spoof or misread. A boolean may exist as a convenience, but
+  `AccountRole = CHILD` is the real source of truth for gating.
+
+### Child creation — one-shot, parent-driven, no second approval step
+
+Flow: primary account → Profile → Child Accounts → Add Child. The
+**primary** fills out the child's registration (full name, email,
+password, birthday, gender, municipality, barangay, address, and a
+Student Y/N branch — Yes needs student ID/verification, No needs a reason
++ intended use). The child also goes through the standard live
+verification/photo process. The primary's confirmation **is** the
+authorization — there is no separate child-side accept step and no second
+parent-approval-after-creation step. On success: `ChildAccountStatus =
+ACTIVE` immediately, nothing pending.
+
+### RAPEX MINI — the child's UI, exactly three nav areas
+
+`AccountRole = CHILD` renders a deliberately minimal UI, not a stripped
+version of the full app:
+
+1. **HOME** — browse/search permitted products, product detail, quantity,
+   place order, view current Baon balance. Nothing else.
+2. **ORDERS** — current order, status, history, purchase details.
+3. **CHAT** — child ↔ **their linked primary account only**. No chat with
+   riders, merchants, or any other user, and no general social messaging
+   for the child role. This is explicitly MVP-scoped — don't build a
+   general child-facing chat system.
+
+Explicitly excluded from the child UI: Admin/Rider/Merchant functions,
+Parent/Family management, wallet management, child management (of other
+children), and "complex business features" generally.
+
+### Parent-side management — no need to ever log in as the child
+
+From the primary's own Profile → Child Accounts: Add Child, View Child,
+Allocate Baon, Deactivate, Reactivate (where allowed), Delete/deactivate
+per retention rules, View Child Purchase History — all performed as the
+primary, never by switching into the child's session.
+
+### Baon — one real wallet, allocations are not sub-wallets
+
+**There is exactly one real wallet: the primary account's.** Children
+never have an independent wallet. Track four distinct values, not a
+separate wallet entity per child:
+- Primary/Parent actual wallet balance
+- Child allocated budget
+- Child spent amount
+- Child remaining budget (= allocated − spent)
+
+**Allocation constraint**: a primary cannot allocate more than their
+*currently unallocated* balance (`unallocated = walletBalance −
+sum(all existing child allocations)`). Example given: ₱400 wallet with
+₱300 already allocated leaves ₱100 unallocated — attempting to allocate
+₱200 more must be rejected, not create phantom/negative funds.
+
+### Purchase logic — the exact required sequence, no per-purchase approval
+
+1. Identify the child account placing the order.
+2. Resolve `ParentAccountID`.
+3. Retrieve the child's remaining Baon budget.
+4. Calculate the full order total.
+5. Verify child's remaining budget ≥ order total.
+6. **Separately** verify the primary's actual wallet ≥ order total (a
+   child can have Baon "room" that the primary's real wallet can't
+   actually cover — both checks are required, independently).
+7. If both pass, atomically: deduct from the primary's real wallet,
+   deduct from the child's remaining budget, increase the child's spent
+   amount, and create one transaction record linked to Child + Parent +
+   Order.
+
+**No per-purchase parent approval is required** — creating the account
+and allocating Baon already constitutes the parent's authorization. This
+is a deliberate design choice, not a gap: build a notification ("John
+placed an order for ₱200"), never an approval gate.
+
+**Two independent failure conditions, both hard-block with zero
+deduction** (don't conflate them into one generic "insufficient funds"
+error):
+- Child remaining budget < order total → block, don't deduct, surface
+  something like *"Your RAPEX Baon is insufficient for this order."*
+- Primary wallet < order total → block, don't deduct, a separate
+  insufficient-wallet state (even if the child's own Baon "room" was
+  sufficient).
+
+### Security constraints — must be backend-enforced, not frontend-hidden
+
+A child account must never be able to: modify its own `ParentAccountID`,
+modify or increase its own Baon allocation, modify the parent's wallet,
+access another child's account, access parent financial controls, or
+reach any Admin/Rider/Merchant function. Every one of these needs a real
+server-side check on the child's own auth token — frontend route-hiding
+alone is explicitly called out as insufficient.
+
+### Data-modeling guidance from the source document itself
+
+Prefer normalized relationships over duplicating financial balances —
+i.e. don't store a redundant copy of "child balance" in multiple tables
+that could drift out of sync; derive `remaining = allocated − spent` from
+transaction history where reasonable rather than caching a value nothing
+else double-checks. The feature should integrate with the *existing*
+Users/Orders/Wallet/Payment architecture already documented throughout
+this file — not stand up a parallel, duplicate system.
+
+### Open questions the source document itself flags as unresolved (don't guess these)
+
+- Exact reactivation rules for a deactivated child (when is it allowed,
+  by whom).
+- Exact retention rule for deleting vs. deactivating a child account.
+- Whether a `IsChildAccount` boolean is actually needed alongside
+  `AccountRole = CHILD`, or if the role field alone is sufficient
+  everywhere.
+- Full index/unique-constraint list — flagged as needing a dedicated pass
+  once the table design is finalized, not decided by this rules document.
+
+---
+
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
 
 - `docs/business/AdminEndpoints.md` + `AdminEndpoints-Batch2.md` through
