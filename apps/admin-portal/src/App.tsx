@@ -75,13 +75,13 @@ function App() {
           <Route path="profile" element={<AdminProfilePage />} />
           <Route path="receipt-design" element={<Navigate to="/admin/preview/super-admin/receipt-design" replace />} />
           <Route path="exports" element={<Navigate to="/admin/preview/super-admin/exports" replace />} />
-          <Route path="super-admin" element={<SuperAdminAccessPage />} />
-          <Route path="super-admin/admins" element={<SuperAdminModulePage module="admins" />} />
-          <Route path="super-admin/users" element={<SuperAdminModulePage module="users" />} />
-          <Route path="super-admin/stores" element={<SuperAdminModulePage module="stores" />} />
-          <Route path="super-admin/catalog" element={<SuperAdminModulePage module="catalog" />} />
-          <Route path="super-admin/engines" element={<SuperAdminModulePage module="engines" />} />
-          <Route path="super-admin/audit" element={<SuperAdminModulePage module="audit" />} />
+          <Route path="super-admin" element={<SuperAdminAccessPage previewMode />} />
+          <Route path="super-admin/admins" element={<SuperAdminModulePage module="admins" previewMode />} />
+          <Route path="super-admin/users" element={<SuperAdminModulePage module="users" previewMode />} />
+          <Route path="super-admin/stores" element={<SuperAdminModulePage module="stores" previewMode />} />
+          <Route path="super-admin/catalog" element={<SuperAdminModulePage module="catalog" previewMode />} />
+          <Route path="super-admin/engines" element={<SuperAdminModulePage module="engines" previewMode />} />
+          <Route path="super-admin/audit" element={<SuperAdminModulePage module="audit" previewMode />} />
           <Route path="super-admin/receipt-design" element={<ReceiptDesignPage />} />
           <Route path="super-admin/exports" element={<ExportCenterPage />} />
         </Route>
