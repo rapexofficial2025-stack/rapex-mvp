@@ -633,6 +633,17 @@ the partnership — not a one-time bounty. Missing the annual quota
 (`function: partnerships/check_annual_status`) drops the partner from
 "Platinum" to a reduced rate, matching the Partnership section above.
 
+> ⚠️ **FLAGGED CONFLICT (not resolved):** the founder's own Master Feature
+> Checklist (see `OrderEngineOpenQuestions.md` Part A) lists a **"36-month
+> merchant commission rule"** as a locked/confirmed item. That cannot both
+> be true alongside this Lifetime Rule as written — 36 months is a hard
+> cap, "life of the partnership" is not. Per standing project discipline
+> this is flagged, not silently resolved in either direction. Needs an
+> explicit founder decision: is Partnership commission lifetime, capped at
+> 36 months, or lifetime for one tier and 36-month for another? See
+> `docs/handoff/OrderEngineOpenQuestions.md` for the full context this
+> surfaced from.
+
 ### Vehicles
 
 Classes: `bicycle`, `motorcycle`, `hatchback`, `sedan`, `elf` (truck),
