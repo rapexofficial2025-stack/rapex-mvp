@@ -686,6 +686,82 @@ just a UI hint. A vehicle isn't "Active" until `license_number` and
   as two separate configurable rates (both tiered by pillar and
   overridable per-merchant), not a single blended percentage.
 
+### KYC Permit Tiers (3-tier, gates far more than just "verified or not")
+
+This is the real access model underlying every "verification" reference
+elsewhere in this document — three tiers, each unlocking specific
+capabilities:
+
+- **Tier 0 — No Permit** (mobile/email unverified): "Guest View" only —
+  can see merchants within 2km, cannot add to cart at all.
+- **Tier 1 — Partial Permit** (email + mobile OTP confirmed): full
+  marketplace browsing unlocked, plus COD orders **up to a limited peso
+  cap** (exact cap not given — confirm before implementing a hard number).
+- **Tier 2 — Full Permit** (gov ID + selfie, Admin-approved): required for
+  — wallet withdrawal, becoming Merchant/Rider/Freelancer (any role
+  upgrade), and placing high-value auction bids. This is the single gate
+  behind four separate capabilities, not four separate checks.
+
+### Auctions (role model still unconfirmed per section 2, but the mechanics below are real)
+
+- **Escrow lock on bid**: placing a bid instantly locks that amount in the
+  bidder's `held_balance` — you cannot bid money you don't have, checked
+  at bid time not settlement time.
+- **Anti-sniping**: a bid in the final 60 seconds extends `ends_at` by 2
+  minutes automatically — repeats every time a last-60-second bid lands,
+  not just once.
+- **Reserve price**: highest bid below the seller's reserve →
+  `pending_seller_approval`, seller manually accepts the lower amount
+  rather than the sale auto-completing.
+- **Settlement**: one atomic transfer on close — winner's funds to seller,
+  platform cut taken, and the Auction Record converts into a real
+  Marketplace Order for delivery fulfillment (i.e. auctions ride the same
+  order/delivery pipeline once won, not a separate fulfillment path).
+
+### Child/Baon — confirms and extends the earlier Xano confirmation
+
+- Parent sets `daily_limit` or `weekly_budget` per child.
+- Child never sees the parent's actual balance — only their assigned Baon
+  allowance.
+- **Linked, not pre-funded**: a child's order checks the *parent's* wallet
+  at order time and charges the parent directly (updating the child's
+  `spent_amount` for tracking) — the child's Baon isn't a separately
+  pre-loaded balance sitting in the child's own account.
+- Parents can toggle off entire store categories per child (e.g. child can
+  spend Baon on Food but not Marketplace) — a category-level allowlist/
+  denylist per child, not just a peso limit.
+
+### Age restriction (18+, adds the exact check to what was already documented)
+
+- Pre-auth check, before the signup screen is even reachable: birth year
+  entered → `(currentYear - birthYear) < 18` → hard `ACTION_NOT_ALLOWED`,
+  account never created. (Matches this project's own `checkAge()`
+  pre-auth call — same gate, same intent.)
+- **KYC cross-check**: at Full Permit review, Admin must confirm the
+  uploaded ID's birthdate matches the profile's stated birthdate — a
+  mismatch is a real `kyc_rejected`, not just a warning. This is a second,
+  independent age check beyond the signup-time one.
+
+### Rider registration + selection algorithm (the real dispatch priority order)
+
+**Registration**: Professional Driver's License + OR/CR (vehicle
+registration) + a vehicle photo required. The "Go Online" toggle is
+**hard-disabled** until `verified: true` is Super-Admin-set — not just a
+warning banner, the toggle itself doesn't work.
+
+**Selection, in priority order** — this is the real algorithm, worth
+implementing exactly in this order rather than picking a different
+weighting:
+1. Filter: `online_status: true` AND `is_active: true`.
+2. Filter: within 2km of the store.
+3. Weight: riders with a **4.5+ rating** prioritized.
+4. Filter: order weight (from the product record) vs. vehicle capacity —
+   a heavy order (example given: "a Rice Sack") is never routed to a
+   Bicycle rider. (Matches and reinforces the earlier ">20kg disqualifies
+   bicycle/motorcycle" rule.)
+5. **Auto-reassign on timeout**: no Accept within **60 seconds** → offer
+   moves to the next-closest eligible rider automatically.
+
 ---
 
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
