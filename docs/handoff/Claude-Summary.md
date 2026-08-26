@@ -607,6 +607,85 @@ just a UI hint. A vehicle isn't "Active" until `license_number` and
 - Stores open 10PM-5AM can carry a "Night Owl" delivery surcharge via
   `delivery_rates` — separate line item from the peak-hour surge above.
 
+### Scam/Spam prevention (adds exact thresholds to section 8's earlier fraud mentions)
+
+- **Chat leakage filter** (`function: security/chat_leakage_filter`):
+  every chat message scanned for phone numbers, emails, and keywords
+  ("Viber", "WhatsApp", "Messenger"); a hit blocks the message with:
+  "For your security, contact information sharing is restricted until a
+  booking is confirmed." — prevents off-platform deal-making that would
+  bypass commission.
+- Duplicate-ID detection: the same alphanumeric ID or mobile number can't
+  be linked to more than one account.
+- **Malicious Activity Score** (`function: security/evaluate_user_risk`) —
+  exact thresholds: rapid failed logins, **more than one OTP request within
+  60 seconds**, or Impossible Travel (**logins from two cities within 5
+  minutes**) → auto-sets account to `locked` or `review`. (These are the
+  same two triggers referenced generically in section 8's Admin block —
+  now with real numbers to implement against.)
+
+### IP security
+
+- `blocked_ips` table, each entry with an `expires_at`; a high-risk audit
+  event auto-adds the offending IP. Requests from a blacklisted IP are
+  hard-rejected at the **API middleware level** with 403 — before reaching
+  any view/business logic.
+- Geographic IP-location vs. reported-GPS mismatch logs a "Security Event"
+  (flag/log, not necessarily an auto-block by itself).
+
+### Store Rewards/Loyalty — a SEPARATE system from the platform-wide Gamification in section 8, don't conflate
+
+- Rewards can be **store-locked**: a merchant funds their own loyalty pool,
+  valid only at that store.
+- **Store XP** (rank within that one store, e.g. Bronze→Gold) is distinct
+  from **Store Points** (spendable discount currency at that store) — and
+  both are distinct from the platform-wide XP/Reward-Points pair described
+  earlier. Three separate currencies total once both systems exist:
+  platform XP, platform Reward Points, and per-store Points.
+- Verified photo reviews auto-award Reward Points — an incentive for
+  higher-quality feedback, not just review volume.
+
+### Local Rider dispatch (adds detail to the 2km radius mentioned earlier)
+
+- **2km broadcast, time-boxed**: when a store marks `ready_for_pickup`,
+  the broadcast goes to riders within 2km **for the first 5 minutes**
+  specifically — implies a fallback/expansion behavior after 5 minutes
+  that wasn't detailed here; confirm what happens next (wider radius?
+  admin manual assignment, per section 8?) before assuming silence means
+  "never fills."
+- **Home Hub priority**: riders can be anchored to a `home_hub_id`
+  (municipality); dispatch prefers riders whose home hub matches the
+  store's location, for local-knowledge/shortcut familiarity — a ranking
+  factor, not a hard filter.
+- The **Accept button itself is proximity-gated**: accepting an offer only
+  succeeds if the rider is within their own `service_radius` of the store
+  at accept-time — a second server-side check beyond the initial broadcast
+  filter, so a rider who moved out of range can't accept a stale offer.
+
+### Commission & Markup Engine — the real formula (implement exactly this, not a guess)
+
+- **Markup** (customer-side): default **20%**. Merchant lists ₱100 →
+  customer sees ₱120. The ₱20 difference is platform revenue, taken from
+  the *customer* side.
+- **Commission** (merchant-side): default **10%**. From the merchant's
+  ₱100, ₱10 is deducted at order completion. Taken from the *merchant*
+  side.
+- **Double-Earnings**: these are two independent revenue streams RAPEX
+  collects on the *same* transaction simultaneously — not one combined
+  rate. `customerPrice = merchantListedPrice × (1 + markupRate)`;
+  `merchantReceives = merchantListedPrice × (1 - commissionRate)`.
+- **Overrides, two independent axes**:
+  - Category-pillar-level: e.g. Agriculture commission 5% vs. Industrial
+    15% — a default per pillar, not one global rate.
+  - Merchant-specific: Admin can grant a star merchant a "Lower Rate"
+    override that beats the pillar default — an explicit per-merchant
+    exception, auditable.
+- This is the authoritative source for the Engine Center's
+  `commissionRatePercent`/`markupRatePercent` fields described in section
+  3 — implement the Django Engine Rules models with markup and commission
+  as two separate configurable rates (both tiered by pillar and
+  overridable per-merchant), not a single blended percentage.
+
 ---
 
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
