@@ -833,6 +833,79 @@ Two distinct logistics tiers, not one uniform delivery system:
   This is a stricter gate than "pending admin approval" alone — the store
   can't even reach the review queue until every field is filled.
 
+### Community — new feature, not previously documented anywhere in this project
+
+- **Hyper-local feed**: `GET /community/get_feed` auto-filters by the
+  viewer's `province_id` + `municipality_id` — a social feed scoped to the
+  user's own area by default, not a global feed.
+- **Buy-from-Feed**: posts can tag a `product_id`/`store_id`; a tagged post
+  renders a "Buy Now" that adds straight to cart from the social feed
+  itself — commerce and community share the same cart/checkout pipeline,
+  not a separate purchase path.
+- **Reputation**: `community_reputation_log` tracks points earned from
+  post engagement (likes/love); high-reputation users get priority feed
+  visibility, low-reputation or reported users get **shadow-banned**
+  algorithmically (not a visible ban — posts just stop surfacing).
+
+### Gamification — exact XP amounts (supersedes the generic "earn XP" language earlier)
+
+- **Buyers**: 1 XP per ₱10 spent, 50 XP per written review.
+- **Riders**: 100 XP per completed delivery, 20 XP per 5-star rating
+  received.
+- **Merchants**: 50 XP per fulfilled order, 10 XP for fast preparation.
+- `level_rewards` table drives what unlocks per level (example given:
+  Level 5 → Bronze Badge, Level 10 → 5% discount voucher) — level-to-reward
+  mapping is admin-configurable data, not hardcoded per level in code.
+- `gamification_tasks` defines rotating **Daily Quests** (example: "Complete
+  3 orders today") granting bonus Reward Points — a separate mechanic from
+  the passive XP-per-action rules above.
+
+### Integrations — the real architectural boundary of each third-party service (important for the new backend's design)
+
+- **Firebase**: push notifications and Google/social login **only**.
+  100% of account data and session logic lives in Xano/Django — Firebase
+  is never the source of truth for a user record. (Matches this project's
+  own Firebase usage — good, no correction needed here, just confirms the
+  pattern was right.)
+- **Google Maps**: used only for address lookups and route polylines.
+  **All distance calculation and geofencing runs server-side inside
+  Xano/Django using stored coordinate polygons** — not a live Maps API
+  call per request. This is the real reason the 150m/2km/geofence rules
+  throughout this document are described as Xano-side logic, not
+  Maps-API-side.
+- **PayMongo**: Xano/Django generates the Checkout URL, then **waits for a
+  webhook** to confirm payment before touching the wallet balance — never
+  trusts a browser redirect as proof of payment (matches this project's
+  own established payment-security discipline exactly).
+- **Google Sheets "Bridge"** (new, not previously known): all 20+ backend
+  tables sync to Google Sheets via `function: google_sheets/sync`, purely
+  so the Admin team can monitor data without opening the Xano dashboard.
+  Worth deciding whether this pattern is still wanted once the backend is
+  Django (e.g. a scheduled export job) or whether Django's own admin panel
+  replaces the need for it entirely.
+
+### Marketing — voucher funding source + referral/ad rules
+
+- **Voucher funding, two distinct sources** (adds financial detail to
+  section 8's voucher-scoping description): merchant-funded vouchers
+  deduct from *the merchant's own payout*; platform-funded (global)
+  vouchers are covered by *platform markup revenue* — these need to debit
+  different ledger accounts in the Split Engine, not one shared "discount"
+  line.
+- **Referral escrow**: referral rewards (cash or points) stay frozen until
+  the referred friend completes their **first successful delivery** —
+  same trigger as the User-to-User referral rule documented earlier, now
+  explicitly framed as fraud prevention against fake-account referral
+  farming.
+- **Ad placement**: `marketing_ads` table, rotation by `priority` +
+  `target_audience`, with real exclusion logic (example given: a "Become a
+  Rider" ad is never shown to a user who's already a Rider) — targeting
+  needs to read the viewer's actual role/state, not just a static segment
+  tag.
+- **5-for-5 conversion** reconfirmed: 5 Reward Points = ₱5.00, via
+  `marketing/points/convert` — same rate as documented earlier, now with
+  its own dedicated function reference.
+
 ---
 
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
