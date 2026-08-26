@@ -1532,6 +1532,106 @@ Imus, General Trias, Kawit.
 
 ---
 
+### Map Fencing / Phased Geofencing (new — the actual expansion rollout mechanism)
+
+- `geofences` table stores zone polygons per phase (example: "Phase 1:
+  Municipality A"). Every order passes `check_geofence` (reinforces
+  section 8's geofence mention, now with the real table it reads from).
+- **"Coming Soon" UX**: a user whose coordinates fall in a defined-but-
+  inactive Phase 2 zone sees "We haven't reached you yet, but we're
+  coming soon! 🚀" with checkout disabled — a real, specific product
+  string worth reusing verbatim, not paraphrasing.
+- **100km cross-phase exception**: local delivery stays within 10km (per
+  section 8's service radius), but **Marketplace-category items can ship
+  between Phase 1 and Phase 2 zones via Hub-to-Hub logistics** up to
+  ~100km — a real, deliberate exception to the "local only" default,
+  specific to the Marketplace vertical.
+
+### Store Launch Readiness (adds detail to the earlier "100% Rule")
+
+Checklist to reach 100%: KYC (identity verified), Financials (bank/payout
+details set), Operations (hours + GPS pinned), Inventory (**at least 3
+approved products with photos** — a real minimum-catalog-size gate not
+mentioned before). **Two-step gate, not one**: even at 100% checklist
+completion, the store stays inactive until Super Admin manually toggles
+`verified` — automatic checklist completion is necessary but not
+sufficient.
+
+### Reviews — exact double-blind mechanic + a data point on the earlier XP discrepancy
+
+- **Real mutual-blind mechanic** (more precise than "double-blind" alone):
+  a Customer's review of a Rider is **hidden from that Rider specifically
+  until the Rider also submits their own rating of that Customer** — a
+  reveal-on-mutual-submission gate, not just two independent one-way
+  ratings existing in parallel.
+- **10 XP per review** stated here again — this is the second independent
+  mention of 10 XP (the other being the double-blind Ratings subsection
+  earlier in section 8), against a single earlier mention of 50 XP in the
+  Gamification subsection. This shifts the weight of evidence toward 10
+  XP, but per this document's own discipline, still confirm directly
+  rather than resolve by majority count.
+- **QR referral mechanic, real detail**: `qr_codes` table, one
+  `referral_id` per user, QR payload is a **signed token** — scanning it
+  auto-binds the new user as a "Referred Child" in the `referrals` table.
+  Adds the signed-token detail to the earlier `referral_id`/`qr_payload`
+  mention.
+
+### PayMongo — the pending-order + timeout mechanics
+
+- On PayMongo checkout initiation, order status moves to
+  `merchant_pending` while the **wallet stays at 0** — the order record
+  advances to a pending state, but no money moves and the merchant isn't
+  told to start preparing yet.
+- **The webhook remains the actual trust boundary**: only
+  `payment.paid` moves funds into the wallet and alerts the merchant —
+  consistent with, and now more precise than, the earlier-confirmed
+  "never trust a redirect, wait for webhook" rule.
+- **30-minute session timeout**: an incomplete PayMongo session
+  auto-expires the order and releases the merchant's reserved inventory —
+  a concrete, previously-undocumented timer.
+
+### Soft Delete + Ban discipline
+
+- **Soft delete only**: deleting a store or user never removes the DB
+  record — toggles `active: false` + sets `deleted_at`, keeping financial/
+  audit history intact. Applies platform-wide, not just to one entity
+  type.
+- **Automated ban triggers, exact thresholds**: `account_status:
+  suspended` fires automatically for Rider Rating < 3.5 (reinforces
+  section 8), **Merchant Cancellation Rate > 20%** (new, concrete
+  threshold), or Leakage-Filter-detected spam (reinforces section 8).
+- **Permanent contact blacklist**: once an email or mobile number is tied
+  to a banned account, **that specific email/mobile is permanently
+  blocked from any future signup** — not just that account being banned,
+  the contact info itself becomes unusable platform-wide going forward.
+
+### Delivery Returns (new — not covered anywhere earlier in this document)
+
+- **Fresh Goods**: `returnable: false` — a failed delivery is never
+  refunded; rider is instructed to Dispose/Keep per Admin policy (matches
+  the earlier-documented Wet Market no-return-on-spoilage framing, now
+  extended to failed-delivery specifically, not just post-purchase
+  disputes).
+- **Standard Goods**: 24-hour return window starting at
+  `delivered_completed`.
+- **⚠️ Nuance worth reconciling, not silently merging**: a **24-hour
+  merchant payout hold** applies specifically to Standard Goods, "to
+  ensure funds are available for a potential refund." This sits alongside
+  section 8's confirmed rule that the atomic Split Engine fires
+  *immediately* at `delivered_completed`. Most likely reading: the split
+  still fires immediately, but the merchant's *share* lands in a held/
+  non-withdrawable state for 24h on Standard Goods specifically (same
+  held-balance mechanism used for the customer-side escrow elsewhere in
+  this document) — but confirm this directly rather than assume; it's
+  also possible the payout itself is deferred rather than instant-but-held.
+- **Rider-to-Store return flow**: if the customer is unreachable, the
+  rider clicks "Return to Store" — **the rider's own delivery fee is only
+  released once the Merchant confirms receiving the returned package** —
+  a real payment-gating condition tied to merchant confirmation, not just
+  the rider's own claim of having returned it.
+
+---
+
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
 
 - `docs/business/AdminEndpoints.md` + `AdminEndpoints-Batch2.md` through
