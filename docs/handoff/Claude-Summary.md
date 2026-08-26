@@ -309,9 +309,11 @@ in this document.
 - Onboarding state machine: `Signup → OTP/Email Verify → Merchant Profile
   → Main Store Creation → Store Location & Ops → Business Document Upload
   → Payout Setup`.
-- **The 10-Second Rule**: after verification, a mandatory 10-second
-  "Welcome Animation" with a countdown plays before the dashboard is
-  reachable — no skip.
+- **The 10-Second Rule — mobile (React Native) only, not Web**: after
+  verification, a mandatory 10-second "Welcome Animation" with a countdown
+  plays before the dashboard is reachable — no skip. Confirmed
+  founder-corrected scope: this does not apply to the Merchant/Admin web
+  portals, only the React Native apps.
 - A merchant cannot receive orders or list products until `kyc_status =
   verified`, admin-set.
 - Order status control is merchant-exclusive through `merchant_accepted →
