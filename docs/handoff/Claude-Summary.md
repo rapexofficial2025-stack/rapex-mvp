@@ -1388,6 +1388,150 @@ this file — not stand up a parallel, duplicate system.
 
 ---
 
+## 10. Rider App Features & Process — from a dedicated founder-provided doc (updates + one unresolved conflict)
+
+Source: `RAPEX_RIDER_APP_FEATURES_AND_PROCESS.docx`, provided directly by
+the founder — a purpose-built Rider spec, more detailed than the earlier
+Xano-AI summaries on delivery pricing specifically. Where numbers below
+differ from section 8, this section is likely the newer/more authoritative
+one **except where flagged as an unresolved conflict** — those need a
+founder decision, not a silent pick.
+
+### Delivery Fee Engine — precise formula, likely supersedes section 8's "₱50 + ₱10/km"
+
+```
+FinalFee = (VehicleBaseRate + AdditionalDistanceCharge) × PeakMultiplier
+           × DeliveryTypeMultiplier × WeatherMultiplier
+```
+- **Vehicle base rate includes the first 2km** (example: Motorcycle =
+  ₱49). This is a different number from section 8's generic "₱50 base
+  fare" — treat **₱49 motorcycle / first-2km-included** as the real
+  figure unless told otherwise.
+- **Additional distance**: ₱8/km beyond the included 2km, **excess
+  rounded up** to the next whole km (2.8km → 0.8km excess → rounds to 1km
+  → +₱8). Also a different rate from section 8's "₱10/km."
+- **Peak Multiplier**: Normal ×1.0, Peak ×1.3. Peak windows: **6-8AM and
+  5-8PM** (hour ranges, not the "11AM-1PM lunch / 5PM-8PM dinner" example
+  given in section 8 — that was explicitly hedged as an example there;
+  treat these AM/PM ranges as the real ones).
+- **Weather Surge**: Normal ×1.0, Rain ×1.2, Heavy Rain ×1.5 — **admin
+  manual toggle**, not automatic weather-API detection. Confirms/refines
+  section 8's "Rush Hour traffic adjustment" isn't the same mechanism as
+  this — weather and traffic are two separate multiplier sources.
+- **Delivery Type Multiplier**: Standard ×1.1, RAPEX Express ×1.2.
+- **Worked example** (2.8km motorcycle, peak, Standard): ₱49 base + ₱8
+  (1km excess) = ₱57 → ×1.3 peak = ₱74.10 → ×1.1 standard = ₱81.51. (Doc's
+  own rounding shows ₱74/₱81 — use unrounded intermediate values, round
+  only the final display figure.) A further ×1.2 RAPEX Express example
+  shown separately: ₱89.
+
+### ETA Engine — new, not documented anywhere earlier
+
+```
+ETA = (Distance × VehicleMultiplier) + Buffer
+```
+Bicycle: ×5 + 5min buffer. Motorcycle: ×3 + 5min buffer. Sedan: ×4 + 8min
+buffer. Worked example: 2.8km motorcycle → 2.8×3=8.4 +5 = **13 min ETA**.
+
+### Discovery radius vs. fee-basis distance — a real distinction to preserve
+
+- **"Glide Radius"**: discovery only — used to find/list nearby riders,
+  not for pricing.
+- **Google Maps Route distance**: the actual delivery-fee basis and
+  actual operational distance — a real road-route calculation, separate
+  from whatever radius search found the candidate riders.
+This refines section 8's "2km dispatch radius" — that radius is for
+finding candidates (Glide Radius), while the fee itself is computed from
+real route distance, not the discovery radius.
+
+### ⚠️ Unresolved conflict — proximity/contact-unlock distance (do not implement any of these until confirmed)
+
+Three different numbers now exist across sources for "when does the other
+party's contact info unlock":
+- **150m** — confirmed multiple times, independently, across several
+  rounds of the Xano business-logic deep-dive (section 8), for both
+  directions (rider-to-merchant and merchant-to-rider).
+- **500m** — this doc's "Anti-Bypass Flow" section: "After Rider leaves
+  500m from merchant: Customer contact info appears."
+  Note this is leaving-merchant distance, not rider-to-customer distance.
+- **50m** — this same doc's later "Contact Unlock Flow" section: "Once
+  rider reaches: 50 meters away from merchant THEN user information
+  unlocks."
+
+**This document contradicts itself** (500m vs. 50m in two different
+sections), on top of disagreeing with the independently-confirmed 150m
+from the Xano side. Do not pick one — this needs the founder to confirm
+the actual intended number directly before any implementation.
+
+### Vehicle types — scoped to personal/local riders (3 types), narrower than section 8's 6
+
+This doc: Bicycle, Motorcycle, Sedan/Hatchback only. Section 8's Hardware/
+Agriculture rules referenced 6 classes including ELF/Van for heavy cargo —
+likely because ELF/Van belong to a separate heavy-logistics vehicle pool,
+not the personal Rider App's own registration options. Treat as
+consistent scoping, not a conflict.
+
+### Rider status — 4 states in one field (Offline/Online/Busy/Suspended)
+
+This doc folds Suspended into the same status field as Offline/Online/
+Busy. Section 8 modeled `availabilityStatus` (offline/online/busy) as
+independent from account-level verification/suspension status. Worth
+confirming whether Suspended is really the same field as availability, or
+this doc is simplifying two fields into one list for readability.
+
+### Rider earnings minimums — new
+
+Suggested per-delivery minimums: Bicycle ₱30, Motorcycle ₱40, Sedan ₱60.
+
+### Merchant Checkout vs. Global Checkout — a real dispatch-architecture question to reconcile with section 8's "child orders" model
+
+This doc describes **two structurally different checkout/dispatch paths**:
+
+- **Merchant Checkout** (single-store cart): single rider, direct
+  merchant→customer delivery, fast/rapid by design. Matches section 8's
+  basic order flow.
+- **Global Checkout** (multi-store cart): a **materially different**
+  model from section 8's "splits into independent Child Orders, each
+  separately dispatched." Global Checkout instead offers three tiers:
+  - **Economy**: batching allowed, a rider may collect from several
+    merchants and drop at a **local Hub** first; same-day/24hr ETA,
+    flexible timing, for non-urgent/multi-store orders.
+  - **Standard**: ×1.1 multiplier, single rider possible with multi-stop
+    pickup allowed.
+  - **RAPEX Express (Global)**: ×1.2, priority dispatch, minimal
+    batching.
+  - Same-area multi-merchant: **one rider collects from all nearby
+    merchants** in one trip. Different-area multi-merchant: zone-split,
+    nearest rider per zone, routed through a hub/transfer point, final
+    rider completes to customer.
+
+**This needs reconciling, not silently merging**: section 8 describes
+every multi-store cart splitting into fully independent per-store Child
+Orders (implying independent dispatch per store). This doc describes a
+single rider potentially handling multiple merchants' items in one
+consolidated trip, with a Hub/relay system for cross-zone cases. Confirm
+with whoever owns this decision whether "child orders" are still
+independently dispatched-and-tracked but can be *fulfilled* by one rider
+in one trip (compatible), or whether Global Checkout genuinely replaces
+the child-order model for multi-store carts (a bigger architectural
+change). Don't assume either answer.
+
+### Anti-bypass / information-hiding (complements, doesn't conflict with, the chat_leakage_filter in section 8)
+
+Before pickup, rider sees merchant info + delivery pin only — **no
+customer phone, photo, name, or chat access at all**, not just chat-text
+filtering. Customer cancellation is disabled the moment the rider picks up
+the item (protects rider effort + merchant inventory prep). This is a
+second, complementary anti-bypass layer (withhold the data entirely) on
+top of section 8's chat_leakage_filter (scan messages once chat *is*
+open) — both apply, they're not alternatives.
+
+### Pilot areas (confirmed, matches this project's own earlier Cavite pilot-area context)
+
+Imus, General Trias, Kawit.
+
+---
+
 ## Source documents this summary distills (still in this repo if deeper detail is needed)
 
 - `docs/business/AdminEndpoints.md` + `AdminEndpoints-Batch2.md` through
