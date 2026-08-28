@@ -9,6 +9,16 @@ type MapPlaceholderProps = {
   onSelectMerchant: (merchant: Merchant) => void;
 };
 
+// Fixed night-ops palette, independent of the admin portal's own light/dark
+// theme toggle -- the live map itself is meant to always look like a
+// dark operations console (matches GoogleMapView's DARK_MAP_STYLES for when
+// a real Maps key is configured).
+const MAP_DARK_BG = "#1a1a2e";
+const MAP_DARK_GRID = "rgba(141,136,168,0.10)";
+const MAP_DARK_SURFACE = "#232342";
+const MAP_DARK_BORDER = "#33335a";
+const MAP_DARK_TEXT_MUTED = "#8d88a8";
+
 export function MapPlaceholder({ riders, merchants, onSelectRider, onSelectMerchant }: MapPlaceholderProps) {
   const theme = useTheme();
 
@@ -20,10 +30,10 @@ export function MapPlaceholder({ riders, merchants, onSelectRider, onSelectMerch
           position: "relative",
           margin: theme.spacing.lg,
           borderRadius: theme.radius.lg,
-          border: `1px solid ${theme.colors.border}`,
-          backgroundColor: theme.colors.surfaceAlt,
+          border: `1px solid ${MAP_DARK_BORDER}`,
+          backgroundColor: MAP_DARK_BG,
           backgroundImage:
-            "linear-gradient(0deg, transparent 24%, rgba(128,128,128,0.08) 25%, rgba(128,128,128,0.08) 26%, transparent 27%, transparent 74%, rgba(128,128,128,0.08) 75%, rgba(128,128,128,0.08) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(128,128,128,0.08) 25%, rgba(128,128,128,0.08) 26%, transparent 27%, transparent 74%, rgba(128,128,128,0.08) 75%, rgba(128,128,128,0.08) 76%, transparent 77%, transparent)",
+            `linear-gradient(0deg, transparent 24%, ${MAP_DARK_GRID} 25%, ${MAP_DARK_GRID} 26%, transparent 27%, transparent 74%, ${MAP_DARK_GRID} 75%, ${MAP_DARK_GRID} 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, ${MAP_DARK_GRID} 25%, ${MAP_DARK_GRID} 26%, transparent 27%, transparent 74%, ${MAP_DARK_GRID} 75%, ${MAP_DARK_GRID} 76%, transparent 77%, transparent)`,
           backgroundSize: "40px 40px",
           overflow: "hidden",
         }}
@@ -34,8 +44,8 @@ export function MapPlaceholder({ riders, merchants, onSelectRider, onSelectMerch
             top: theme.spacing.sm,
             left: theme.spacing.sm,
             fontSize: theme.typography.fontSize.xs,
-            color: theme.colors.textSecondary,
-            backgroundColor: theme.colors.surface,
+            color: MAP_DARK_TEXT_MUTED,
+            backgroundColor: MAP_DARK_SURFACE,
             padding: `${theme.spacing.xxs}px ${theme.spacing.sm}px`,
             borderRadius: theme.radius.sm,
           }}
@@ -57,7 +67,8 @@ export function MapPlaceholder({ riders, merchants, onSelectRider, onSelectMerch
               width: 16,
               height: 16,
               borderRadius: "50%",
-              border: `2px solid ${theme.colors.surface}`,
+              border: `2px solid ${MAP_DARK_BG}`,
+              boxShadow: "0 0 8px rgba(0,0,0,0.5)",
               backgroundColor: riderStatusColor(rider.status, theme),
               cursor: "pointer",
               padding: 0,
@@ -79,7 +90,8 @@ export function MapPlaceholder({ riders, merchants, onSelectRider, onSelectMerch
               width: 18,
               height: 18,
               borderRadius: theme.radius.sm,
-              border: `2px solid ${theme.colors.surface}`,
+              border: `2px solid ${MAP_DARK_BG}`,
+              boxShadow: "0 0 8px rgba(0,0,0,0.5)",
               backgroundColor: merchantStatusColor(merchant.status, theme),
               cursor: "pointer",
               padding: 0,

@@ -57,6 +57,7 @@ export function LiveMapView({ riders, merchants, onSelectRider, onSelectMerchant
         zoom={12}
         height="100%"
         geoFences={[geoFence]}
+        darkMode
         onMarkerClick={(marker) => {
           if (marker.id.startsWith("rider-")) {
             const rider = riders.find((r) => `rider-${r.id}` === marker.id);

@@ -1,22 +1,69 @@
-import { GoogleAuthProvider, signInWithPopup, type UserCredential } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  getRedirectResult,
+  signInWithPopup,
+  signInWithRedirect,
+  type UserCredential,
+} from "firebase/auth";
 import { firebaseAuth, isFirebaseConfigured } from "./firebaseConfig";
 
 /**
  * Real Google sign-in for the web -- no OAuth-broker complexity needed
- * here (unlike the mobile apps), since Firebase JS SDK's signInWithPopup
- * is a genuine browser OAuth popup that works directly once a real
- * Firebase project exists. Nothing here fakes a successful sign-in: it
- * either does the real popup flow or throws a clear "not configured"
- * error, same discipline as apps/customer-app/services/socialAuth.ts.
- *
- * This only gets the user a Firebase identity -- exchanging that for a
- * real RAPEX/Xano session is a separate step gated on Xano's confirmed
- * `/auth/me` field schema for Merchant (see docs/api/README.md and
- * docs/business/Authentication.md), not implemented here.
+ * here (unlike the mobile apps), since Firebase JS SDK is a genuine
+ * browser OAuth flow that works directly once a real Firebase project
+ * exists. Nothing here fakes a successful sign-in: it either does the
+ * real flow or throws a clear "not configured" error, same discipline as
+ * apps/customer-app/services/socialAuth.ts.
  */
-export async function signInWithGoogle(): Promise<UserCredential> {
+function requireFirebaseAuth() {
   if (!isFirebaseConfigured || !firebaseAuth) {
     throw new Error("Firebase is not configured -- set VITE_FIREBASE_* in .env.local (see .env.example).");
   }
-  return signInWithPopup(firebaseAuth, new GoogleAuthProvider());
+  return firebaseAuth;
+}
+
+/**
+ * Firebase's GoogleAuthProvider doesn't reliably request the `email` scope
+ * on its own -- observed: the Google consent screen only listed "Name and
+ * profile picture", and the returned credential's user.email came back
+ * null. Requesting it explicitly makes it show up on the consent screen
+ * and guarantees it's present on the result.
+ */
+function googleProvider() {
+  const provider = new GoogleAuthProvider();
+  provider.addScope("email");
+  provider.addScope("profile");
+  return provider;
+}
+
+/**
+ * Popup-based sign-in (desktop). Reliable there, but mobile browsers
+ * routinely block or silently kill OAuth popups (observed: the popup
+ * closes on its own after ~10s with no result on mobile Chrome/Edge) --
+ * use signInWithGoogleRedirect() instead on mobile, see isMobileWebView().
+ */
+export async function signInWithGoogle(): Promise<UserCredential> {
+  return signInWithPopup(requireFirebaseAuth(), googleProvider());
+}
+
+/**
+ * Redirect-based sign-in: navigates the whole page to Google instead of
+ * opening a popup, then back to this same URL on completion. Never
+ * resolves here -- the result is picked up by getGoogleRedirectResult()
+ * after the page reloads.
+ */
+export async function signInWithGoogleRedirect(): Promise<never> {
+  await signInWithRedirect(requireFirebaseAuth(), googleProvider());
+  return new Promise<never>(() => {});
+}
+
+/** Call on every page load to pick up a signInWithGoogleRedirect() that just completed. Null if there's none pending. */
+export async function getGoogleRedirectResult(): Promise<UserCredential | null> {
+  if (!isFirebaseConfigured || !firebaseAuth) return null;
+  return getRedirectResult(firebaseAuth);
+}
+
+/** Popups are unreliable enough on mobile browsers (see signInWithGoogle's note) that redirect is the safer default there. */
+export function isMobileWebView(): boolean {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }

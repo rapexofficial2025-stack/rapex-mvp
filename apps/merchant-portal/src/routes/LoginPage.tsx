@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { UserCredential } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import type { GoogleProfileInput } from "@rapex/api-client";
 import { MerchantAuthShell } from "./MerchantAuthShell";
-import { signInWithGoogle } from "../services/socialAuth";
+import { getGoogleRedirectResult, isMobileWebView, signInWithGoogle, signInWithGoogleRedirect } from "../services/socialAuth";
 
 const GOOGLE_ICON = new URL("../../../../assets/brand/icons/google-logo-icon.png", import.meta.url).href;
 
@@ -17,15 +19,43 @@ export function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
   const verify = useAsyncAction((otpCode: string) => auth.verifyOtp(otpCode));
+  const googleLogin = useAsyncAction((profile: GoogleProfileInput) => auth.loginWithGoogle(profile));
+
+  async function completeGoogleSignIn(result: UserCredential) {
+    const { uid, email: topLevelEmail, displayName } = result.user;
+    // Some accounts don't populate the top-level `email` even with the
+    // scope granted -- it's still on providerData in that case.
+    const email = topLevelEmail ?? result.user.providerData.find((p) => p.email)?.email ?? null;
+    if (!email) throw new Error("Google didn't share an email for this account -- try a different Google account.");
+    const [firstName, ...rest] = (displayName ?? "").split(" ").filter(Boolean);
+    const profile: GoogleProfileInput = { googleId: uid, email, firstName, lastName: rest.join(" ") || undefined };
+    await googleLogin.execute(profile);
+    navigate("/portal/dashboard");
+  }
+
+  // Popup-based Google sign-in is unreliable on mobile browsers (observed:
+  // the popup silently closes after ~10s with no result) -- redirect the
+  // whole page instead there, and pick the result back up here once it
+  // returns. Desktop keeps the nicer popup flow.
+  useEffect(() => {
+    getGoogleRedirectResult()
+      .then((result) => {
+        if (result) return completeGoogleSignIn(result);
+      })
+      .catch((error) => setNotice(error instanceof Error ? error.message : "Google sign-in failed."));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleGoogleSignIn() {
     setNotice(null);
     setGoogleLoading(true);
     try {
+      if (isMobileWebView()) {
+        await signInWithGoogleRedirect();
+        return; // Page navigates away; completeGoogleSignIn runs on return via the effect above.
+      }
       const result = await signInWithGoogle();
-      // Firebase identity confirmed -- exchanging it for a real RAPEX
-      // merchant session needs Xano's confirmed /auth/me contract, not built yet.
-      setNotice(`Signed in as ${result.user.email} with Google. Linking this to a RAPEX merchant session isn't wired up yet -- use email/password sign-in for now.`);
+      await completeGoogleSignIn(result);
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Google sign-in failed.");
     } finally {
@@ -121,6 +151,10 @@ export function LoginPage() {
           <p className="merchant-auth-switch">
             New to RAPEX? <button type="button" onClick={() => navigate("/register")}>Create merchant account</button>
           </p>
+
+          <button className="merchant-text-button" type="button" onClick={() => navigate("/portal/preview/dashboard")}>
+            Preview Merchant UI — no sign-in
+          </button>
         </>
       ) : (
         <form className="merchant-auth-form" onSubmit={handleVerify}>
