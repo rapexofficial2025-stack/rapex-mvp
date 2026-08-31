@@ -58,6 +58,11 @@ jobs:
         env:
           VITE_BASE_PATH: /rapex-mvp/provider/
 
+      - name: Build freelancer-app (/freelancer/)
+        run: pnpm --filter freelancer-app build
+        env:
+          VITE_BASE_PATH: /rapex-mvp/freelancer/
+
       # customer-app and rider-app are Expo/React Native apps -- exported
       # for web via `expo export -p web` (uses react-native-web, already a
       # dependency of both). experiments.baseUrl in each app.config.js reads
@@ -83,6 +88,7 @@ jobs:
           cp -r apps/admin-portal/dist site/admin
           cp -r apps/merchant-portal/dist site/merchant
           cp -r apps/provider-portal/dist site/provider
+          cp -r apps/freelancer-app/dist site/freelancer
           cp -r apps/customer-app/dist site/customer
           cp -r apps/rider-app/dist site/rider
           cat > site/index.html <<'HTML'
@@ -95,6 +101,7 @@ jobs:
               <li><a href="/admin/">Admin Portal</a></li>
               <li><a href="/merchant/">Merchant Portal</a></li>
               <li><a href="/provider/">Provider Portal</a></li>
+              <li><a href="/freelancer/">Freelancer Professional Service (prototype)</a></li>
               <li><a href="/customer/">Customer App (web)</a></li>
               <li><a href="/rider/">Rider App (web scaffold -- auth blocked, see docs/api/README.md)</a></li>
             </ul>
