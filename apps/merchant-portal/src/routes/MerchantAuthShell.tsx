@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-const BACKGROUND = new URL("../../../../assets/brand/Background/merchant-login.png", import.meta.url).href;
 const LOGO = new URL("../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
 
 export function MerchantAuthShell({
@@ -15,28 +14,63 @@ export function MerchantAuthShell({
   children: ReactNode;
 }) {
   return (
-    <main
-      className="merchant-auth"
-      style={{
-        backgroundImage: "linear-gradient(115deg, rgba(5, 5, 13, 0.82), rgba(14, 8, 25, 0.55)), url(" + BACKGROUND + ")",
-        // Pins the background to the viewport so it never shifts/reveals a
-        // gap when the page is resized, scrolled, or the browser is zoomed
-        // -- browsers don't let a page block zoom itself (Ctrl+scroll/pinch
-        // stay available on purpose, an accessibility protection), but the
-        // background staying correctly framed regardless is what this fixes.
-        backgroundAttachment: "fixed",
-      }}
-    >
+    <main className="merchant-auth">
+      <header className="merchant-auth__topbar">
+        <div className="merchant-auth__topbar-brand">
+          <img src={LOGO} alt="RAPEX" />
+          <span>MERCHANT CENTER</span>
+        </div>
+        <nav className="merchant-auth__topbar-nav" aria-label="Merchant Center">
+          <span>Product<em>Produkto</em></span>
+          <span>Features<em>Mga Tampok</em></span>
+          <span>Partnership<em>Pakikipagsosyo</em></span>
+          <span>Earn<em>Kumita</em></span>
+          <span>Privacy &amp; Security<em>Pribasiya at Seguridad</em></span>
+          <span>About<em>Tungkol Sa Amin</em></span>
+        </nav>
+        <div className="merchant-auth__topbar-meta">
+          <span>Merchant benefits</span>
+          <span>How to start</span>
+          <span className="merchant-auth__topbar-locale">PH Philippines · English</span>
+        </div>
+      </header>
+
       <section className="merchant-auth__frame" aria-label="RAPEX Merchant authentication">
         <div className="merchant-auth__story">
-          <img className="merchant-auth__logo" src={LOGO} alt="RAPEX" />
-          <span className="merchant-auth__kicker">RAPEX Marketplace PH</span>
-          <h2>Grow your business with one merchant operating system.</h2>
-          <p>Manage stores, products, orders, and performance from a consistent workspace built for daily operations.</p>
-          <div className="merchant-auth__benefits" aria-label="Merchant portal benefits">
-            <span>Multi-store workspace</span>
-            <span>Operational visibility</span>
-            <span>Secure Xano authentication</span>
+          <span className="merchant-auth__kicker">— DELIVERING THE FUTURE TODAY</span>
+          <h2>Grow your local business beyond your storefront.</h2>
+          <p>
+            Bring your store online, connect with nearby customers, receive more orders, and grow your
+            business with RAPEX — the Philippines&rsquo; first Hybrid and Hyperlocal Marketplace.
+            <br />
+            <strong>Gawang Lokal Para sa Masa.</strong>
+          </p>
+          <div className="merchant-auth__benefits" aria-label="Merchant portal stats">
+            <span>
+              <strong>2–50 KM</strong>
+              <em>Customer visibility</em>
+            </span>
+            <span>
+              <strong>24/7</strong>
+              <em>Marketplace visibility</em>
+            </span>
+            <span>
+              <strong>1,000</strong>
+              <em>Pilot user target</em>
+            </span>
+            <span>
+              <strong>1K+</strong>
+              <em>Potential customer reach</em>
+            </span>
+          </div>
+          <div className="merchant-auth__cta-box">
+            <p>
+              Be one of the first RAPEX Merchant Pioneers and get early access to merchant benefits,
+              promotions, and growth opportunities.
+            </p>
+            <button type="button" className="merchant-auth__register-now">
+              REGISTER NOW <span aria-hidden="true">→</span>
+            </button>
           </div>
         </div>
 
@@ -49,6 +83,11 @@ export function MerchantAuthShell({
           </div>
         </div>
       </section>
+
+      <footer className="merchant-auth__footer" aria-hidden="true">
+        <div className="merchant-auth__footer-gray" />
+        <div className="merchant-auth__footer-purple" />
+      </footer>
     </main>
   );
 }
