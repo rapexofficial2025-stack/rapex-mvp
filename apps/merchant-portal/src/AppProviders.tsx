@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { RepositoryProvider, createMockRepositories, XanoAuthRepository, XanoMerchantRepository } from "@rapex/api-client";
+import { RepositoryProvider, createMockRepositories, XanoAuthRepository, XanoMerchantRepository, XanoKycRepository } from "@rapex/api-client";
 import { ThemeProvider } from "@rapex/ui-web";
-import { rapexAuthHttpClient, rapexMasterDataHttpClient } from "./services/apiConfig";
+import { rapexAuthHttpClient, rapexMasterDataHttpClient, rapexSuperAppHttpClient } from "./services/apiConfig";
 import { webTokenStorage } from "./services/webTokenStorage";
 import { webUserCache } from "./services/userCache";
 
@@ -10,7 +10,8 @@ import { webUserCache } from "./services/userCache";
 const repositories = {
   ...createMockRepositories(),
   auth: new XanoAuthRepository(rapexAuthHttpClient, webTokenStorage, webUserCache, "merchant"),
-  merchant: new XanoMerchantRepository(rapexMasterDataHttpClient),
+  merchant: new XanoMerchantRepository(rapexMasterDataHttpClient, rapexAuthHttpClient),
+  kyc: new XanoKycRepository(rapexSuperAppHttpClient, rapexAuthHttpClient),
 };
 
 export function AppProviders({ children }: { children: ReactNode }) {

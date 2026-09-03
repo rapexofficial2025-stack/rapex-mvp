@@ -1,6 +1,8 @@
 import { calculateOrderFinancials } from "@rapex/utils";
 import type {
   AddDraftProductInput,
+  CompleteMerchantOnboardingInput,
+  CompleteMerchantOnboardingResult,
   CreateExpansionRequestInput,
   CreateProductInput,
   CreateStoreInput,
@@ -12,12 +14,14 @@ import type {
   UpdateVariantInput,
 } from "./MerchantRepository";
 import type {
+  CreateVoucherInput,
   MerchantAccount,
   MerchantOrder,
   MerchantOrderFinancials,
   MerchantProduct,
   MerchantRegistrationDraft,
   MerchantStore,
+  MerchantVoucher,
   NearbyRider,
   ProductImportResult,
   ProductImportRow,
@@ -234,6 +238,8 @@ const storeTimelines: Record<string, StoreTimelineEvent[]> = {
 };
 
 /** Delivery Fee Engine settlements, seeded per store using the same formula rider/customer/admin screens use. */
+const vouchers: MerchantVoucher[] = [];
+
 const orderFinancialsByStoreId: Record<string, MerchantOrderFinancials[]> = {
   "ms-1": [
     { orderId: "order-6001", distanceKm: 1.8, ...toMerchantView(calculateOrderFinancials({ orderId: "order-6001", distanceKm: 1.8, productTotal: 163 })) },
@@ -261,6 +267,18 @@ syncProductCounts();
 export class MockMerchantRepository implements MerchantRepository {
   async getMyAccount(): Promise<MerchantAccount> {
     return delay(account);
+  }
+
+  async completeOnboarding(input: CompleteMerchantOnboardingInput): Promise<CompleteMerchantOnboardingResult> {
+    const merchantCode = generateId("MCT").toUpperCase();
+    const storeCode = generateId("STR").toUpperCase();
+    return delay({
+      status: "UNDER_REVIEW",
+      applicationId: merchantCode,
+      merchantCode,
+      storeCode,
+      message: `Merchant application submitted successfully for ${input.storeName}.`,
+    });
   }
 
   async getRegistrationDraft(): Promise<MerchantRegistrationDraft> {
@@ -405,7 +423,7 @@ export class MockMerchantRepository implements MerchantRepository {
       price: input.price,
       imageLabel: "🛍️",
       productCategory: input.productCategory,
-      stock: 0,
+      stock: input.stock ?? 0,
       isActive: true,
       variantCount: 0,
     };
@@ -547,5 +565,34 @@ export class MockMerchantRepository implements MerchantRepository {
 
   async getOrderFinancials(storeId: string): Promise<MerchantOrderFinancials[]> {
     return delay(orderFinancialsByStoreId[storeId] ?? []);
+  }
+
+  async getMyVouchers(storeId: string): Promise<MerchantVoucher[]> {
+    return delay(vouchers.filter((v) => v.storeId === storeId));
+  }
+
+  async createVoucher(storeId: string, input: CreateVoucherInput): Promise<MerchantVoucher> {
+    const voucher: MerchantVoucher = {
+      id: generateId("voucher"),
+      storeId,
+      code: input.code.trim().toUpperCase(),
+      discountType: input.discountType,
+      discountValue: input.discountValue,
+      minOrderAmount: input.minOrderAmount,
+      usageLimit: input.usageLimit,
+      usedCount: 0,
+      expiresAt: input.expiresAt,
+      active: true,
+      createdAt: new Date().toISOString(),
+    };
+    vouchers.push(voucher);
+    return delay(voucher);
+  }
+
+  async deactivateVoucher(voucherId: string): Promise<MerchantVoucher> {
+    const voucher = vouchers.find((v) => v.id === voucherId);
+    if (!voucher) throw new Error(`Voucher ${voucherId} not found`);
+    voucher.active = false;
+    return delay(voucher);
   }
 }

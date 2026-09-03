@@ -24,6 +24,11 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",
+    // Custom URL scheme -- required for a future real notification-tap
+    // deep link into the app on a standalone/EAS build, and for any future
+    // OAuth-style redirect flow (Expo Go uses its own proxy so it doesn't
+    // need this).
+    scheme: "rapexrider",
     // Verified against @expo/cli's actual getBaseUrlFromExpoConfig() (reads
     // exp.experiments.baseUrl) -- only set for the GitHub Pages staging web
     // export, which serves this app from a /rider/ subpath alongside the
@@ -54,6 +59,20 @@ module.exports = {
         {
           androidGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
           iosGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
+        },
+      ],
+      // Real permission + device-token infrastructure (see
+      // services/notifications.ts) -- not yet connected to Xano (no
+      // confirmed endpoint to register a token against, e.g. for
+      // new-delivery alerts).
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          image: "./assets/splash-icon.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#0B0713",
         },
       ],
     ],

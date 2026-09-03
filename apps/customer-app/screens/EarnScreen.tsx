@@ -1,4 +1,5 @@
 import { Platform, Share, Text, View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 import { Badge, Button, GlassCard, Loading, useToast } from "@rapex/ui-native";
 import { useAsync, useRepositories } from "@rapex/api-client";
 import { ScreenContainer } from "../components/ScreenContainer";
@@ -28,12 +29,15 @@ export function EarnScreen() {
     <ScreenContainer title="Earn" subtitle="Referrals & Rewards">
       <Badge label="Rewards/referral rules not finalized yet — mock UI only" tone="warning" />
 
-      <GlassCard>
+      <GlassCard style={{ alignItems: "center" }}>
         <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>Your Referral Code</Text>
         <Text style={{ fontSize: theme.typography.fontSize["2xl"], fontWeight: "700", color: theme.colors.brandPrimary, letterSpacing: 2, marginTop: 4 }}>
           {referralCode}
         </Text>
-        <View style={{ marginTop: theme.spacing.md }}>
+        <View style={{ marginTop: theme.spacing.md, backgroundColor: "#FFFFFF", padding: theme.spacing.sm, borderRadius: 12 }}>
+          <QRCode value={`rapexcustomer://referral/${referralCode}`} size={160} />
+        </View>
+        <View style={{ marginTop: theme.spacing.md, width: "100%" }}>
           <Button
             label="Share Referral Code"
             onPress={async () => {

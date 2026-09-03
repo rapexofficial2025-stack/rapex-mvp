@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Badge, Button, ErrorState, GlassCard, Input } from "@rapex/ui-native";
-import { useAsyncAction, useRepositories } from "@rapex/api-client";
-import { PILOT_AREAS, PH_REGION, PH_PROVINCE, PILOT_MUNICIPALITY_GEOGRAPHY, type PilotArea } from "@rapex/constants";
+import { Badge, Button, GlassCard, Input } from "@rapex/ui-native";
 import type { RootStackParamList } from "../types/navigation";
 import { ScreenContainer } from "../components/ScreenContainer";
-import { PickerField } from "../components/PickerField";
+import { CascadingAddressPicker, EMPTY_CASCADING_ADDRESS, type CascadingAddressValue } from "../components/CascadingAddressPicker";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { getDeliveryAddress, setDeliveryAddress } from "../services/addressStore";
 import { updateRegistrationDraft, useRegistrationDraft } from "../services/registrationStore";
@@ -17,28 +15,21 @@ const DEFAULT_LONGITUDE = 120.936;
 
 type Props = NativeStackScreenProps<RootStackParamList, "Address">;
 
+/**
+ * `fromRegistration` means "reached from the post-registration onboarding
+ * path" (Profile's Delivery Address checklist row / RegisterLocationScreen)
+ * -- the real account already exists by the time anyone gets here
+ * (RegisterAccountScreen creates it), so this only ever saves the address
+ * locally and returns to Profile. No signup call happens on this screen.
+ */
 export function AddressScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
-  const { auth } = useRepositories();
   const fromRegistration = route.params?.fromRegistration ?? false;
   const registrationDraft = useRegistrationDraft();
   const existing = getDeliveryAddress();
-  const register = useAsyncAction((addressLine1: string) =>
-    auth.register({
-      email: registrationDraft.email,
-      password: registrationDraft.password,
-      role: "customer",
-      firstName: registrationDraft.firstName,
-      lastName: registrationDraft.surname,
-      mobile: registrationDraft.mobile,
-      dateOfBirth: registrationDraft.dateOfBirth ?? undefined,
-      addressLine1,
-    }),
-  );
 
   const [label, setLabel] = useState(existing?.label ?? "Home");
-  const [municipality, setMunicipality] = useState<PilotArea>((existing?.municipality as PilotArea) ?? PILOT_AREAS[0]);
-  const [barangay, setBarangay] = useState(existing?.barangay ?? "");
+  const [address, setAddress] = useState<CascadingAddressValue>(EMPTY_CASCADING_ADDRESS);
   const [subdivision, setSubdivision] = useState(existing?.subdivision ?? "");
   const [street, setStreet] = useState(existing?.street ?? "");
   const [block, setBlock] = useState(existing?.block ?? "");
@@ -48,8 +39,7 @@ export function AddressScreen({ navigation, route }: Props) {
   const [floor, setFloor] = useState(existing?.floor ?? "");
   const [roomUnit, setRoomUnit] = useState(existing?.roomUnit ?? "");
 
-  const postalCode = PILOT_MUNICIPALITY_GEOGRAPHY[municipality].postalCode;
-  const canSave = subdivision.trim().length > 0 && street.trim().length > 0 && barangay.trim().length > 0;
+  const canSave = subdivision.trim().length > 0 && street.trim().length > 0 && address.barangayId !== null;
 
   const line = [
     roomUnit && `Rm/Unit ${roomUnit}`,
@@ -70,23 +60,9 @@ export function AddressScreen({ navigation, route }: Props) {
       <Input label="Label" placeholder="Home, Work, etc." value={label} onChangeText={setLabel} />
 
       <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: theme.colors.textPrimary, marginTop: theme.spacing.sm }}>
-        Region / Province / Municipality
+        Region / Province / Municipality / Barangay
       </Text>
-      <Input label="Region" value={PH_REGION} editable={false} />
-      <Input label="Province" value={PH_PROVINCE} editable={false} />
-      <PickerField
-        label="Municipality / City"
-        value={municipality}
-        options={[...PILOT_AREAS]}
-        onSelect={(value) => setMunicipality(value as PilotArea)}
-      />
-      {/*
-        Barangay-level PSGC dataset not seeded (see @rapex/constants'
-        geography.ts doc comment) -- free text rather than a fabricated
-        dropdown list, to avoid shipping wrong official barangay names.
-      */}
-      <Input label="Barangay" placeholder="Enter your barangay" value={barangay} onChangeText={setBarangay} />
-      <Input label="Postal Code" value={postalCode} editable={false} />
+      <CascadingAddressPicker value={address} onChange={setAddress} />
 
       <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: theme.colors.textPrimary, marginTop: theme.spacing.sm }}>
         Manual Address
@@ -120,30 +96,26 @@ export function AddressScreen({ navigation, route }: Props) {
 
       <GlassCard>
         <Text style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.textSecondary }}>
-          Pin location {registrationDraft.gpsLatitude !== null ? "uses your captured GPS coordinates" : `defaults to ${municipality} town center`} until
+          Pin location {registrationDraft.gpsLatitude !== null ? "uses your captured GPS coordinates" : `defaults to ${address.municipalityName ?? "the selected"} town center`} until
           map-based picking is available. This affects delivery fee/ETA accuracy for real orders — see packages/ui-native/src/RapexMapView.tsx.
         </Text>
       </GlassCard>
 
-      {fromRegistration && register.error ? <ErrorState description={register.error} /> : null}
-
       <Button
         label={fromRegistration ? "Continue" : "Save Address"}
-        loading={fromRegistration && register.loading}
         disabled={!canSave}
-        onPress={async () => {
+        onPress={() => {
           const latitude = registrationDraft.gpsLatitude ?? DEFAULT_LATITUDE;
           const longitude = registrationDraft.gpsLongitude ?? DEFAULT_LONGITUDE;
-          const address = {
+          const deliveryAddress = {
             label: label.trim() || "Home",
             line,
-            municipality,
+            municipality: address.municipalityName ?? "",
             latitude,
             longitude,
-            region: PH_REGION,
-            province: PH_PROVINCE,
-            barangay: barangay.trim(),
-            postalCode,
+            region: address.regionName ?? "",
+            province: address.provinceName ?? "",
+            barangay: address.barangayName ?? "",
             subdivision: subdivision.trim(),
             street: street.trim(),
             block: block.trim(),
@@ -153,14 +125,20 @@ export function AddressScreen({ navigation, route }: Props) {
             floor: floor.trim(),
             roomUnit: roomUnit.trim(),
           };
-          setDeliveryAddress(address);
+          setDeliveryAddress(deliveryAddress);
           if (fromRegistration) {
             updateRegistrationDraft({
-              region: PH_REGION,
-              province: PH_PROVINCE,
-              municipality,
-              barangay: barangay.trim(),
-              postalCode,
+              region: address.regionName,
+              province: address.provinceName,
+              barangay: address.barangayName,
+              regionId: address.regionId,
+              regionName: address.regionName,
+              provinceId: address.provinceId,
+              provinceName: address.provinceName,
+              municipalityId: address.municipalityId,
+              municipalityName: address.municipalityName,
+              barangayId: address.barangayId,
+              barangayName: address.barangayName,
               subdivision: subdivision.trim(),
               street: street.trim(),
               block: block.trim(),
@@ -170,8 +148,7 @@ export function AddressScreen({ navigation, route }: Props) {
               floor: floor.trim(),
               roomUnit: roomUnit.trim(),
             });
-            await register.execute(line);
-            navigation.navigate("RegisterSuccess");
+            navigation.navigate("Profile");
           } else {
             navigation.goBack();
           }

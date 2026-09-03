@@ -15,10 +15,14 @@ export type Rider = {
   id: string;
   name: string;
   photoUrl?: string;
+  phone: string;
   vehicle: string;
+  plateNumber: string;
+  licenseNumber: string;
   status: RiderStatus;
   currentSpeedKph: number;
   batteryPercent: number | null;
+  municipality: string;
   barangay: string;
   todayDeliveries: number;
   completedDeliveries: number;
@@ -36,6 +40,7 @@ export type Merchant = {
   merchantName: string;
   merchantId: string;
   logoUrl?: string;
+  phone: string;
   category: MerchantCategory;
   status: MerchantStatus;
   openHours: string;
@@ -52,6 +57,7 @@ export type Merchant = {
   commissionToday: number;
   currentVoucherCampaign: string | null;
   onlineStaffCount: number;
+  municipality: string;
   barangay: string;
   lastActivity: string;
   x: number;

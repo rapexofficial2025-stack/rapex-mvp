@@ -6,6 +6,14 @@ const CATEGORY_FILTERS: MerchantCategory[] = ["Food", "Marketplace", "Hardware",
 type FilterPanelProps = {
   activeFilters: Set<MapFilter>;
   onToggle: (filter: MapFilter) => void;
+  municipalities: string[];
+  selectedMunicipality: string | null;
+  onMunicipalityChange: (municipality: string | null) => void;
+  barangays: string[];
+  selectedBarangay: string | null;
+  onBarangayChange: (barangay: string | null) => void;
+  sortByHighestTransaction: boolean;
+  onToggleSort: () => void;
 };
 
 function FilterButton({
@@ -40,7 +48,29 @@ function FilterButton({
   );
 }
 
-export function FilterPanel({ activeFilters, onToggle }: FilterPanelProps) {
+const selectStyle = (theme: ReturnType<typeof useTheme>) => ({
+  width: "100%",
+  border: `1px solid ${theme.colors.border}`,
+  borderRadius: theme.radius.sm,
+  padding: `${theme.spacing.xxs}px ${theme.spacing.sm}px`,
+  backgroundColor: theme.colors.surfaceAlt,
+  color: theme.colors.textPrimary,
+  fontSize: theme.typography.fontSize.sm,
+  fontFamily: "inherit",
+});
+
+export function FilterPanel({
+  activeFilters,
+  onToggle,
+  municipalities,
+  selectedMunicipality,
+  onMunicipalityChange,
+  barangays,
+  selectedBarangay,
+  onBarangayChange,
+  sortByHighestTransaction,
+  onToggleSort,
+}: FilterPanelProps) {
   const theme = useTheme();
 
   return (
@@ -53,6 +83,39 @@ export function FilterPanel({ activeFilters, onToggle }: FilterPanelProps) {
         overflowY: "auto",
       }}
     >
+      <div style={{ fontSize: theme.typography.fontSize.sm, fontWeight: 700, marginBottom: theme.spacing.sm, color: theme.colors.textSecondary }}>
+        Location
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.xs, marginBottom: theme.spacing.lg }}>
+        <select
+          style={selectStyle(theme)}
+          value={selectedMunicipality ?? ""}
+          onChange={(event) => onMunicipalityChange(event.target.value || null)}
+        >
+          <option value="">All municipalities</option>
+          {municipalities.map((municipality) => (
+            <option key={municipality} value={municipality}>{municipality}</option>
+          ))}
+        </select>
+        <select
+          style={selectStyle(theme)}
+          value={selectedBarangay ?? ""}
+          onChange={(event) => onBarangayChange(event.target.value || null)}
+        >
+          <option value="">All barangays</option>
+          {barangays.map((barangay) => (
+            <option key={barangay} value={barangay}>{barangay}</option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ fontSize: theme.typography.fontSize.sm, fontWeight: 700, marginBottom: theme.spacing.sm, color: theme.colors.textSecondary }}>
+        Sort
+      </div>
+      <div style={{ marginBottom: theme.spacing.lg }}>
+        <FilterButton label="Highest Transaction First" active={sortByHighestTransaction} onClick={onToggleSort} />
+      </div>
+
       <div style={{ fontSize: theme.typography.fontSize.sm, fontWeight: 700, marginBottom: theme.spacing.sm, color: theme.colors.textSecondary }}>
         Entities
       </div>

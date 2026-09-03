@@ -24,6 +24,11 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",
+    // Custom URL scheme -- required for expo-auth-session's Google sign-in
+    // redirect to resolve on a standalone/EAS build (Expo Go uses its own
+    // proxy so it works there without this), and for a future real
+    // notification-tap deep link into the app.
+    scheme: "rapexcustomer",
     // Verified against @expo/cli's actual getBaseUrlFromExpoConfig() (reads
     // exp.experiments.baseUrl) -- only set for the GitHub Pages staging web
     // export, which serves this app from a /customer/ subpath alongside the
@@ -72,6 +77,19 @@ module.exports = {
         "expo-location",
         {
           locationAlwaysAndWhenInUsePermission: "RAPEX uses your location to set your delivery address and find nearby stores.",
+        },
+      ],
+      // Real permission + device-token infrastructure (see
+      // services/notifications.ts) -- not yet connected to Xano (no
+      // confirmed endpoint to register a token against).
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          image: "./assets/splash-icon.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#0B0713",
         },
       ],
     ],

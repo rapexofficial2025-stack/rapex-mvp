@@ -28,7 +28,7 @@ export function OtpScreen({ navigation }: Props) {
               navigation.replace("PrivacyTerms");
               break;
             case "REGISTRATION":
-              navigation.replace("RegisterLanguage");
+              navigation.replace("PrivacyTerms");
               break;
             case "WELCOME_ANIMATION":
               navigation.replace("WelcomeVideo");

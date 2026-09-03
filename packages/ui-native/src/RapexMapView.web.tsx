@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View, type ViewStyle } from "react-native";
 import type { MapMarkerRole } from "@rapex/constants";
+// Type-only import -- erased at compile time, does NOT pull react-native-maps into the web bundle.
+import type { MapStyleElement } from "react-native-maps";
 
 /**
  * Web counterpart to RapexMapView.tsx -- Metro/Expo's bundler picks this file
@@ -32,6 +34,8 @@ export type RapexMapViewProps = {
   longitudeDelta?: number;
   style?: ViewStyle;
   onMarkerPress?: (marker: RapexMapMarker) => void;
+  /** Accepted for prop-shape parity with the native version -- unused here, this placeholder has no map to style. */
+  customMapStyle?: MapStyleElement[];
 };
 
 export function RapexMapView({ style }: RapexMapViewProps) {

@@ -58,10 +58,16 @@ export type ProductSummary = {
   productCategory: string;
 };
 
+export type ProductOption = { id: string; name: string; priceDelta: number };
+
 export type ProductDetail = ProductSummary & {
   description: string;
   storeName: string;
   stock: number;
+  /** e.g. "Solo" / "With Rice" / "Family Pack" -- at most one selected. */
+  variants?: ProductOption[];
+  /** e.g. "Extra Egg" / "Extra Rice" -- any number selected. */
+  addOns?: ProductOption[];
 };
 
 export type Review = {
@@ -754,4 +760,89 @@ export type MerchantOrderFinancials = {
   merchantReceives: number;
 };
 
+export type VoucherDiscountType = "percent" | "fixed" | "free_delivery";
+
+export type MerchantVoucher = {
+  id: ID;
+  storeId: ID;
+  code: string;
+  discountType: VoucherDiscountType;
+  /** Percent (0-100) for "percent", peso amount for "fixed", ignored for "free_delivery". */
+  discountValue: number;
+  minOrderAmount: number;
+  usageLimit: number | null;
+  usedCount: number;
+  expiresAt: ISODateString | null;
+  active: boolean;
+  createdAt: ISODateString;
+};
+
+export type CreateVoucherInput = {
+  code: string;
+  discountType: VoucherDiscountType;
+  discountValue: number;
+  minOrderAmount: number;
+  usageLimit: number | null;
+  expiresAt: ISODateString | null;
+};
+
 export type { Paginated };
+
+// ---- Child Accounts / Baon ----
+// Provisional shapes per the Child Accounts/Baon technical proposal
+// (2026-08-16) -- CHILD is a value of the same account_role as
+// customer/rider/merchant/admin, not a separate app or auth system. Field
+// names here are illustrative until a real Xano contract is confirmed
+// (see ChildAccountRepository's Mock implementation for the working
+// stand-in used until then).
+export type ChildAccountStatus = "active" | "inactive";
+
+export type ChildAccountSummary = {
+  id: ID;
+  fullName: string;
+  email: string;
+  dateOfBirth: ISODateString;
+  gender: "Male" | "Female" | "Prefer not to say" | null;
+  status: ChildAccountStatus;
+  isStudent: boolean;
+  createdAt: ISODateString;
+};
+
+export type CreateChildAccountInput = {
+  fullName: string;
+  email: string;
+  password: string;
+  dateOfBirth: ISODateString;
+  gender: "Male" | "Female" | "Prefer not to say" | null;
+  municipalityId: string | null;
+  municipalityName: string | null;
+  barangayId: string | null;
+  barangayName: string | null;
+  addressLine1: string;
+  isStudent: boolean;
+  /** Required when isStudent=true. */
+  studentVerificationRef?: string | null;
+  /** Required when isStudent=false. */
+  nonStudentReason?: string | null;
+  /** Required when isStudent=false. */
+  intendedUsePurpose?: string | null;
+  /** The primary account explicitly authorizing creation -- this IS the authorization step, no separate approval workflow. */
+  parentAuthorizationConfirmed: boolean;
+};
+
+export type ChildBaonSummary = {
+  childId: ID;
+  allocatedBudget: number;
+  spentAmount: number;
+  remainingBudget: number;
+};
+
+export type ChildPurchaseHistoryEntry = OrderSummary & {
+  childId: ID;
+};
+
+export type UnallocatedBalanceSummary = {
+  walletBalance: number;
+  totalCommittedToChildren: number;
+  availableToAllocate: number;
+};

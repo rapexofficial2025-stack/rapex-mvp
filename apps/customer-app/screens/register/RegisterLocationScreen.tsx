@@ -3,43 +3,27 @@ import { Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
 import { Button, Badge, ErrorState } from "@rapex/ui-native";
-import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import type { RootStackParamList } from "../../types/navigation";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { useAppTheme } from "../../hooks/useAppTheme";
-import { buildAddressLine1, updateRegistrationDraft, useRegistrationDraft } from "../../services/registrationStore";
+import { updateRegistrationDraft, useRegistrationDraft } from "../../services/registrationStore";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RegisterLocation">;
 
 /**
- * Registration Step 6 of 7 -- Location. Captures raw GPS coordinates only;
- * there is no confirmed Xano field/endpoint to store them against yet
- * (see AddressScreen and registrationStore's doc comments), so they are
- * kept locally and shown as the pre-filled starting point if the user picks
- * "Use This Location" -> "Yes" and skips manual address entry.
- *
- * The real `/auth/signup` call fires here (not at the earlier Account step)
- * because the Master Authentication Suite requires the full address at
- * registration time -- see RegisterAccountScreen's doc comment.
+ * Optional, reachable later from Profile's "Delivery Address" checklist row
+ * (not part of the mandatory registration flow -- the real account is
+ * already created by RegisterAccountScreen by the time a user gets here).
+ * Captures raw GPS coordinates only; there is no confirmed Xano field/
+ * endpoint to store them against yet, so they are kept locally and shown as
+ * the pre-filled starting point if the user picks "Use This Location" ->
+ * "Yes" and skips manual address entry.
  */
 export function RegisterLocationScreen({ navigation }: Props) {
   const theme = useAppTheme();
-  const { auth } = useRepositories();
   const draft = useRegistrationDraft();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const register = useAsyncAction(() =>
-    auth.register({
-      email: draft.email,
-      password: draft.password,
-      role: "customer",
-      firstName: draft.firstName,
-      lastName: draft.surname,
-      mobile: draft.mobile,
-      dateOfBirth: draft.dateOfBirth ?? undefined,
-      addressLine1: buildAddressLine1(draft),
-    }),
-  );
 
   const hasLocation = draft.gpsLatitude !== null && draft.gpsLongitude !== null;
 
@@ -62,7 +46,7 @@ export function RegisterLocationScreen({ navigation }: Props) {
   }
 
   return (
-    <ScreenContainer title="Your Location" subtitle="Step 6 of 7">
+    <ScreenContainer title="Your Location" subtitle="Used to set your delivery address">
       {!hasLocation ? (
         <>
           <Text style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.textSecondary }}>
@@ -86,14 +70,11 @@ export function RegisterLocationScreen({ navigation }: Props) {
           <Text style={{ fontSize: theme.typography.fontSize.base, color: theme.colors.textPrimary, fontWeight: "600" }}>
             Use this as your home address?
           </Text>
-          {register.error ? <ErrorState description={register.error} /> : null}
           <Button
             label="Yes"
-            loading={register.loading}
-            onPress={async () => {
+            onPress={() => {
               updateRegistrationDraft({ useGpsAsHomeAddress: true });
-              await register.execute();
-              navigation.navigate("RegisterSuccess");
+              navigation.navigate("Profile");
             }}
           />
           <Button

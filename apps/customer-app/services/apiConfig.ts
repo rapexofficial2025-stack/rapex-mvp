@@ -56,3 +56,28 @@ export const rapexFinanceHttpClient = createRapexHttpClient({
   appId: "buyer",
   tokenStorage: secureTokenStorage,
 });
+
+/**
+ * Real Xano `super_app` API group -- confirmed live 2026-08-14 handover.
+ * Backs the location cascading picker (regions/provinces/municipalities/
+ * barangays) and the KYC asset upload. Same group admin-portal already
+ * uses for its own login (see admin-portal/src/services/apiConfig.ts) --
+ * different apps, same instance/group, per-app appId header only.
+ */
+const SUPER_APP_API_BASE_URL =
+  process.env.EXPO_PUBLIC_SUPER_APP_API_BASE_URL ?? "https://x8ki-letl-twmt.n7.xano.io/api:super_app";
+
+export const rapexSuperAppHttpClient = createRapexHttpClient({
+  baseUrl: SUPER_APP_API_BASE_URL,
+  appId: "buyer",
+  tokenStorage: secureTokenStorage,
+});
+
+/** Real Xano `rapex-core` API group -- confirmed live 2026-08-14 handover. Backs the Culture/Community list (community-master). */
+const CORE_API_BASE_URL = process.env.EXPO_PUBLIC_CORE_API_BASE_URL ?? "https://x8ki-letl-twmt.n7.xano.io/api:rapex-core";
+
+export const rapexCoreHttpClient = createRapexHttpClient({
+  baseUrl: CORE_API_BASE_URL,
+  appId: "buyer",
+  tokenStorage: secureTokenStorage,
+});

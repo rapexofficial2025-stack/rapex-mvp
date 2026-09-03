@@ -1,9 +1,13 @@
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Badge, Loading, ErrorState, EmptyState } from "@rapex/ui-native";
 import { formatPeso, formatDateTime } from "@rapex/utils";
 import { useMyOrders, type OrderSummary } from "@rapex/api-client";
+import type { RootStackParamList } from "../types/navigation";
 import { useAppTheme } from "../hooks/useAppTheme";
 import { GradientScreenBackground } from "../components/GradientScreenBackground";
+
+type Props = NativeStackScreenProps<RootStackParamList, "Orders">;
 
 const STATUS_TONE: Record<OrderSummary["status"], "success" | "warning" | "error" | "info" | "neutral" | "brand"> = {
   pending: "warning",
@@ -15,7 +19,7 @@ const STATUS_TONE: Record<OrderSummary["status"], "success" | "warning" | "error
   cancelled: "error",
 };
 
-export function OrdersScreen() {
+export function OrdersScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const { data: orders, loading, error, refetch } = useMyOrders();
 
@@ -40,7 +44,8 @@ export function OrdersScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <View
+          <Pressable
+            onPress={() => navigation.navigate("OrderTracking", { orderId: item.id })}
             style={{
               backgroundColor: theme.colors.surface,
               borderColor: theme.colors.border,
@@ -62,7 +67,7 @@ export function OrdersScreen() {
             <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "600", color: theme.colors.textPrimary }}>
               {formatPeso(item.total)}
             </Text>
-          </View>
+          </Pressable>
         )}
       />
     </View>

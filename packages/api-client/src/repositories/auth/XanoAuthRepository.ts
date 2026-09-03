@@ -1,7 +1,7 @@
 import type { HttpClient } from "../../core/httpClient";
 import type { UserCache } from "../../core/userCache";
 import type { TokenStorage } from "../../core/tokenStorage";
-import type { AuthRepository, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
+import type { AuthMeResponse, AuthRepository, GoogleProfileInput, LoginInput, LoginResult, NextStep, RegisterInput, RegisterResult } from "./AuthRepository";
 import type { AuthSession, AuthUser } from "../types";
 
 /**
@@ -124,6 +124,60 @@ export class XanoAuthRepository implements AuthRepository {
     return { user, token: finalToken };
   }
 
+  /**
+   * POST /auth/google { google_id, email, first_name?, last_name?, role } --
+   * single-phase, real session immediately (Google already verified the
+   * email). Contract per the 2026-08-21 Xano build: checks for an existing
+   * user by google_id, falls back to matching by email to link the
+   * account, and creates a new one (account_status: active) if neither
+   * matches. `role` is sent so a brand-new account created via this flow
+   * gets the right role for whichever app is calling (Customer/Rider/
+   * Merchant) -- Xano's first cut of this endpoint hardcoded every new
+   * signup to "CUSTOMER" regardless of caller, which this fixes on the
+   * frontend side; Xano's function stack must read $input.role instead
+   * of the hardcoded literal for this to actually take effect. Response
+   * shape assumed to mirror verify-otp's ({ authToken }, optionally
+   * { user }) -- not explicitly confirmed by Xano; flag for confirmation
+   * once this can be tested end-to-end.
+   */
+  async loginWithGoogle(profile: GoogleProfileInput): Promise<AuthSession> {
+    const result = await this.client.request<{
+      authToken?: string;
+      user?: { id?: number | string; rapex_id?: string; first_name?: string; last_name?: string; email?: string; mobile?: string };
+    }>({
+      path: "/auth/google",
+      method: "POST",
+      body: {
+        google_id: profile.googleId,
+        email: profile.email,
+        first_name: profile.firstName,
+        last_name: profile.lastName,
+        role: this.role,
+      },
+    });
+
+    if (!result?.authToken) {
+      throw new Error("Xano did not return an auth token for Google sign-in.");
+    }
+    await this.tokenStorage.setToken(result.authToken);
+
+    const remoteUser = result.user;
+    const previouslyCached = await this.userCache.getUser();
+    const email = remoteUser?.email ?? profile.email;
+    const user: AuthUser = {
+      id: String(remoteUser?.id ?? previouslyCached?.id ?? ""),
+      rapexId: remoteUser?.rapex_id ?? previouslyCached?.rapexId,
+      name: remoteUser
+        ? `${remoteUser.first_name ?? ""} ${remoteUser.last_name ?? ""}`.trim()
+        : `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim(),
+      email,
+      phone: remoteUser?.mobile ?? previouslyCached?.phone ?? "",
+      role: this.role,
+    };
+    await this.userCache.setUser(user);
+    return { user, token: result.authToken };
+  }
+
   async requestPasswordReset(identifier: string): Promise<void> {
     await this.client.request({ path: "/reset/request-reset-link", method: "GET", query: { identifier } });
   }
@@ -139,6 +193,50 @@ export class XanoAuthRepository implements AuthRepository {
     const token = await this.tokenStorage.getToken();
     if (!token) return null;
     const result = await this.client.request<{ next_step?: NextStep }>({ path: "/auth/me", method: "GET" });
+    return result?.next_step ?? null;
+  }
+
+  /**
+   * Real `GET /auth/me` read -- requires a session (2026-08-14 Xano
+   * confirmation). See AuthMeResponse's doc comment for exactly which
+   * fields/sub-fields are confirmed vs. still-unconfirmed shape.
+   */
+  async getAuthMe(): Promise<AuthMeResponse | null> {
+    const token = await this.tokenStorage.getToken();
+    if (!token) return null;
+    const result = await this.client.request<{
+      next_step?: NextStep;
+      welcome_seen?: boolean;
+      registration_progress?: number;
+      profile_checklist?: unknown[];
+      branding?: { tagline?: string; welcome_video_url?: string };
+    }>({ path: "/auth/me", method: "GET" });
+    return {
+      nextStep: result?.next_step ?? null,
+      welcomeSeen: result?.welcome_seen ?? false,
+      registrationProgress: result?.registration_progress ?? null,
+      profileChecklist: result?.profile_checklist ?? [],
+      branding: result?.branding
+        ? { tagline: result.branding.tagline, welcomeVideoUrl: result.branding.welcome_video_url }
+        : null,
+    };
+  }
+
+  /**
+   * Real `POST /acknowledge-welcome` -- requires a session (2026-08-14
+   * Xano confirmation: `welcome_seen = true`, `next_step = "PROFILE_SETUP"`).
+   * Returns null instead of calling the endpoint when there's no session,
+   * same guard `getNextStep()` already uses -- a `pending_verification`
+   * account (no token yet) must never reach this call in the first place
+   * (see WelcomeVideoScreen), but this stays defensive either way.
+   */
+  async acknowledgeWelcome(): Promise<NextStep | null> {
+    const token = await this.tokenStorage.getToken();
+    if (!token) return null;
+    const result = await this.client.request<{ next_step?: NextStep; welcome_seen?: boolean }>({
+      path: "/acknowledge-welcome",
+      method: "POST",
+    });
     return result?.next_step ?? null;
   }
 

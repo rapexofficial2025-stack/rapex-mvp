@@ -1,13 +1,14 @@
-import { useState, type CSSProperties } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, type CSSProperties } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ErrorState } from "@rapex/ui-web";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import { signInWithGoogle } from "../../services/socialAuth";
+import { recordAdminLogin } from "../../services/sessionAudit";
 
 const BACKGROUND = new URL("../../../../../assets/brand/Background/admin-login.png", import.meta.url).href;
 const LOGO = new URL("../../../../../assets/brand/Branding Logo (Available)/Logo.png", import.meta.url).href;
 const NAME = new URL("../../../../../assets/brand/Branding Logo (Available)/Name.png", import.meta.url).href;
 const GOOGLE_ICON = new URL("../../../../../assets/brand/icons/google-logo-icon.png", import.meta.url).href;
-const FACEBOOK_ICON = new URL("../../../../../assets/brand/icons/facebook-logo-icon.png", import.meta.url).href;
 
 /**
  * admin-login.png is a full mockup screenshot -- the glass card, divider,
@@ -16,47 +17,83 @@ const FACEBOOK_ICON = new URL("../../../../../assets/brand/icons/facebook-logo-i
  * directly). Only the real logo graphic (not baked into the art) and the
  * right column's login form are real components here.
  *
- * Google/Facebook/Forgot Password were explicitly reversed from
- * internal-only to included (founder decision, confirmed after flagging
- * the conflict with the earlier "Admin is internal-only" rule). Same
- * honest disabled-with-toast pattern as every other app: neither has a
- * configured OAuth Client ID / Meta App ID yet, so pressing them explains
- * why instead of faking success. Forgot Password has no confirmed Xano
- * endpoint for admin (see XanoAdminAuthRepository's requestOtp), same
- * honest toast. Email/password goes through the real, unchanged
- * XanoAdminAuthRepository.login().
+ * Google/Facebook sign-in needs provider configuration. Email/password goes
+ * through the real, unchanged XanoAdminAuthRepository.login(). The visual
+ * treatment is deliberately self-contained: it is an Admin Portal surface,
+ * not a second auth system.
  */
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { auth } = useRepositories();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(
+    searchParams.get("idle") === "1" ? "You were signed out after a period of inactivity. Please sign in again." : null,
+  );
+  const [googleLoading, setGoogleLoading] = useState(false);
+  // The desktop layout below uses absolute % positioning tuned for wide
+  // viewports -- on a narrow phone screen those percentages collapse the
+  // two columns into an overlapping, unreadable mess. Below this breakpoint
+  // the left branding column is dropped and the login card becomes a
+  // simple centered, self-sizing panel instead.
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.innerWidth <= 768);
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const login = useAsyncAction((input: { email: string; password: string }) => auth.login(input));
+
+  async function handleGoogleSignIn() {
+    setNotice(null);
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      // Firebase identity confirmed -- exchanging it for a real RAPEX admin
+      // session needs Xano's confirmed admin auth contract, not built yet.
+      setNotice(`Signed in as ${result.user.email} with Google. Linking this to a RAPEX admin session isn't wired up yet -- use email/password sign-in for now.`);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Google sign-in failed.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
 
   return (
     <div style={styles.page}>
-      <div style={styles.leftPanel}>
-        <img src={LOGO} alt="" style={{ width: 48, height: "auto" }} />
-        <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 150, height: "auto", marginTop: 4 }} />
-      </div>
+      {!isMobile && (
+        <div style={styles.leftPanel}>
+          <img src={LOGO} alt="" style={{ width: 48, height: "auto" }} />
+          <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 150, height: "auto", marginTop: 4 }} />
+        </div>
+      )}
 
-      <div style={styles.rightPanel}>
+      <div style={isMobile ? styles.rightPanelMobile : styles.rightPanel}>
+        {isMobile && (
+          <div style={styles.mobileBrandRow}>
+            <img src={LOGO} alt="" style={{ width: 32, height: "auto" }} />
+            <img src={NAME} alt="RAPEX -- Delivering the Future, Today." style={{ width: 108, height: "auto" }} />
+          </div>
+        )}
         <div>
-          <div style={styles.brand}>RAPEX</div>
-          <div style={styles.subtitle}>Sign In to Command Center</div>
+          <div style={styles.eyebrow}>RAPEX COMMAND CENTER</div>
+          <div style={styles.title}>Admin Login</div>
+          <div style={styles.subtitle}>Access your administration dashboard</div>
         </div>
 
         <div style={styles.field}>
-          <label style={styles.fieldLabel}>Email</label>
+          <label style={styles.fieldLabel}>Email or mobile number</label>
           <div style={styles.inputWrap}>
-            <span style={styles.inputIcon}>{"✉️"}</span>
+            <span style={styles.inputIcon}>ID</span>
             <input
               style={styles.input}
-              type="email"
+              type="text"
               autoComplete="username"
-              placeholder="Enter your email"
+              placeholder="Enter your email or mobile number"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -66,7 +103,7 @@ export function LoginPage() {
         <div style={styles.field}>
           <label style={styles.fieldLabel}>Password</label>
           <div style={styles.inputWrap}>
-            <span style={styles.inputIcon}>{"\u{1F512}"}</span>
+            <span style={styles.inputIcon}>PW</span>
             <input
               style={styles.input}
               type={showPassword ? "text" : "password"}
@@ -81,7 +118,7 @@ export function LoginPage() {
               style={styles.eyeToggle}
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? "\u{1F648}" : "\u{1F441}️"}
+              {showPassword ? "Hide" : "Show"}
             </button>
           </div>
         </div>
@@ -89,7 +126,7 @@ export function LoginPage() {
         <button
           type="button"
           style={styles.forgotLink}
-          onClick={() => setNotice("Forgot password isn't set up yet -- contact support for now.")}
+          onClick={() => navigate("/admin/forgot-password")}
         >
           Forgot Password?
         </button>
@@ -101,11 +138,17 @@ export function LoginPage() {
           disabled={login.loading}
           style={styles.primaryButton}
           onClick={async () => {
-            await login.execute({ email, password });
-            navigate("/admin/dashboard", { replace: true });
+            try {
+              await login.execute({ email, password });
+              recordAdminLogin();
+              navigate("/admin/dashboard", { replace: true });
+            } catch {
+              // The Xano error is rendered above. Never open an admin portal
+              // after a failed sign-in attempt.
+            }
           }}
         >
-          {login.loading ? "Signing in..." : `→ Sign In`}
+          {login.loading ? "Signing in…" : "Sign In"}
         </button>
 
         <div style={styles.dividerRow}>
@@ -118,25 +161,20 @@ export function LoginPage() {
           <button
             type="button"
             style={styles.socialButton}
-            onClick={() => setNotice("Google sign-in needs an OAuth Client ID that isn't configured yet.")}
+            disabled={googleLoading}
+            onClick={handleGoogleSignIn}
           >
             <img src={GOOGLE_ICON} alt="Google" style={styles.socialIcon} />
-            Google
-          </button>
-          <button
-            type="button"
-            style={styles.socialButton}
-            onClick={() => setNotice("Facebook sign-in needs a Meta App ID that isn't configured yet.")}
-          >
-            <img src={FACEBOOK_ICON} alt="Facebook" style={styles.socialIcon} />
-            Facebook
+            {googleLoading ? "Signing in…" : "Google"}
           </button>
         </div>
         {notice ? <p style={styles.notice}>{notice}</p> : null}
 
-        <button type="button" style={styles.createAccountLink} onClick={() => navigate("/admin/register")}>
-          Don't have an account? <span style={styles.createAccountAccent}>Create Account</span>
+        <button type="button" style={styles.previewButton} onClick={() => navigate("/admin/preview/dashboard")}>
+          Preview Admin UI — no sign-in
         </button>
+
+        <p style={styles.invitationOnly}>Admin access is invitation-only. Contact an authorized RAPEX administrator if you need access.</p>
       </div>
     </div>
   );
@@ -147,48 +185,80 @@ const styles: Record<string, CSSProperties> = {
     position: "relative",
     minHeight: "100vh",
     backgroundImage: `url(${BACKGROUND})`,
-    backgroundSize: "contain",
+    backgroundSize: "cover",
     backgroundRepeat: "no-repeat",
     backgroundPosition: "center",
+    // Pins the background to the viewport so it never shifts/reveals a gap
+    // when the page is resized, scrolled, or the browser is zoomed --
+    // browsers don't let a page block zoom itself (Ctrl+scroll/pinch stay
+    // available on purpose, an accessibility protection), but the
+    // background staying correctly framed regardless is what this fixes.
+    backgroundAttachment: "fixed",
     backgroundColor: "#0B0713",
     fontFamily: "inherit",
   },
-  // Estimated (not measured) percentage bounds within the background image --
-  // nudge these if they don't line up on a real render.
   leftPanel: {
     position: "absolute",
-    top: "13%",
-    left: "12%",
-    width: "38%",
+    top: "16%",
+    left: "14%",
+    width: "32%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
   },
   rightPanel: {
     position: "absolute",
-    top: "11%",
-    left: "53%",
-    width: "33%",
-    height: "78%",
+    top: "12%",
+    left: "54%",
+    width: "31%",
+    minHeight: 520,
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
-    gap: 12,
+    gap: 14,
+    padding: 34,
+    borderRadius: 22,
+    border: "1px solid rgba(232, 210, 255, 0.34)",
+    background: "linear-gradient(135deg, rgba(24, 19, 52, 0.68), rgba(84, 49, 88, 0.34))",
+    boxShadow: "inset 1px 1px 0 rgba(255,255,255,.18), 0 18px 48px rgba(3,1,15,.35), 0 0 28px rgba(157,92,255,.18)",
+    backdropFilter: "blur(18px)",
   },
-  brand: { fontSize: 18, fontWeight: 700, color: "#FFFFFF" },
-  subtitle: { fontSize: 13, color: "rgba(255,255,255,0.65)", marginTop: 2 },
+  rightPanelMobile: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "88%",
+    maxWidth: 420,
+    maxHeight: "92vh",
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    gap: 14,
+    padding: "26px 20px",
+    borderRadius: 20,
+    border: "1px solid rgba(232, 210, 255, 0.34)",
+    background: "linear-gradient(135deg, rgba(24, 19, 52, 0.82), rgba(84, 49, 88, 0.5))",
+    boxShadow: "inset 1px 1px 0 rgba(255,255,255,.18), 0 18px 48px rgba(3,1,15,.35), 0 0 28px rgba(157,92,255,.18)",
+    backdropFilter: "blur(18px)",
+  },
+  mobileBrandRow: { display: "flex", flexDirection: "column", alignItems: "center", gap: 4, marginBottom: 4 },
+  eyebrow: { fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: "#d7bdff" },
+  title: { fontSize: 30, fontWeight: 750, letterSpacing: -0.6, color: "#FFFFFF", marginTop: 6 },
+  subtitle: { fontSize: 14, color: "rgba(255,255,255,0.7)", marginTop: 4 },
   field: { display: "flex", flexDirection: "column", gap: 4 },
   fieldLabel: { fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)" },
   inputWrap: {
     display: "flex",
     alignItems: "center",
     gap: 8,
-    border: "1px solid rgba(255,255,255,0.16)",
-    background: "rgba(255,255,255,0.06)",
-    borderRadius: 10,
-    padding: "9px 11px",
+    border: "1px solid rgba(255,255,255,0.22)",
+    background: "rgba(255,255,255,0.075)",
+    borderRadius: 12,
+    padding: "12px 13px",
   },
-  inputIcon: { fontSize: 13, opacity: 0.8 },
+  inputIcon: { fontSize: 10, letterSpacing: 0.5, fontWeight: 800, opacity: 0.72 },
   input: {
     border: "none",
     background: "none",
@@ -199,7 +269,7 @@ const styles: Record<string, CSSProperties> = {
     flex: 1,
     minWidth: 0,
   },
-  eyeToggle: { background: "none", border: "none", cursor: "pointer", fontSize: 13, opacity: 0.7, padding: 0 },
+  eyeToggle: { background: "none", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, color: "#E7DAFF", opacity: 0.85, padding: 0 },
   forgotLink: {
     alignSelf: "flex-end",
     background: "none",
@@ -214,13 +284,14 @@ const styles: Record<string, CSSProperties> = {
   primaryButton: {
     marginTop: 2,
     borderRadius: 12,
-    padding: "12px",
-    border: "none",
-    background: "linear-gradient(90deg, #F97316, #8B5CF6)",
+    padding: "13px",
+    border: "1px solid rgba(245, 216, 255, .38)",
+    background: "linear-gradient(100deg, rgba(249,115,22,.94), rgba(213,65,162,.93), rgba(125,60,235,.96))",
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: 700,
     cursor: "pointer",
+    boxShadow: "0 8px 18px rgba(99,52,207,.28), inset 0 1px 0 rgba(255,255,255,.26)",
   },
   dividerRow: { display: "flex", alignItems: "center", gap: 8, marginTop: 4 },
   dividerLine: { flex: 1, height: 1, background: "rgba(255,255,255,0.14)" },
@@ -235,7 +306,7 @@ const styles: Record<string, CSSProperties> = {
     border: "1px solid rgba(255,255,255,0.16)",
     background: "rgba(255,255,255,0.06)",
     borderRadius: 10,
-    padding: "9px",
+    padding: "11px",
     color: "#FFFFFF",
     fontSize: 12,
     fontWeight: 600,
@@ -243,14 +314,15 @@ const styles: Record<string, CSSProperties> = {
   },
   socialIcon: { width: 15, height: 15 },
   notice: { fontSize: 10, color: "rgba(255,255,255,0.65)", marginTop: -2, textAlign: "center" },
-  createAccountLink: {
-    background: "none",
-    border: "none",
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 11,
+  previewButton: {
+    border: "1px solid rgba(207,182,255,.36)",
+    borderRadius: 10,
+    background: "rgba(255,255,255,.06)",
+    color: "#e4d7ff",
+    padding: "10px",
+    fontSize: 12,
+    fontWeight: 700,
     cursor: "pointer",
-    textAlign: "center",
-    marginTop: 4,
   },
-  createAccountAccent: { color: "#C4B5FD", fontWeight: 700 },
+  invitationOnly: { margin: "4px 0 0", color: "rgba(255,255,255,.56)", fontSize: 11, lineHeight: 1.5, textAlign: "center" },
 };
