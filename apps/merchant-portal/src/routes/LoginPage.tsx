@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
+import { DEMO_MODE, demoSession } from "../services/demoMode";
 
 const BACKGROUND = new URL("../../../../assets/brand/Background/merchant-login.png", import.meta.url).href;
 const GOOGLE_ICON = new URL("../../../../assets/brand/icons/google-logo-icon.png", import.meta.url).href;
@@ -52,6 +53,15 @@ export function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (DEMO_MODE) {
+      // Demo: any (even empty) credentials enter the portal; the mock auth
+      // repository accepts any code, so the OTP step is skipped entirely.
+      await auth.login({ email: email || "demo@rapex.demo", password });
+      await auth.verifyOtp("000000");
+      demoSession.signIn();
+      navigate("/portal/store");
+      return;
+    }
     const result = await login.execute({ email, password });
     if (result.status === "otp_required") setStage("otp");
   }
@@ -72,6 +82,11 @@ export function LoginPage() {
             <>
               <h1 style={styles.formTitle}>Merchant Login</h1>
               <p style={styles.formSubtitle}>Access your merchant dashboard</p>
+              {DEMO_MODE ? (
+                <p style={styles.formSubtitle}>
+                  <strong>Demo mode</strong> — sample data only. Leave the fields empty (or type anything) and press Sign In.
+                </p>
+              ) : null}
 
               <form style={styles.form} onSubmit={handleLogin}>
                 <div style={styles.field}>
@@ -147,7 +162,7 @@ export function LoginPage() {
               </button>
               {socialNotice ? <p style={styles.socialNotice}>{socialNotice}</p> : null}
 
-              <button type="button" style={styles.registerLink} onClick={() => navigate("/xano-test")}>
+              <button type="button" style={styles.registerLink} onClick={() => (DEMO_MODE ? setSocialNotice("Demo mode: no account needed. Just press Sign In.") : navigate("/xano-test"))}>
                 Don't have an account? <span style={styles.registerLinkAccent}>Sign up here</span>
               </button>
             </>

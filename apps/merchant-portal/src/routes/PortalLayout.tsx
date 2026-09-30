@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Sidebar, Topbar, ThemeToggle } from "@rapex/ui-web";
+import { Badge, Sidebar, Topbar, ThemeToggle } from "@rapex/ui-web";
+import { DEMO_MODE, demoSession } from "../services/demoMode";
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", path: "/portal/dashboard" },
@@ -25,7 +26,27 @@ export function PortalLayout() {
         }))}
       />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <Topbar title={activeItem?.label ?? "RAPEX Merchant"} actions={<ThemeToggle />} />
+        <Topbar
+          title={activeItem?.label ?? "RAPEX Merchant"}
+          actions={
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {DEMO_MODE ? <Badge label="DEMO — sample data, nothing is saved" tone="warning" /> : null}
+              {DEMO_MODE ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    demoSession.signOut();
+                    navigate("/login");
+                  }}
+                  style={{ cursor: "pointer", background: "transparent", border: "1px solid currentColor", borderRadius: 8, padding: "6px 12px", color: "inherit" }}
+                >
+                  Sign out
+                </button>
+              ) : null}
+              <ThemeToggle />
+            </div>
+          }
+        />
         <Outlet />
       </div>
     </div>
