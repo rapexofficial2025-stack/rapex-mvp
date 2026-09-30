@@ -6,6 +6,7 @@ import { LoginPage } from "./routes/LoginPage";
 import { RequireMerchantAuth } from "./routes/RequireMerchantAuth";
 import { XanoLiveTestPage } from "./routes/XanoLiveTestPage";
 import { StorePage } from "./features/store/StorePage";
+import { DEMO_MODE } from "./services/demoMode";
 
 // GitHub Pages staging serves this app from a /<repo>/ or /<repo>/merchant/
 // subpath via VITE_BASE_PATH -- see vite.config.ts. Unlike admin-portal,
@@ -20,7 +21,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/xano-test" element={<XanoLiveTestPage />} />
+        {!DEMO_MODE && <Route path="/xano-test" element={<XanoLiveTestPage />} />}
         <Route
           path="/portal"
           element={

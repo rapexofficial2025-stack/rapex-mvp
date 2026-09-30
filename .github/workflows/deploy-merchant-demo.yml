@@ -1,0 +1,77 @@
+name: Deploy Merchant Portal demo (GitHub Pages)
+
+# Public, no-backend demo of the Merchant Portal front end only:
+# VITE_DEMO_MODE=true => Mock repositories, any login works, zero Xano calls.
+# Published at https://<org>.github.io/rapex-mvp/
+#
+# NOTE: this and deploy-pages-staging.yml both publish to the same Pages site
+# (same URL, same "pages" concurrency group). Whichever ran last is what is
+# live, so don't run the manual staging deploy if you want to keep the demo up.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/merchant-portal/**"
+      - "packages/**"
+      - "assets/brand/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/deploy-merchant-demo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.18.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install merchant-portal and its workspace dependencies
+        run: pnpm install --frozen-lockfile --filter "merchant-portal..."
+
+      - name: Typecheck merchant-portal
+        run: pnpm --filter merchant-portal typecheck
+
+      - name: Build merchant-portal (demo mode)
+        run: pnpm --filter merchant-portal build
+        env:
+          VITE_DEMO_MODE: "true"
+          VITE_BASE_PATH: /rapex-mvp/
+
+      # GitHub Pages serves 404.html for unknown paths. Reusing the SPA's
+      # index.html means a refresh on a deep link (e.g. /rapex-mvp/portal/store)
+      # still loads the app instead of GitHub's generic 404.
+      - name: SPA fallback for deep links
+        run: cp apps/merchant-portal/dist/index.html apps/merchant-portal/dist/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/merchant-portal/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
