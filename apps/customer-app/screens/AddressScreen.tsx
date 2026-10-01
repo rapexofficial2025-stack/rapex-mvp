@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Platform, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Badge, Button, ErrorState, GlassCard, Input } from "@rapex/ui-native";
+import * as Location from "expo-location";
+import { Badge, Button, ErrorState, GlassCard, Input, RapexMapView } from "@rapex/ui-native";
 import { useAsyncAction, useRepositories } from "@rapex/api-client";
 import { PILOT_AREAS, PH_REGION, PH_PROVINCE, PILOT_MUNICIPALITY_GEOGRAPHY, type PilotArea } from "@rapex/constants";
 import type { RootStackParamList } from "../types/navigation";
@@ -14,6 +15,10 @@ import { updateRegistrationDraft, useRegistrationDraft } from "../services/regis
 /** Imus, Cavite -- RAPEX's pilot area, matches XanoMerchantRepository's default. Used only when no GPS fix exists. */
 const DEFAULT_LATITUDE = 14.4297;
 const DEFAULT_LONGITUDE = 120.936;
+
+const ADDRESS_LABELS = ["House", "Office", "Store", "Business", "Friends", "Partner", "Other"] as const;
+type AddressLabel = (typeof ADDRESS_LABELS)[number];
+const isAddressLabel = (value: string | undefined): value is AddressLabel => (ADDRESS_LABELS as readonly string[]).includes(value ?? "");
 
 type Props = NativeStackScreenProps<RootStackParamList, "Address">;
 
@@ -36,7 +41,7 @@ export function AddressScreen({ navigation, route }: Props) {
     }),
   );
 
-  const [label, setLabel] = useState(existing?.label ?? "Home");
+  const [label, setLabel] = useState<AddressLabel>(isAddressLabel(existing?.label) ? existing.label : "House");
   const [municipality, setMunicipality] = useState<PilotArea>((existing?.municipality as PilotArea) ?? PILOT_AREAS[0]);
   const [barangay, setBarangay] = useState(existing?.barangay ?? "");
   const [subdivision, setSubdivision] = useState(existing?.subdivision ?? "");
@@ -47,6 +52,43 @@ export function AddressScreen({ navigation, route }: Props) {
   const [building, setBuilding] = useState(existing?.building ?? "");
   const [floor, setFloor] = useState(existing?.floor ?? "");
   const [roomUnit, setRoomUnit] = useState(existing?.roomUnit ?? "");
+
+  const [gpsLatitude, setGpsLatitude] = useState(existing?.latitude ?? registrationDraft.gpsLatitude);
+  const [gpsLongitude, setGpsLongitude] = useState(existing?.longitude ?? registrationDraft.gpsLongitude);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  async function useCurrentLocation() {
+    setLocating(true);
+    setLocationError(null);
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) {
+        setLocationError("Location access denied — using the default town-center coordinates instead.");
+        return;
+      }
+      const position = await Location.getCurrentPositionAsync({});
+      setGpsLatitude(position.coords.latitude);
+      setGpsLongitude(position.coords.longitude);
+      updateRegistrationDraft({ gpsLatitude: position.coords.latitude, gpsLongitude: position.coords.longitude });
+    } catch {
+      setLocationError("Couldn't get your location. Check that location services are enabled and try again.");
+    } finally {
+      setLocating(false);
+    }
+  }
+
+  // Force-open this screen with the user's current GPS fix as the default
+  // starting point (same real expo-location capture as RegisterLocationScreen,
+  // just auto-triggered here too) so opening Address directly -- not only via
+  // the registration wizard -- still defaults to "where I am right now"
+  // instead of silently falling back to the town-center coordinates.
+  useEffect(() => {
+    if (gpsLatitude === null && gpsLongitude === null) {
+      useCurrentLocation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const postalCode = PILOT_MUNICIPALITY_GEOGRAPHY[municipality].postalCode;
   const canSave = subdivision.trim().length > 0 && street.trim().length > 0 && barangay.trim().length > 0;
@@ -65,9 +107,30 @@ export function AddressScreen({ navigation, route }: Props) {
 
   return (
     <ScreenContainer title="Delivery Address" subtitle={fromRegistration ? "Step 7 of 7" : "Where should your order go?"}>
-      <Badge label="Map picker needs a Google Maps API key (UNVERIFIED, not wired in yet) — using GPS/town-center coordinates" tone="warning" />
+      {Platform.OS === "web" ? (
+        <Badge label="Map picker needs a Google Maps API key (UNVERIFIED, not wired in yet), and react-native-maps has no web build — using GPS/town-center coordinates on web. Run this on iOS/Android for the real map." tone="warning" />
+      ) : (
+        <>
+          <Badge label="Map picker needs a Google Maps API key (UNVERIFIED, not wired in yet) — pin position uses GPS/town-center coordinates" tone="warning" />
+          <View style={{ height: 220, borderRadius: theme.radius.lg, overflow: "hidden" }}>
+            <RapexMapView
+              key={`${gpsLatitude ?? DEFAULT_LATITUDE}-${gpsLongitude ?? DEFAULT_LONGITUDE}`}
+              markers={[{ id: "delivery-pin", role: "customer", latitude: gpsLatitude ?? DEFAULT_LATITUDE, longitude: gpsLongitude ?? DEFAULT_LONGITUDE, label }]}
+              initialLatitude={gpsLatitude ?? DEFAULT_LATITUDE}
+              initialLongitude={gpsLongitude ?? DEFAULT_LONGITUDE}
+            />
+          </View>
+        </>
+      )}
 
-      <Input label="Label" placeholder="Home, Work, etc." value={label} onChangeText={setLabel} />
+      <View style={{ gap: theme.spacing.xs }}>
+        {locationError ? <Badge label={locationError} tone="warning" /> : gpsLatitude !== null && gpsLongitude !== null ? (
+          <Badge label={`Using your location: ${gpsLatitude.toFixed(5)}, ${gpsLongitude.toFixed(5)}`} tone="success" />
+        ) : null}
+        <Button label={locating ? "Locating..." : "Use Current Location"} variant="secondary" loading={locating} onPress={useCurrentLocation} />
+      </View>
+
+      <PickerField label="Label" value={label} options={[...ADDRESS_LABELS]} onSelect={(value) => setLabel(value as AddressLabel)} />
 
       <Text style={{ fontSize: theme.typography.fontSize.sm, fontWeight: "700", color: theme.colors.textPrimary, marginTop: theme.spacing.sm }}>
         Region / Province / Municipality
@@ -120,7 +183,7 @@ export function AddressScreen({ navigation, route }: Props) {
 
       <GlassCard>
         <Text style={{ fontSize: theme.typography.fontSize.xs, color: theme.colors.textSecondary }}>
-          Pin location {registrationDraft.gpsLatitude !== null ? "uses your captured GPS coordinates" : `defaults to ${municipality} town center`} until
+          Pin location {gpsLatitude !== null ? "uses your current GPS coordinates" : `defaults to ${municipality} town center`} until
           map-based picking is available. This affects delivery fee/ETA accuracy for real orders — see packages/ui-native/src/RapexMapView.tsx.
         </Text>
       </GlassCard>
@@ -132,10 +195,10 @@ export function AddressScreen({ navigation, route }: Props) {
         loading={fromRegistration && register.loading}
         disabled={!canSave}
         onPress={async () => {
-          const latitude = registrationDraft.gpsLatitude ?? DEFAULT_LATITUDE;
-          const longitude = registrationDraft.gpsLongitude ?? DEFAULT_LONGITUDE;
+          const latitude = gpsLatitude ?? DEFAULT_LATITUDE;
+          const longitude = gpsLongitude ?? DEFAULT_LONGITUDE;
           const address = {
-            label: label.trim() || "Home",
+            label,
             line,
             municipality,
             latitude,
