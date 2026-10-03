@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@rapex/theme/tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}

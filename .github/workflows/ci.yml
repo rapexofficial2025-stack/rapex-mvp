@@ -31,9 +31,11 @@ jobs:
           pnpm --filter admin-portal lint
           pnpm --filter merchant-portal lint
           pnpm --filter provider-portal lint
+          pnpm --filter freelancer-app lint
 
       - name: Build web portals
         run: |
           pnpm --filter admin-portal build
           pnpm --filter merchant-portal build
           pnpm --filter provider-portal build
+          pnpm --filter freelancer-app build
